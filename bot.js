@@ -6,7 +6,7 @@
 
 // Import Botkit's core features
 const { Botkit } = require('botkit');
-const { BotkitCMSHelper } = require('botkit-plugin-cms');
+// const { BotkitCMSHelper } = require('botkit-plugin-cms');
 
 // Import a platform-specific adapter for facebook.
 
@@ -47,21 +47,30 @@ const controller = new Botkit({
     storage
 });
 
-if (process.env.CMS_URI) {
+/*if (process.env.CMS_URI) {
     controller.usePlugin(new BotkitCMSHelper({
         uri: process.env.CMS_URI,
         token: process.env.CMS_TOKEN,
     }));
-}
+}*/
+
+controller.on('message', async(bot, message) => {
+    await bot.reply(message, 'I heard a message!');
+});
 
 // Once the bot has booted up its internal services, you can use them to do stuff.
-controller.ready(() => {
+/* controller.ready(() => {
 
     // load traditional developer-created local custom feature modules
+/*
     controller.loadModules(__dirname + '/features');
 
+    controller.on('message', async (bot, message) => {
+	    
+    });
+*/
     /* catch-all that uses the CMS to trigger dialogs */
-    if (controller.plugins.cms) {
+    /*if (controller.plugins.cms) {
         controller.on('message,direct_message', async (bot, message) => {
             let results = false;
             results = await controller.plugins.cms.testTrigger(bot, message);
@@ -71,9 +80,9 @@ controller.ready(() => {
                 return false;
             }
         });
-    }
+    }*/
 
-});
+});*/
 
 
 
