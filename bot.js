@@ -54,8 +54,10 @@ const controller = new Botkit({
     }));
 }*/
 
-controller.on('message', async(bot, message) => {
-    await bot.reply(message, 'I heard a message!');
+controller.ready(() => {
+	controller.on('message', async(bot, message) => {
+    		await bot.reply(message, 'I heard a message!');
+	});
 });
 
 // Once the bot has booted up its internal services, you can use them to do stuff.
