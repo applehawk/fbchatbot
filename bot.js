@@ -60,34 +60,6 @@ controller.ready(() => {
 	});
 });
 
-// Once the bot has booted up its internal services, you can use them to do stuff.
-/* controller.ready(() => {
-
-    // load traditional developer-created local custom feature modules
-/*
-    controller.loadModules(__dirname + '/features');
-
-    controller.on('message', async (bot, message) => {
-	    
-    });
-*/
-    /* catch-all that uses the CMS to trigger dialogs */
-    /*if (controller.plugins.cms) {
-        controller.on('message,direct_message', async (bot, message) => {
-            let results = false;
-            results = await controller.plugins.cms.testTrigger(bot, message);
-
-            if (results !== false) {
-                // do not continue middleware!
-                return false;
-            }
-        });
-    }*/
-
-});*/
-
-
-
 controller.webserver.get('/', (req, res) => {
 
     res.send(`This app is running Botkit ${ controller.version }.`);
