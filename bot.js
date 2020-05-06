@@ -5,7 +5,7 @@
 // This is the main file for the Welcome Bot bot.
 
 // Import Botkit's core features
-const { Botkit } = require('botkit');
+const { Botkit, BotkitConversation } = require('botkit');
 // Import a platform-specific adapter for facebook.
 const { FacebookAdapter, FacebookEventTypeMiddleware } = require('botbuilder-adapter-facebook');
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
