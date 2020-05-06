@@ -49,12 +49,12 @@ controller.hears('hello','direct_message', function(bot, message) {
     bot.reply(message,'Hello yourself!');
 });
 */
-
+/*
 controller.ready(() => {
 	controller.on('message', async(bot, message) => {
     		await bot.reply(message, message.text);
 	});
-});
+});*/
 
 controller.webserver.get('/', (req, res) => {
     res.send(`This app is running Botkit ${ controller.version }.`);
