@@ -39,22 +39,21 @@ const controller = new Botkit({
 
 const MY_DIALOG_ID = 'DIALOG1';
 let convo = new BotkitConversation(MY_DIALOG_ID, controller);
+// send a greeting
+convo.say('Howdy!');
+// ask a question, store the response in 'name'
+convo.ask('What is your name?', async(response, convo, bot) => {
+    console.log(`user name is ${ response }`);
+    // do something?
+}, 'name');
 
 controller.ready(() => {
-    // send a greeting
-    convo.say('Howdy!');
-    // ask a question, store the response in 'name'
-    convo.ask('What is your name?', async(response, convo, bot) => {
-        console.log(`user name is ${ response }`);
-        // do something?
-    }, 'name');
+    controller.addDialog(convo);
 
     controller.hears('hello','direct_message', function(bot, message) {
         bot.reply(message,'Hello yourself!');
     });
 });
-
-controller.addDialog(convo);
 /* 
 let { Botkit } = require('botkit');
 
