@@ -53,6 +53,8 @@ controller.ready(() => {
         bot.reply(message,'Hello yourself!');
     });
 });
+
+controller.addDialog(convo);
 /* 
 let { Botkit } = require('botkit');
 
