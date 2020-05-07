@@ -47,13 +47,15 @@ convo.ask('What is your name?', async(response, convo, bot) => {
     // do something?
 }, 'name');
 
+controller.addDialog(convo);
+/*
 controller.ready(() => {
     controller.addDialog(convo);
 
     controller.hears('hello','direct_message', function(bot, message) {
         bot.reply(message,'Hello yourself!');
     });
-});
+});*/
 /* 
 let { Botkit } = require('botkit');
 
