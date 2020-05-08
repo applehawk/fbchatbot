@@ -39,7 +39,8 @@ const controller = new Botkit({
 });
 
 
-let convo = new BotkitConversation('TestDialog1', controller);
+const DIALOG_ONBOARDING = "TestDialog1"
+let convo = new BotkitConversation(DIALOG_ONBOARDING, controller);
 // send a greeting
 convo.say('Hi! 👋\
 \
@@ -70,7 +71,6 @@ convo.ask({
 }, [async(response_text, convo, bot, full_message) => {
     await convo.say('Let\' go');
     //convo.say('Awesome. Here '+response.text);
-    return await convo.next();
     }]
 );
 
@@ -81,9 +81,7 @@ convo.ask('What is your name?', async(res, convo, bot) => {}, {key: 'name'});
 // ask a question, store the response in 'name'
 convo.ask('What is your Facebook URL?', async(res, convo, bot) => {}, {key: 'facebook_url'});
 
-convo.say('Hello {{vars.name}}, you have facebookPage {{vars.facebook_url}}')
-
-convo.addAction('complete');
+//convo.say('Hello {{vars.name}}, you have facebookPage {{vars.facebook_url}}')
 
 /*
 
@@ -99,13 +97,10 @@ convo.after(async(results, bot) => {
 controller.addDialog(convo);
 */
 
-
-controller.addDialog(convo);
-
 controller.on("event,facebook_postback", async(bot, message) => {
-    console.log("Check it Bro!");
-    console.log(util.inspect(message));
-    await bot.beginDialog('TestDialog1');
+    //console.log("Check it Bro!");
+    //console.log(util.inspect(message));
+    await bot.beginDialog(DIALOG_ONBOARDING);
 });
 
 /*
