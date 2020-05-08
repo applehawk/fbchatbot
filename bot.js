@@ -37,11 +37,9 @@ const controller = new Botkit({
     adapter: adapter,
     storage
 });
-/*
 
-const DIALOG_ONBOARDING = 'DIALOG1';
-let convo = new BotkitConversation(DIALOG_ONBOARDING, controller);
 
+let convo = new BotkitConversation('TestDialog1', controller);
 // send a greeting
 convo.say('Hi! 👋\
 \
@@ -87,8 +85,7 @@ convo.say('Hello {{vars.name}}, you have facebookPage {{vars.facebook_url}}')
 
 convo.addAction('complete');
 
-controller.addDialog(convo);
-*/
+/*
 
 // define a profile collection dialog
 let convo = new BotkitConversation('PROFILE_DIALOG', controller);
@@ -100,14 +97,15 @@ convo.after(async(results, bot) => {
      // handle results.name, results.age, results.color
 });
 controller.addDialog(convo);
+*/
 
-controller.on('facebook_postback,facebook_option', async(bot, message) => {
-    console.log("Check it Bro! ")
-    console.log(util.inspect(message))
-    if ( message.type === "facebook_postback" && 
-        message.text === '{"type":"legacy_reply_to_message_action","message":"Get Started"}' ) {
-        await bot.beginDialog('PROFILE_DIALOG');
-    }
+
+controller.addDialog(convo);
+
+controller.on("event,facebook_postback", async(bot, message) => {
+    console.log("Check it Bro!");
+    console.log(util.inspect(message));
+    await bot.beginDialog('TestDialog1');
 });
 
 /*
@@ -119,6 +117,7 @@ conversation.say('Let us get started...');
 conversation.addAction('continuation');
 conversation.addMessage('This is a different thread completely', 'continuation2');
 controller.addDialog(conversation);*/
+
 
 //controller.on('facebook_postback', async(bot, message) => {
 //    await bot.beginDialog(DIALOG_ONBOARDING);
