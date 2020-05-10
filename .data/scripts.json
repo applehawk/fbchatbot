@@ -1,0 +1,126 @@
+[
+  {
+    "id": "0-0-0-0-0",
+    "command": "hello",
+    "description": "Respond when a human says hello!",
+    "script": [
+      {
+        "topic": "default",
+        "script": [
+          {
+            "text": [
+              "Hello Human!",
+              "How do you do?",
+              "Nice to meet you Human.",
+              "Hi!",
+              "How’s it going?",
+              "Hey!",
+              "Hey there!",
+              "Howdy!",
+              "G`day human!",
+              "Salut!",
+              "Ciao!",
+              "Hola!",
+              "Shalom!"
+            ]
+          },
+          {
+            "action": "complete"
+          }
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "pattern": "hell.*",
+        "type": "regexp",
+        "id": "495"
+      },
+      {
+        "type": "string",
+        "pattern": "hello"
+      },
+      {
+        "type": "string",
+        "pattern": "hey"
+      },
+      {
+        "type": "string",
+        "pattern": "hi"
+      },
+      {
+        "type": "string",
+        "pattern": "howdy"
+      }
+    ],
+    "variables": [],
+    "modified": "2018-12-12T15:23:41.416Z",
+    "name": "hello"
+  },
+  {
+    "command": "Facebook Onboarding",
+    "botId": 1,
+    "description": "Onboarding",
+    "triggers": [
+      {
+        "type": "string",
+        "pattern": "Facebook Onboarding"
+      }
+    ],
+    "variables": [
+      {
+        "name": "question_1",
+        "type": "string"
+      },
+      {
+        "name": "question_2",
+        "type": "string"
+      },
+      {
+        "name": "question_3",
+        "type": "string"
+      }
+    ],
+    "script": [
+      {
+        "topic": "default",
+        "script": [
+          {
+            "text": [
+              "Hi! 👋",
+              "We are the (not)Random English an international online platform for training business English skills through a friendly networking format.",
+              "Every Monday and Thursday we will offer you for conversation an interesting person, selected following your interests among other participants.",
+              "We establish a simple system, first of all, you should share with us some information about yourself, your needs and your knowledge that might be useful for our community. It allows other people before the call to know what topics it will be interesting to discuss with you.",
+              "Let me ask you some questions and we will create your profile that will be available to other participants",
+              "Here we go?"
+            ]
+          },
+          {
+            "text": [
+              "",
+              "Every Monday and Thursday we will offer you for conversation an interesting person, selected following your interests among other participants."
+            ]
+          },
+          {
+            "action": "complete"
+          }
+        ]
+      },
+      {
+        "topic": "on_timeout",
+        "script": [
+          {
+            "text": [
+              "Looks like you got distracted. We can continue later."
+            ]
+          },
+          {
+            "action": "timeout"
+          }
+        ]
+      }
+    ],
+    "id": "e7302700-9e12-4e8f-bb0f-7772d0a1175d",
+    "modified": "2020-05-10T08:25:03.810Z"
+  }
+]

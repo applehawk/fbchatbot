@@ -9,6 +9,8 @@ const { Botkit, BotkitConversation } = require('botkit');
 const { FacebookAPI } = require('botbuilder-adapter-facebook');
 // Import a platform-specific adapter for facebook.
 const { FacebookAdapter, FacebookEventTypeMiddleware } = require('botbuilder-adapter-facebook');
+const { ConversationState, UserState } = require('botbuilder');
+const { BotkitCMSHelper } = require('botkit-plugin-cms');
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 
 const util = require('util')
@@ -23,8 +25,6 @@ if (process.env.MONGO_URI) {
         useUnifiedTopology: true,
         url: process.env.MONGO_URI,
     });
-
-    storage.delete(['name','age','favourite_color']);
 }
 
 const adapter = new FacebookAdapter({
@@ -37,60 +37,153 @@ adapter.use(new FacebookEventTypeMiddleware());
 const controller = new Botkit({
     webhook_uri: '/api/messages',
     adapter: adapter,
-    storage
 });
 
+/*
+let cms = new BotkitCMSHelper({
+    uri: 'http://localhost:5000/',
+    token: 'qweBoqfxBDmpd'
+});
+controller.usePlugin(cms);
+*/
+
+const GREETING_ID = 'GREETING_ID'
+const ONBOARDING_ID = 'ONBOARDING_ID'
+let greeting = new BotkitConversation(GREETING_ID, controller);
+// send a greeting
+greeting.addMessage(`Hi! 👋
+
+We are the (not)Random English an international online platform for training business English skills through a friendly networking format.
+
+Every Monday and Thursday we will offer you for conversation an interesting person, selected following your interests among other participants.
+
+We establish a simple system, first of all, you should share with us some information about yourself, your needs and your knowledge that might be useful for our community. It allows other people before the call to know what topics it will be interesting to discuss with you.
+
+Let me ask you some questions and we will create your profile that will be available to other participants`);
+greeting.ask({
+    text: "Here we go?",
+    quick_replies: [{
+      content_type: 'text',
+      title: 'Go!',
+      payload: 'Go!',
+    }],
+  }, function(response, convo) {
+    convo.stop();
+  });
+
+greeting.after(async(results, bot) => {
+    bot.beginDialog(ONBOARDING_ID);
+});
+
+let onboarding = new BotkitConversation(ONBOARDING_ID, controller);
+// ask a question, store the response in 'name'
+onboarding.ask('What is your name?', async(response, convo, bot) => {
+    console.log(`user name is ${ response }`);
+}, 'name');
+onboarding.say('Great! Your name is {{vars.name}}');
+onboarding.ask(`Fine. Could you share with me a link to your Facebook profile?
+
+    It needs for connection with partners. We will send the link to your partner for scheduling the call.
+    
+    Where you can find the link?
+    
+    For Facebook Messenger: go to your profile, this is where the chat list is, copy the profile link and send it to the dialogue.
+    
+    If you use a web browser:
+    1) open in a new Facebook.com and go to your profile page
+    2) copy the link from the address bar and send it to the dialogue.)`, 
+    async(response, convo, bot) => {
+        console.log(`user name is ${ response }`);
+    }, 'facebook_url');
+
+onboarding.ask(`It was not easy, but we did it! 😀
+
+Now tell me where are you from?
+(Country and city)`, async(response, convo, bot) => {
+    console.log(`user name is ${ response }`);
+}, 'country_city');
+
+const professionAsk = `Next step:
+What are you doing?
+
+Tell us about your work, company, project or startup you are involved in.
+
+For example, I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project.`
+
+onboarding.ask(professionAsk, async(response, convo, bot) => {
+    console.log(`user profession is ${ response }`);
+}, 'profession');
+
+onboarding.ask({
+    text: 'Ok. What about English speaking? Choose your English level, it will help us to choose the suited person for the call.',
+    quick_replies: [{
+      content_type: 'text',
+      title: 'Elementary',
+      payload: 'Elementary',
+    }, {
+      content_type: 'text',
+      title: 'Pre-Intermediate',
+      payload: 'Pre-Intermediate',
+    }, {
+      content_type: 'text',
+      title: 'Intermediate',
+      payload: 'Intermediate',
+    }, {
+        content_type: 'text',
+        title: 'Advanced',
+        payload: 'Advanced',
+    }],
+  }, function(response, convo) {
+    convo.stop();
+  }, 'english_level');
+
+onboarding.after(async(results, bot) => {
+    bot.say(`Great `+results.name+`! We know about you next things:
+    
+What are you doing -> `+results.profession+`
+What is your level of English -> `+results.english_level+`
+You have a Facebook page :), here is it-> `+results.facebook_url+`
+    
+Oh yes, I completely forgot. You are from `+results.country_city);
+
+});
+
+controller.addDialog(greeting);
+controller.addDialog(onboarding);
+
+/*
 controller.on('message', async(bot, message) => {
     // call the facebook API to get the bot's page identity
     let identity = await bot.api.callAPI('/me', 'GET', {});
     await bot.reply(message,`My name is ${ identity.name }`);
 });
+*/
 
-/*
-let convo = new BotkitConversation('PROFILE_DIALOG', controller);
+controller.ready(() => {
+    // load traditional developer-created local custom feature modules
+    controller.loadModules(__dirname + '/features');
 
-convo.addQuestion('What is your name?', async(response, convo, bot) => {
-    console.log(`user name is ${ response }`);
-},'name', 'default');
+    controller.on('facebook_postback', async (bot, message) => {
+        console.log(message)
 
-convo.addQuestion('What is your age?', async(response, convo, bot) => {
-    console.log(`user age is ${ response }`);
-},'age', 'default');
+        if (message.postback.title == "Get Started") {
+            await bot.beginDialog(GREETING_ID);
+        };
+    });
 
-convo.addQuestion('What is your favorite color?', async(response, convo, bot) => {
-    console.log(`user favourite color is ${ response }`);
-},'color', 'default');
-
-convo.after(async(results, bot) => {
-    convo.say('You have {{vars.results.name}} {{vars.results.age}} and {{vars.results.color}}');
-     // handle results.name, results.age, results.color
-});
-controller.addDialog(convo);
-controller.on("facebook_postback", async(bot, message) => {
-    try {
-        await bot.beginDialog('PROFILE_DIALOG');
-    } catch (error) {
-        console.log('That did not go well.')
-        throw error
+    /* catch-all that uses the CMS to trigger dialogs */
+    if (controller.plugins.cms) {
+        controller.on('message,direct_message', async (bot, message) => {
+            let results = false;
+            results = await controller.plugins.cms.testTrigger(bot, message);
+            if (results !== false) {
+                // do not continue middleware!
+                return false;
+            }
+        });
     }
 });
-
-*/
 
 controller.webserver.get('/', (req, res) => {
     res.send(`This app is running Botkit ${ controller.version }.`);
 });
-
-
-// Log every message received
-/*
-controller.middleware.receive.use(function(bot, message, next) {
-    // log it
-    console.log('RECEIVED: ', message);
-    // modify the message
-    message.logged = true;
-    // continue processing the message
-    next();
-  });
-
-*/

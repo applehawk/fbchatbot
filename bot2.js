@@ -135,3 +135,29 @@ var attachment = {
     }
 ], 'wants_taco'
 */
+
+
+
+
+
+/// NEXT CODE
+
+/*
+
+
+*/
+
+
+
+// Log every message received
+/*
+controller.middleware.receive.use(function(bot, message, next) {
+    // log it
+    console.log('RECEIVED: ', message);
+    // modify the message
+    message.logged = true;
+    // continue processing the message
+    next();
+  });
+
+*/
