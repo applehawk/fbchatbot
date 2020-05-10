@@ -19,9 +19,12 @@ require('dotenv').config();
 let storage = null;
 if (process.env.MONGO_URI) {
     storage = mongoStorage = new MongoDbStorage({
+        useNewUrlParser: true, 
         useUnifiedTopology: true,
-        url : process.env.MONGO_URI,
+        url: process.env.MONGO_URI,
     });
+
+    storage.delete(['name','age','favourite_color']);
 }
 
 const adapter = new FacebookAdapter({
@@ -31,30 +34,63 @@ const adapter = new FacebookAdapter({
 })
 // emit events based on the type of facebook event being received
 adapter.use(new FacebookEventTypeMiddleware());
-
 const controller = new Botkit({
     webhook_uri: '/api/messages',
     adapter: adapter,
     storage
 });
 
-const DIALOG_ONBOARDING = 'DIALOG1';
-let conversation = new BotkitConversation(DIALOG_ONBOARDING, controller);
-conversation.say('Hello! Welcome to my app.');
-conversation.say('Let us get started...');
-// pass in a message with an action that will cause gotoThread to be called...
-conversation.addAction('continuation');
-conversation.addMessage('This is a different thread completely', 'continuation2');
-controller.addDialog(conversation);
-
-
-controller.on('facebook_postback', async(bot, message) => {
-    await bot.beginDialog(DIALOG_ONBOARDING);
+controller.on('message', async(bot, message) => {
+    // call the facebook API to get the bot's page identity
+    let identity = await bot.api.callAPI('/me', 'GET', {});
+    await bot.reply(message,`My name is ${ identity.name }`);
 });
+
+/*
+let convo = new BotkitConversation('PROFILE_DIALOG', controller);
+
+convo.addQuestion('What is your name?', async(response, convo, bot) => {
+    console.log(`user name is ${ response }`);
+},'name', 'default');
+
+convo.addQuestion('What is your age?', async(response, convo, bot) => {
+    console.log(`user age is ${ response }`);
+},'age', 'default');
+
+convo.addQuestion('What is your favorite color?', async(response, convo, bot) => {
+    console.log(`user favourite color is ${ response }`);
+},'color', 'default');
+
+convo.after(async(results, bot) => {
+    convo.say('You have {{vars.results.name}} {{vars.results.age}} and {{vars.results.color}}');
+     // handle results.name, results.age, results.color
+});
+controller.addDialog(convo);
+controller.on("facebook_postback", async(bot, message) => {
+    try {
+        await bot.beginDialog('PROFILE_DIALOG');
+    } catch (error) {
+        console.log('That did not go well.')
+        throw error
+    }
+});
+
+*/
 
 controller.webserver.get('/', (req, res) => {
     res.send(`This app is running Botkit ${ controller.version }.`);
 });
 
 
+// Log every message received
+/*
+controller.middleware.receive.use(function(bot, message, next) {
+    // log it
+    console.log('RECEIVED: ', message);
+    // modify the message
+    message.logged = true;
+    // continue processing the message
+    next();
+  });
 
+*/
