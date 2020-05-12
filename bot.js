@@ -37,15 +37,8 @@ adapter.use(new FacebookEventTypeMiddleware());
 const controller = new Botkit({
     webhook_uri: '/api/messages',
     adapter: adapter,
+    storage: storage,
 });
-
-/*
-let cms = new BotkitCMSHelper({
-    uri: 'http://localhost:5000/',
-    token: 'qweBoqfxBDmpd'
-});
-controller.usePlugin(cms);
-*/
 
 const GREETING_ID = 'GREETING_ID'
 const ONBOARDING_ID = 'ONBOARDING_ID'
@@ -151,37 +144,12 @@ Oh yes, I completely forgot. You are from `+results.country_city);
 controller.addDialog(greeting);
 controller.addDialog(onboarding);
 
-/*
-controller.on('message', async(bot, message) => {
-    // call the facebook API to get the bot's page identity
-    let identity = await bot.api.callAPI('/me', 'GET', {});
-    await bot.reply(message,`My name is ${ identity.name }`);
-});
-*/
-
 controller.ready(() => {
-    // load traditional developer-created local custom feature modules
-    controller.loadModules(__dirname + '/features');
-
     controller.on('facebook_postback', async (bot, message) => {
-        console.log(message)
-
         if (message.postback.title == "Get Started") {
             await bot.beginDialog(GREETING_ID);
         };
     });
-
-    /* catch-all that uses the CMS to trigger dialogs */
-    if (controller.plugins.cms) {
-        controller.on('message,direct_message', async (bot, message) => {
-            let results = false;
-            results = await controller.plugins.cms.testTrigger(bot, message);
-            if (results !== false) {
-                // do not continue middleware!
-                return false;
-            }
-        });
-    }
 });
 
 controller.webserver.get('/', (req, res) => {
