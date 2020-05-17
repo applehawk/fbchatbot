@@ -15,8 +15,12 @@ const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 
 const util = require('util')
 
+var detectDebug = function() {
+    return process.env.NODE_ENV !== 'production';
+};
+
 // Load process.env values from .env file
-//require('dotenv').config();
+require('dotenv').config({ debug: process.env.DEBUG })
 
 let storage = null;
 if (process.env.MONGO_URI) {
@@ -72,6 +76,7 @@ let onboarding = new BotkitConversation(ONBOARDING_ID, controller);
 // ask a question, store the response in 'name'
 onboarding.ask('What is your name?', async(response, convo, bot) => {
     console.log(`user name is ${ response }`);
+    await controller.storage.write({"name": response});
 }, 'name');
 onboarding.say('Great! Your name is {{vars.name}}');
 onboarding.ask(`Fine. Could you share with me a link to your Facebook profile?
@@ -94,6 +99,7 @@ onboarding.ask(`It was not easy, but we did it! 😀
 Now tell me where are you from?
 (Country and city)`, async(response, convo, bot) => {
     console.log(`user name is ${ response }`);
+    await controller.storage.write({"country_city": response});
 }, 'country_city');
 
 const professionAsk = `Next step:
@@ -105,6 +111,7 @@ For example, I'm a web designer in the Spanish game design studio or I am a mark
 
 onboarding.ask(professionAsk, async(response, convo, bot) => {
     console.log(`user profession is ${ response }`);
+    await controller.storage.write({"profession": response});
 }, 'profession');
 
 onboarding.ask({
@@ -127,6 +134,7 @@ onboarding.ask({
         payload: 'Advanced',
     }],
   }, function(response, convo) {
+    await controller.storage.write({"english_level": response});
     convo.stop();
   }, 'english_level');
 
@@ -140,7 +148,10 @@ You have a Facebook page :), here is it-> `+results.facebook_url+`
 Oh yes, I completely forgot. You are from `+results.country_city);
 
     if (results._status === 'completed') {
-
+        await controller.storage.write({"profession": results.profession});
+        await controller.storage.write({"english_level": results.english_level});
+        await controller.storage.write({"facebook_url": results.facebook_url});
+        await controller.storage.write({"country_city": results.country_city});
         //storage.
         // any variable set with convo.setVar
         // and any response to convo.ask or convo.addQuestion
