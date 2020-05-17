@@ -9,18 +9,12 @@
             "request": "launch",
             "name": "Launch \"WelcomeBot - TestApp\"",
             "program": "${workspaceFolder}/app.js",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "envFile": "${workspaceFolder}/.debug.env"
-        }
+            "envFile": "${workspaceFolder}/.env.debug"
+        },
         {
             "type": "node",
             "request": "launch",
             "name": "Launch \"WelcomeBot\"",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
             "program": "${workspaceFolder}/bot.js",
             "envFile": "${workspaceFolder}/.env"
         }
