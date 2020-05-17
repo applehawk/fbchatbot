@@ -16,7 +16,7 @@ const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const util = require('util')
 
 // Load process.env values from .env file
-require('dotenv').config();
+//require('dotenv').config();
 
 let storage = null;
 if (process.env.MONGO_URI) {

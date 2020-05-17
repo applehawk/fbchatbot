@@ -8,8 +8,8 @@
             "type": "node",
             "request": "launch",
             "name": "Launch \"WelcomeBot - TestApp\"",
-            "program": "${workspaceFolder}/app.js",
-            "envFile": "${workspaceFolder}/.env.debug"
+            "program": "${workspaceFolder}/bot.js",
+            "envFile": "${workspaceFolder}/.debug.env"
         },
         {
             "type": "node",
