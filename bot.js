@@ -31,6 +31,15 @@ if (process.env.MONGO_URI) {
     });
 }
 
+const conversationState = new ConversationState(storage);
+const userState = new UserState(storage);
+
+//Create User State properties
+let nameProperty = userState.createProperty("name");
+let countryCityProperty = userState.createProperty("country_city");
+let professionProperty = userState.createProperty("profession");
+let englishLevelProperty = userState.createProperty("english_level");
+
 const adapter = new FacebookAdapter({
     verify_token: process.env.FACEBOOK_VERIFY_TOKEN,
     access_token: process.env.FACEBOOK_ACCESS_TOKEN,
@@ -92,6 +101,7 @@ onboarding.ask(`Fine. Could you share with me a link to your Facebook profile?
     1) open in a new Facebook.com and go to your profile page
     2) copy the link from the address bar and send it to the dialogue.)`, 
     async(response, convo, bot) => {
+       
         console.log(`user name is ${ response }`);
     }, 'facebook_url');
 
@@ -135,7 +145,6 @@ onboarding.ask({
         payload: 'Advanced',
     }],
   }, async(response, convo, bot) => {
-    await controller.storage.write({"english_level": results.english_level});
     convo.stop();
   }, 'english_level');
 
@@ -149,10 +158,13 @@ You have a Facebook page :), here is it-> `+results.facebook_url+`
 Oh yes, I completely forgot. You are from `+results.country_city);
 
     if (results._status === 'completed') {
+        //nameProperty.set( results.profession );
+        await controller.storage.write({'name': results.name});
+        /*
         await controller.storage.write({"profession": results.profession});
         await controller.storage.write({"english_level": results.english_level});
         await controller.storage.write({"facebook_url": results.facebook_url});
-        await controller.storage.write({"country_city": results.country_city});
+        await controller.storage.write({"country_city": results.country_city});*/
         //storage.
         // any variable set with convo.setVar
         // and any response to convo.ask or convo.addQuestion
