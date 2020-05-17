@@ -139,6 +139,17 @@ You have a Facebook page :), here is it-> `+results.facebook_url+`
     
 Oh yes, I completely forgot. You are from `+results.country_city);
 
+    if (results._status === 'completed') {
+
+        //storage.
+        // any variable set with convo.setVar
+        // and any response to convo.ask or convo.addQuestion
+        // is present as results[keyname]
+
+        // can do things like
+        // await bot.beginDialog(NEXT_DIALOG);
+    }
+
 });
 
 controller.addDialog(greeting);
