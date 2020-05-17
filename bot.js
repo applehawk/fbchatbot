@@ -48,6 +48,7 @@ const GREETING_ID = 'GREETING_ID'
 const ONBOARDING_ID = 'ONBOARDING_ID'
 let greeting = new BotkitConversation(GREETING_ID, controller);
 // send a greeting
+greeting.addMessage('Version 1.0.1')
 greeting.addMessage(`Hi! 👋
 
 We are the (not)Random English an international online platform for training business English skills through a friendly networking format.
