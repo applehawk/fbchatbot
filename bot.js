@@ -134,8 +134,8 @@ onboarding.ask({
         title: 'Advanced',
         payload: 'Advanced',
     }],
-  }, function(response, convo) {
-    await controller.storage.write({"english_level": response});
+  }, async(response, convo, bot) => {
+    await controller.storage.write({"english_level": results.english_level});
     convo.stop();
   }, 'english_level');
 
