@@ -20,7 +20,7 @@ var detectDebug = function() {
 };
 
 // Load process.env values from .env file
-require('dotenv').config()
+require('dotenv').config();
 
 let storage = null;
 if (process.env.MONGO_URI) {
