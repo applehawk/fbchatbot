@@ -11,7 +11,11 @@ module.exports = function(controller) {
         //let storageKey = userState.getStorageKey(context);
 
         let storageKey = `facebook/users/`;
-        let states = await storage.read(storageKey);
-        console.log(states);
+        try {
+            let states = await storage.read(['BotState']);
+            console.log(states);
+        } catch(error) {
+            console.log(error);
+        }
     });
 }
