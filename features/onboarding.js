@@ -2,7 +2,7 @@ const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
 const askUsernameStr = 'What is your name?';
-const sayUsernameStr = `Great! Your name is {{vars.username}}`;
+const sayUsernameStr = 'Great! Your name is {{vars.username}}';
 const askFacebookUrlStr = `Fine. Could you share with me a link to your Facebook profile?
 
 It needs for connection with partners. We will send the link to your partner for scheduling the call.
@@ -37,7 +37,7 @@ For example, I'm a web designer in the Spanish game design studio or I am a mark
 
 module.exports = function(controller) {
     const ONBOARDING_ID = 'ONBOARDING_ID'
-    let onboarding = new BotkitConversation(ONBOARDING_ID, controller);
+    let onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
     // user state properties
     const userState = new UserState(controller.storage);
@@ -48,20 +48,28 @@ module.exports = function(controller) {
 
     // ask a question, store the responses
     onboarding.ask(askUsernameStr, async(answerText, convo, bot, message) => {
-        let boxContext = bot.getConfig('context');
-        await nameProperty.set(boxContext, answerText);
+        try {
+            console.log(`User has name ${answerText}`);
+        } catch(error) {
+            console.log(error);
+        };
     }, {key: 'username'});
-    //onboarding.say(sayUsernameStr);
+    onboarding.addMessage('Great! Your name is {{vars.username}}');
     //onboarding.ask(askFacebookUrlStr, async(answerText, convo, bot, message) => {
     //}, 'facebook_url');
-    onboarding.ask(askCityFromStr, async(asnwerText, convo, bot, message) => {
-        let boxContext = bot.getConfig('context');
-        await countryCityProperty.set(boxContext, asnwerText);
+    onboarding.ask(askCityFromStr, async(answerText, convo, bot, message) => {
+        try {
+            console.log(`User has city ${answerText}`);
+        } catch(error) {
+            console.log(error);
+        }
     }, {key: 'country_city'});
     onboarding.ask(professionAsk, async(answerText, convo, bot, message) => {
-        let botContext = bot.getConfig('context');
-        await professionProperty.set(botContext, answerText);
-
+        try {
+            console.log(`User has Profession ${answerText}`);
+        } catch(error) {
+            console.log(error);
+        };
     }, {key: 'profession'});
 
     onboarding.ask({text: askEnglishStr,
@@ -83,29 +91,35 @@ module.exports = function(controller) {
             payload: englishLevelDict.Advanced,
         }],
       }, async(answerText, conversation, bot, message) => {
-
-        let botContext = bot.getConfig('context');
-        englishLevelProperty.set(botContext, answerText);
-
-        conversation.stop();
+        try {
+            console.log(`User has EnglishLevel: ${answerText}`);
+            conversation.stop();
+        } catch(error) {
+            console.log(error);
+        }
       }, {key: 'english_level'});
 
     onboarding.after(async(results, bot) => {
-        bot.say(`Great {{vars.results.username}} ! We know about you next things:
+        try {
+            await bot.say(`Great ${results.username} ! We know about you next things:
         
-    What are you doing -> {{vars.results.profession}}
-    What is your level of English -> {{vars.results.english_level}}
-    You have a Facebook page :), here is it-> {{vars.results.facebook_url}}
+    What are you doing -> ${results.profession}
+    What is your level of English -> ${results.english_level}
+    You have a Facebook page :), here is it-> ${results.facebook_url}
         
-    Oh yes, I completely forgot. You are from {{vars.results.country_city}}`);
+    Oh yes, I completely forgot. You are from ${results.country_city}`);
     
-        console.log(results);
-        if (results._status === 'completed') {
+            console.log(results);
+
             let botContext = bot.getConfig('context');
+            await nameProperty.set(botContext, results.username);
+            await countryCityProperty.set(botContext, results.country_city);
+            await professionProperty.set(botContext, results.profession);
+            await englishLevelProperty.set(botContext, results.english_level);
             await userState.saveChanges(botContext)
-        }
+        } catch(error) {
+            console.log(error);
+        };
     
     });
-
-    controller.addDialog(onboarding);
 }

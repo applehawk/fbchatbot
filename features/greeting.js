@@ -4,7 +4,7 @@ module.exports = function(controller) {
     const GREETING_ID = 'GREETING_ID'
     const ONBOARDING_ID = 'ONBOARDING_ID'
 
-    let greeting = new BotkitConversation(GREETING_ID, controller);
+    let greeting = controller.dialogSet.dialogs[GREETING_ID];
     // send a greeting
     greeting.addMessage('Version 1.0.1')
     greeting.addMessage(`Hi! 👋
@@ -25,12 +25,10 @@ module.exports = function(controller) {
           payload: 'Go!',
         }],
       }, function(response, convo) {
-        convo.stop();
+        //convo.stop();
       });
     
     greeting.after(async(results, bot) => {
         bot.beginDialog(ONBOARDING_ID);
     });
-
-    controller.addDialog(greeting);
 }
