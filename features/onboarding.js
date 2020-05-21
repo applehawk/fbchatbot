@@ -77,19 +77,19 @@ module.exports = function(controller) {
         quick_replies: [{
           content_type: 'text',
           title: englishLevelDict.Elementary,
-          payload: englishLevelDict.Elementary,
+          payload: 0,
         }, {
           content_type: 'text',
           title: englishLevelDict.PreIntermediate,
-          payload: englishLevelDict.PreIntermediate,
+          payload: 1,
         }, {
           content_type: 'text',
           title: englishLevelDict.Intermediate,
-          payload: englishLevelDict.Intermediate,
+          payload: 2,
         }, {
             content_type: 'text',
             title: englishLevelDict.Advanced,
-            payload: englishLevelDict.Advanced,
+            payload: 3,
         }],
       }, async(answerText, conversation, bot, message) => {
         try {
@@ -116,7 +116,8 @@ module.exports = function(controller) {
             await nameProperty.set(botContext, results.username);
             await countryCityProperty.set(botContext, results.country_city);
             await professionProperty.set(botContext, results.profession);
-            await englishLevelProperty.set(botContext, results.english_level);
+
+            await englishLevelProperty.set(botContext, results.english_level.key);
             await userState.saveChanges(botContext)
         } catch(error) {
             console.log(error);
