@@ -52,9 +52,10 @@ module.exports = function(controller) {
             console.log(`User has name ${answerText}`);
         } catch(error) {
             console.log(error);
-        };
+        }
     }, {key: 'username'});
-    onboarding.addMessage('Great! Your name is {{vars.username}}');
+
+    onboarding.say('Great! Your name is {{vars.username}}');
     //onboarding.ask(askFacebookUrlStr, async(answerText, convo, bot, message) => {
     //}, 'facebook_url');
     onboarding.ask(askCityFromStr, async(answerText, convo, bot, message) => {
@@ -69,7 +70,7 @@ module.exports = function(controller) {
             console.log(`User has Profession ${answerText}`);
         } catch(error) {
             console.log(error);
-        };
+        }
     }, {key: 'profession'});
 
     onboarding.ask({text: askEnglishStr,
@@ -93,7 +94,7 @@ module.exports = function(controller) {
       }, async(answerText, conversation, bot, message) => {
         try {
             console.log(`User has EnglishLevel: ${answerText}`);
-            conversation.stop();
+            await conversation.stop();
         } catch(error) {
             console.log(error);
         }

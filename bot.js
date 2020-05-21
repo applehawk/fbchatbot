@@ -13,10 +13,10 @@ const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 
 const util = require('util')
 
-process.on('unhandledRejection', (reason, p) => {
+/*process.on('unhandledRejection', (reason, p) => {
     console.error('Unhandled Rejection at:', p, 'reason:', reason)
     process.exit(1)
-  });
+  });*/
 
 var detectDebug = function() {
     return process.env.NODE_ENV !== 'production';
