@@ -6,23 +6,26 @@ module.exports = function(controller) {
     const userState = new UserState(controller.storage);
     let storage = controller.storage;
 
-    function chooseWithLevel(storage, englishLevel, channelId, userId) {
+    async function chooseWithLevel(storage, englishLevel, channelId, userId) {
         var allUsersQuery = { 
             _id: { 
                 $regex: `${channelId}/users*`, 
                 $ne: `${channelId}/users/${userId}/`,
             },
-            $or: {
+            $or: [{
                 'state.english_level': {
-                    $eq : englishLevel
-                },
-                'state.english_level': {
-                    $eq: (englishLevel+1)
-                },
-                'state.english_level': {
-                    $eq: (englishLevel-1)
-                }
-            }
+                    $eq : englishLevel,
+                }},
+                {'state.english_level': {
+                    $eq: (englishLevel+1)%(4),
+                }},
+                {'state.english_level': {
+                    $eq: (englishLevel-1)%(4),
+                }},
+                {'state.english_level': {
+                    $eq: (englishLevel+2)%4,
+                }}
+            ]
         };
         const docs = await storage.Collection.find(allUsersQuery);
         const storeItems = (await docs.toArray()).reduce((accum, item) => {
