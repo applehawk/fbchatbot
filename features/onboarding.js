@@ -1,39 +1,7 @@
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
-const askUsernameStr = 'What is your name?';
-const sayUsernameStr = 'Great! Your name is {{vars.username}}';
-const askFacebookUrlStr = `Fine. Could you share with me a link to your Facebook profile?
-
-It needs for connection with partners. We will send the link to your partner for scheduling the call.
-
-Where you can find the link?
-
-For Facebook Messenger: go to your profile, this is where the chat list is, copy the profile link and send it to the dialogue.
-
-If you use a web browser:
-1) open in a new Facebook.com and go to your profile page
-2) copy the link from the address bar and send it to the dialogue.)`;
-
-const askCityFromStr = `It was not easy, but we did it! 😀
-
-Now tell me where are you from?
-(Country and city)`;
-
-const askEnglishStr = 'Ok. What about English speaking? Choose your English level, it will help us to choose the suited person for the call.'
-const englishLevelDict = {
-    Elementary: 'Elementary',
-    PreIntermediate: 'Pre-Intermediate',
-    Intermediate: 'Intermediate',
-    Advanced: 'Advanced',
-};
-
-const professionAsk = `Next step:
-What are you doing?
-
-Tell us about your work, company, project or startup you are involved in.
-
-For example, I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project.`;
+const Constants = require('./../constants.js');
 
 module.exports = function(controller) {
     const ONBOARDING_ID = 'ONBOARDING_ID'
@@ -47,7 +15,7 @@ module.exports = function(controller) {
     let englishLevelProperty = userState.createProperty("english_level");
 
     // ask a question, store the responses
-    onboarding.ask(askUsernameStr, async(answerText, convo, bot, message) => {
+    onboarding.ask(Constants.askUsernameStr, async(answerText, convo, bot, message) => {
         try {
             console.log(`User has name ${answerText}`);
         } catch(error) {
@@ -58,14 +26,15 @@ module.exports = function(controller) {
     onboarding.say('Great! Your name is {{vars.username}}');
     //onboarding.ask(askFacebookUrlStr, async(answerText, convo, bot, message) => {
     //}, 'facebook_url');
-    onboarding.ask(askCityFromStr, async(answerText, convo, bot, message) => {
+    onboarding.ask(Constants.askCityFromStr, async(answerText, convo, bot, message) => {
         try {
             console.log(`User has city ${answerText}`);
         } catch(error) {
             console.log(error);
         }
     }, {key: 'country_city'});
-    onboarding.ask(professionAsk, async(answerText, convo, bot, message) => {
+
+    onboarding.ask(Constants.professionAsk, async(answerText, convo, bot, message) => {
         try {
             console.log(`User has Profession ${answerText}`);
         } catch(error) {
@@ -73,22 +42,49 @@ module.exports = function(controller) {
         }
     }, {key: 'profession'});
 
-    onboarding.ask({text: askEnglishStr,
+    onboarding.ask({text: Constants.askEnglishStr,
         quick_replies: [{
           content_type: 'text',
-          title: englishLevelDict.Elementary,
+          title: Constants.englishLevelDict.Elementary,
           payload: 0,
         }, {
           content_type: 'text',
-          title: englishLevelDict.PreIntermediate,
+          title: Constants.englishLevelDict.PreIntermediate,
           payload: 1,
         }, {
           content_type: 'text',
-          title: englishLevelDict.Intermediate,
+          title: Constants.englishLevelDict.Intermediate,
           payload: 2,
         }, {
             content_type: 'text',
-            title: englishLevelDict.Advanced,
+            title: Constants.englishLevelDict.Advanced,
+            payload: 3,
+        }],
+      }, async(answerText, conversation, bot, message) => {
+        try {
+            console.log(`User has EnglishLevel: ${answerText}`);
+            await conversation.stop();
+        } catch(error) {
+            console.log(error);
+        }
+      }, {key: 'english_level'});
+
+      onboarding.ask({text: Constants.askEnglishStr,
+        quick_replies: [{
+          content_type: 'text',
+          title: Constants.englishLevelDict.Elementary,
+          payload: 0,
+        }, {
+          content_type: 'text',
+          title: Constants.englishLevelDict.PreIntermediate,
+          payload: 1,
+        }, {
+          content_type: 'text',
+          title: Constants.englishLevelDict.Intermediate,
+          payload: 2,
+        }, {
+            content_type: 'text',
+            title: Constants.englishLevelDict.Advanced,
             payload: 3,
         }],
       }, async(answerText, conversation, bot, message) => {
