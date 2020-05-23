@@ -45,6 +45,7 @@ module.exports = function(controller) {
     let countryCityProperty = userState.createProperty("country_city");
     let professionProperty = userState.createProperty("profession");
     let englishLevelProperty = userState.createProperty("english_level");
+    let readyToConversationProperty = userState.createProperty("ready_to_conversation");
 
     // ask a question, store the responses
     onboarding.ask(askUsernameStr, async(answerText, convo, bot, message) => {
@@ -55,7 +56,7 @@ module.exports = function(controller) {
         }
     }, {key: 'username'});
 
-    onboarding.say('Great! Your name is {{vars.username}}');
+    onboarding.say(sayUsernameStr);
     //onboarding.ask(askFacebookUrlStr, async(answerText, convo, bot, message) => {
     //}, 'facebook_url');
     onboarding.ask(askCityFromStr, async(answerText, convo, bot, message) => {
@@ -74,7 +75,7 @@ module.exports = function(controller) {
     }, {key: 'profession'});
 
     onboarding.ask({text: askEnglishStr,
-        quick_replies: [{
+        quick_replies: [{ // [TODO] Refactoring and automation
           content_type: 'text',
           title: englishLevelDict.Elementary,
           payload: 0,
@@ -102,26 +103,30 @@ module.exports = function(controller) {
 
     onboarding.after(async(results, bot) => {
         try {
-            await bot.say(`Great ${results.username} ! We know about you next things:
-        
+              await bot.say(`Great ${results.username} ! We know about you next things:
+
     What are you doing -> ${results.profession}
     What is your level of English -> ${results.english_level}
     You have a Facebook page :), here is it-> ${results.facebook_url}
-        
+
     Oh yes, I completely forgot. You are from ${results.country_city}`);
-    
-            console.log(results);
 
-            let botContext = bot.getConfig('context');
-            await nameProperty.set(botContext, results.username);
-            await countryCityProperty.set(botContext, results.country_city);
-            await professionProperty.set(botContext, results.profession);
+                console.log(results);
 
-            await englishLevelProperty.set(botContext, results.english_level.key);
-            await userState.saveChanges(botContext)
-        } catch(error) {
+                const botContext = bot.getConfig('context');
+                await nameProperty.set(botContext, results.username);
+                await countryCityProperty.set(botContext, results.country_city);
+                await professionProperty.set(botContext, results.profession);
+                await englishLevelProperty.set(
+                    botContext,
+                    results.english_level.key
+                );
+                // await communityProperty.set(botContext, results.community);
+                await readyToConversationProperty.set(botContext, 'ready'); // results.ready_to_conversation
+                await userState.saveChanges(botContext);
+            } catch(error) {
             console.log(error);
         };
-    
+
     });
 }

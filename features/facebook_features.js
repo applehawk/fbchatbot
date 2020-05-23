@@ -4,16 +4,16 @@
  */
 
 module.exports = function(controller) {
-    const GREETING_ID = 'GREETING_ID'
+    const GREETING_ID = 'GREETING_ID';
     controller.on('facebook_postback', async (bot, message) => {
-        if (message.postback.title == "Get Started") {
+        if (message.postback.title === 'Get Started') {
             await bot.beginDialog(GREETING_ID);
-        };
+        }
     });
 /*
     /**
      * Detect when a message has a sticker attached
-     
+
     controller.hears(async(message) => message.sticker_id, 'message', async(bot, message) => {
         await bot.reply(message,'Cool sticker.');
     });
