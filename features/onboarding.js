@@ -66,11 +66,33 @@ module.exports = function(controller) {
         process.env.FACEBOOK_ACCESS_TOKEN, 
         process.env.FACEBOOK_APP_SECRET);
 
+    const getCommunityButtons = () => {
+        const buttons = [];
+        Object.keys(communityDict).forEach((key, i) => {
+            buttons.push({
+                type: 'postback',
+                title: communityDict[key],
+                payload: i,
+            });
+        });
+        return buttons;
+    };
+
     controller.hears("btn", ['message','direct_message'], async(bot,message) => {
         let context = bot.getConfig('context');
         const activity = context._activity;
         const channelId = activity.channelId;
         const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+
+        var buttons = [...getCommunityButtons];
+        var elements = [ 
+            {
+                title: "Welcome!",
+                image_url: "https://petersfancybrownhats.com/company_image.png",
+                subtitle: "We have the right hat for everyone.",
+                buttons: buttons,
+            },
+        ];
 
         var options = {
             recipient: {
@@ -80,45 +102,8 @@ module.exports = function(controller) {
                 attachment: {
                     type:"template",
                     payload:{
-                        template_type: "button",
-                        text: askCommunityStr,
-                        buttons:[
-                                    {
-                                    'type':'postback',
-                                    'title':`${communityDict.it}`,
-                                    'payload':0,
-                                    },
-                                    {
-                                    'type':'postback',
-                                    'title':`${communityDict.startups}`,
-                                    'payload':1,
-                                    },
-                                    {
-                                    'type':'postback',
-                                    'title':`${communityDict.design}`,
-                                    'payload':2,
-                                    },
-                                    /*{
-                                    'type':'postback',
-                                    'title':communityDict.Sport,
-                                    'payload':3,
-                                    },
-                                    {
-                                    'type':'postback',
-                                    'title':communityDict.Networking,
-                                    'payload':communityDict.Networking
-                                    },
-                                    {
-                                    'type':'postback',
-                                    'title':communityDict.EnglishJobInterview,
-                                    'payload':communityDict.EnglishJobInterview
-                                    },
-                                    {
-                                    'type':'postback',
-                                    'title':communityDict.EnglishPresentations,
-                                    'payload':communityDict.EnglishPresentations
-                                    },*/
-                        ]
+                        template_type: "generic",
+                        elements: elements
                     }
                 }
             }
