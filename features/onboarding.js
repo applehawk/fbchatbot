@@ -90,7 +90,31 @@ module.exports = function(controller) {
                 title: "Welcome!",
                 image_url: "https://petersfancybrownhats.com/company_image.png",
                 subtitle: "We have the right hat for everyone.",
-                buttons: buttons,
+                buttons: [buttons[0]],
+            },
+            {
+                title: "Welcome!",
+                image_url: "https://petersfancybrownhats.com/company_image.png",
+                subtitle: "We have the right hat for everyone.",
+                buttons: [buttons[1]],
+            },
+            {
+                title: "Welcome!",
+                image_url: "https://petersfancybrownhats.com/company_image.png",
+                subtitle: "We have the right hat for everyone.",
+                buttons: [buttons[2]],
+            },
+            {
+                title: "Welcome!",
+                image_url: "https://petersfancybrownhats.com/company_image.png",
+                subtitle: "We have the right hat for everyone.",
+                buttons: [buttons[3]],
+            },
+            {
+                title: "Welcome!",
+                image_url: "https://petersfancybrownhats.com/company_image.png",
+                subtitle: "We have the right hat for everyone.",
+                buttons: [buttons[4]],
             },
         ];
 
