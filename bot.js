@@ -6,7 +6,6 @@
 
 // Import Botkit's core features
 const { Botkit, BotkitConversation } = require('botkit');
-const { FacebookAPI } = require('botbuilder-adapter-facebook');
 // Import a platform-specific adapter for facebook.
 const { FacebookAdapter, FacebookEventTypeMiddleware } = require('botbuilder-adapter-facebook');
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');

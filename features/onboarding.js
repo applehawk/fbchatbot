@@ -1,5 +1,6 @@
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
+const { FacebookAPI } = require('botbuilder-adapter-facebook');
 
 // const askUsernameStr = 'What is your name?';
 // const sayUsernameStr = 'Great! Your name is {{vars.username}}';
@@ -60,6 +61,77 @@ module.exports = function(controller) {
     let nameProperty = userState.createProperty("username");
     let professionProperty = userState.createProperty("profession");
     let readyToConversationProperty = userState.createProperty("ready_to_conversation");
+
+    let api = new FacebookAPI(
+        process.env.FACEBOOK_ACCESS_TOKEN, 
+        process.env.FACEBOOK_APP_SECRET);
+
+    controller.hears("btn", ['message','direct_message'], async(bot,message) => {
+        let context = bot.getConfig('context');
+        const activity = context._activity;
+        const channelId = activity.channelId;
+        const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+
+        var options = {
+            recipient: {
+                id: userId,
+            },
+            message: {
+                attachment: {
+                    type:"template",
+                    payload:{
+                        template_type: "button",
+                        text: askCommunityStr,
+                        buttons:[
+                                    {
+                                    'type':'postback',
+                                    'title':communityDict.IT,
+                                    'payload':0,
+                                    },
+                                    {
+                                    'type':'postback',
+                                    'title':communityDict.Startups,
+                                    'payload':1,
+                                    },
+                                    {
+                                    'type':'postback',
+                                    'title':communityDict.Design,
+                                    'payload':2,
+                                    },
+                                    /*{
+                                    'type':'postback',
+                                    'title':communityDict.Sport,
+                                    'payload':3,
+                                    },
+                                    {
+                                    'type':'postback',
+                                    'title':communityDict.Networking,
+                                    'payload':communityDict.Networking
+                                    },
+                                    {
+                                    'type':'postback',
+                                    'title':communityDict.EnglishJobInterview,
+                                    'payload':communityDict.EnglishJobInterview
+                                    },
+                                    {
+                                    'type':'postback',
+                                    'title':communityDict.EnglishPresentations,
+                                    'payload':communityDict.EnglishPresentations
+                                    },*/
+                        ]
+                    }
+                }
+            }
+        };
+    
+        try {
+            await api.callAPI('/me/messages','POST',options);
+        } catch(error) {
+            console.log(error);
+        }
+        //bot.say(options, async(answerText, conversation, bot, message) => {
+        //});
+    })
 
     const getEnglishLevelDict = () => {
         const levels = [];
