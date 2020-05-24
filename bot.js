@@ -59,6 +59,7 @@ controller.addDialog(onboarding);
 controller.ready(() => {
     // load traditional developer-created local custom feature modules
     controller.loadModules(__dirname + '/features');
+    console.log('ready');
     controller.hears('start', async (bot, message) => {
         try {
             await bot.beginDialog(GREETING_ID);
