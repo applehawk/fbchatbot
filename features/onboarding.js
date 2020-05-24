@@ -67,7 +67,7 @@ module.exports = function(controller) {
             levels.push({
                 content_type: 'text',
                 title: englishLevelDict[key],
-                payload: key,
+                payload: i,
             });
         });
         return levels;
@@ -75,11 +75,11 @@ module.exports = function(controller) {
 
     const getCommunityDict = () => {
         const communities = [];
-        Object.keys(communityDict).forEach(key => {
+        Object.keys(communityDict).forEach((key, i) => {
             communities.push({
                 content_type: 'text',
                 title: communityDict[key],
-                payload: key,
+                payload: i,
             });
         });
         return communities;
@@ -131,18 +131,22 @@ module.exports = function(controller) {
     //     }
     // }, { key: 'english_level'});
 
-    onboarding.ask({ text: askEnglishStr,
-        quick_replies: [{ ...getEnglishLevelDict() }],
-      }, async (answerText, conversation, bot, message) => {
-        try {
-            console.log(`User has EnglishLevel: ${answerText}`);
-        } catch(error) {
-            console.log(error);
-        }
-      }, { key: 'english_level'});
+    try {
+        onboarding.ask({ text: askEnglishStr,
+            quick_replies: [ ...getEnglishLevelDict() ],
+        }, async (answerText, conversation, bot, message) => {
+            try {
+                console.log(`User has EnglishLevel: ${answerText}`);
+            } catch(error) {
+                console.log(error);
+            }
+        }, { key: 'english_level'});
+    } catch(error) {
+        console.log(error);
+    }
 
     onboarding.ask({ text: askCommunityStr,
-        quick_replies: [{ ...getCommunityDict() }],
+        quick_replies: [ ...getCommunityDict() ],
     }, async (answerText, conversation, bot, message) => {
         try {
             console.log(`User has Community: ${answerText}`);

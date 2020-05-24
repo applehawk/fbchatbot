@@ -10,13 +10,13 @@ const {
 // #END DEV
 
 module.exports = function (controller) {
-    // const botSay = (bot, obj) => {
-    //     Object.values(obj).forEach((user) => {
-    //         bot.say(
-    //             `Name: ${user.username}\nCity: ${user.country_city}\nProfession: ${user.profession}\nEnglish Level: ${user.english_level}`
-    //         );
-    //     });
-    // };
+    const botSay = (bot, obj) => {
+       Object.values(obj).forEach((user) => {
+           bot.say(
+               `Name: ${user.username}\nCity: ${user.country_city}\nProfession: ${user.profession}\nEnglish Level: ${user.english_level}`
+           );
+       });
+    };
 
     const cachedUsers = {};
     const userState = new UserState(controller.storage);
@@ -108,7 +108,7 @@ module.exports = function (controller) {
             } else {
                 const storeItems = await chooseWithLevel(payload);
                 console.log('storeItems:', storeItems);
-                // botSay(bot, storeItems);
+                botSay(bot, storeItems);
 
                 // // [TODO]
                 // // Set User State Properties
