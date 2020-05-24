@@ -1,11 +1,12 @@
 module.exports = Object.freeze({
-    const englishLevelDict = {
+    englishLevelDict: {
         Elementary: 'Elementary',
         PreIntermediate: 'Pre-Intermediate',
         Intermediate: 'Intermediate',
         Advanced: 'Advanced',
-    };
-    communityDict = {
+    },
+    askCommunityStr: 'OK. Now the most important step. Choose the community:',
+    communityDict: {
         IT: 'IT',
         Startups: 'Startups',
         Business: 'Business',

@@ -1,11 +1,65 @@
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
-const Constants = require('./../constants.js');
+const { communityDict, englishLevelDict, askUsernameStr,
+    askCityFromStr, askEnglishStr, professionAsk, askCommunityStr,
+     } = require('../constants.js');
 
 module.exports = function(controller) {
     const ONBOARDING_ID = 'ONBOARDING_ID'
     let onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
+
+    controller.hears("btn", ['message','direct_message'], async(bot,message) => {
+        var options = {
+            attachment: {
+                type:"template",
+                payload:{
+                    template_type: "button",
+                    text: askCommunityStr,
+                    buttons:[
+                                {
+                                'type':'postback',
+                                'title':communityDict.IT,
+                                'payload':0,
+                                },
+                                {
+                                'type':'postback',
+                                'title':communityDict.Startups,
+                                'payload':1,
+                                },
+                                {
+                                'type':'postback',
+                                'title':communityDict.Design,
+                                'payload':2,
+                                },
+                                {
+                                'type':'postback',
+                                'title':communityDict.Sport,
+                                'payload':3,
+                                },/*
+                                {
+                                'type':'postback',
+                                'title':communityDict.Networking,
+                                'payload':communityDict.Networking
+                                },
+                                {
+                                'type':'postback',
+                                'title':communityDict.EnglishJobInterview,
+                                'payload':communityDict.EnglishJobInterview
+                                },
+                                {
+                                'type':'postback',
+                                'title':communityDict.EnglishPresentations,
+                                'payload':communityDict.EnglishPresentations
+                                },*/
+                    ]
+                }
+            }
+        };
+    
+        bot.say(options, async(answerText, conversation, bot, message) => {
+        });
+    })
 
     // user state properties
     const userState = new UserState(controller.storage);
@@ -15,7 +69,7 @@ module.exports = function(controller) {
     let englishLevelProperty = userState.createProperty("english_level");
 
     // ask a question, store the responses
-    onboarding.ask(Constants.askUsernameStr, async(answerText, convo, bot, message) => {
+    onboarding.ask(askUsernameStr, async(answerText, convo, bot, message) => {
         try {
             console.log(`User has name ${answerText}`);
         } catch(error) {
@@ -26,7 +80,7 @@ module.exports = function(controller) {
     onboarding.say('Great! Your name is {{vars.username}}');
     //onboarding.ask(askFacebookUrlStr, async(answerText, convo, bot, message) => {
     //}, 'facebook_url');
-    onboarding.ask(Constants.askCityFromStr, async(answerText, convo, bot, message) => {
+    onboarding.ask(askCityFromStr, async(answerText, convo, bot, message) => {
         try {
             console.log(`User has city ${answerText}`);
         } catch(error) {
@@ -34,7 +88,7 @@ module.exports = function(controller) {
         }
     }, {key: 'country_city'});
 
-    onboarding.ask(Constants.professionAsk, async(answerText, convo, bot, message) => {
+    onboarding.ask(professionAsk, async(answerText, convo, bot, message) => {
         try {
             console.log(`User has Profession ${answerText}`);
         } catch(error) {
@@ -42,49 +96,22 @@ module.exports = function(controller) {
         }
     }, {key: 'profession'});
 
-    onboarding.ask({text: Constants.askEnglishStr,
+      onboarding.ask({text: askEnglishStr,
         quick_replies: [{
           content_type: 'text',
-          title: Constants.englishLevelDict.Elementary,
+          title: englishLevelDict.Elementary,
           payload: 0,
         }, {
           content_type: 'text',
-          title: Constants.englishLevelDict.PreIntermediate,
+          title: englishLevelDict.PreIntermediate,
           payload: 1,
         }, {
           content_type: 'text',
-          title: Constants.englishLevelDict.Intermediate,
+          title: englishLevelDict.Intermediate,
           payload: 2,
         }, {
             content_type: 'text',
-            title: Constants.englishLevelDict.Advanced,
-            payload: 3,
-        }],
-      }, async(answerText, conversation, bot, message) => {
-        try {
-            console.log(`User has EnglishLevel: ${answerText}`);
-            await conversation.stop();
-        } catch(error) {
-            console.log(error);
-        }
-      }, {key: 'english_level'});
-
-      onboarding.ask({text: Constants.askEnglishStr,
-        quick_replies: [{
-          content_type: 'text',
-          title: Constants.englishLevelDict.Elementary,
-          payload: 0,
-        }, {
-          content_type: 'text',
-          title: Constants.englishLevelDict.PreIntermediate,
-          payload: 1,
-        }, {
-          content_type: 'text',
-          title: Constants.englishLevelDict.Intermediate,
-          payload: 2,
-        }, {
-            content_type: 'text',
-            title: Constants.englishLevelDict.Advanced,
+            title: englishLevelDict.Advanced,
             payload: 3,
         }],
       }, async(answerText, conversation, bot, message) => {
