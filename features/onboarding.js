@@ -85,17 +85,17 @@ module.exports = function(controller) {
                         buttons:[
                                     {
                                     'type':'postback',
-                                    'title':communityDict.IT,
+                                    'title':`${communityDict.it}`,
                                     'payload':0,
                                     },
                                     {
                                     'type':'postback',
-                                    'title':communityDict.Startups,
+                                    'title':`${communityDict.startups}`,
                                     'payload':1,
                                     },
                                     {
                                     'type':'postback',
-                                    'title':communityDict.Design,
+                                    'title':`${communityDict.design}`,
                                     'payload':2,
                                     },
                                     /*{
