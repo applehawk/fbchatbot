@@ -84,7 +84,7 @@ module.exports = function(controller) {
         const channelId = activity.channelId;
         const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
-        var buttons = [...getCommunityButtons];
+        var buttons = [ ...getCommunityButtons() ];
         var elements = [ 
             {
                 title: "Welcome!",
