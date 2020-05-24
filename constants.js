@@ -1,9 +1,9 @@
 module.exports = Object.freeze({
     englishLevelDict: {
-        0: 'Elementary',
-        1: 'Pre-Intermediate',
-        2: 'Intermediate',
-        3: 'Advanced',
+        elementary: 'Elementary',
+        preIntermediate: 'Pre-Intermediate',
+        intermediate: 'Intermediate',
+        advanced: 'Advanced',
     },
     communityDict: {
         it: 'IT',
