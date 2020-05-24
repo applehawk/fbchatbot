@@ -142,7 +142,7 @@ module.exports = function (controller) {
                 state: {
                     community: Object.values(communityDict)[Math.round(Math.random() * Object.keys(communityDict).length - 1)],
                     country_city: cities[Math.round(Math.random() * cities.length - 1)],
-                    english_level: Object.values(englishLevelDict)[Math.round(Math.random() * Object.keys(englishLevelDict).length - 1)],
+                    english_level: Math.round(Math.random() * Object.keys(englishLevelDict).length - 1),
                     eTag: '',
                     profession: Object.values(professions)[Math.round(Math.random() * Object.keys(professions).length - 1)],
                     ready_to_conversation: Math.random() > 0.50 ? 'ready' : 'busy',

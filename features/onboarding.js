@@ -144,11 +144,11 @@ module.exports = function(controller) {
 
     const getEnglishLevelDict = () => {
         const levels = [];
-        Object.keys(englishLevelDict).forEach((key, i) => {
+        Object.keys(englishLevelDict).forEach((key, value) => {
             levels.push({
                 content_type: 'text',
                 title: englishLevelDict[key],
-                payload: i,
+                payload: key,
             });
         });
         return levels;
@@ -264,7 +264,7 @@ Oh yes, I completely forgot. You are from ${results.country_city}`);
                 await countryCityProperty.set(botContext, results.country_city);
                 await englishLevelProperty.set(
                     botContext,
-                    results.english_level.key
+                    results.english_level
                 );
                 await nameProperty.set(botContext, results.username);
                 await professionProperty.set(botContext, results.profession);
