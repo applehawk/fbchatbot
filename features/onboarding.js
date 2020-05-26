@@ -22,13 +22,13 @@ module.exports = (controller) => {
 
     // user state properties
     const userState = new UserState(controller.storage);
-    let communityProperty = userState.createProperty("community");
-    let englishLevelProperty = userState.createProperty("english_level");
-    let locationProperty = userState.createProperty("location");
-    let nameProperty = userState.createProperty("username");
-    let professionProperty = userState.createProperty("profession");
+    const communityProperty = userState.createProperty('community');
+    const englishLevelProperty = userState.createProperty('english_level');
+    const locationProperty = userState.createProperty('location');
+    const nameProperty = userState.createProperty('username');
+    const professionProperty = userState.createProperty('profession');
 
-    let api = new FacebookAPI(
+    const api = new FacebookAPI(
         process.env.FACEBOOK_ACCESS_TOKEN,
         process.env.FACEBOOK_APP_SECRET);
 
@@ -111,6 +111,7 @@ module.exports = (controller) => {
             console.log(results);
 
             const context = bot.getConfig('context');
+
             await communityProperty.set(context, communityDict.indexOf(results.community));
             await locationProperty.set(context, results.location);
             await englishLevelProperty.set(
@@ -120,8 +121,9 @@ module.exports = (controller) => {
             await nameProperty.set(context, results.username);
             await professionProperty.set(context, results.profession);
 
-            let readyToConversationProperty = userState.createProperty("ready_to_conversation");
-            let recentUsersProperty = userState.createProperty("recent_users");
+            const readyToConversationProperty = userState.createProperty('ready_to_conversation');
+            const recentUsersProperty = userState.createProperty('recent_users');
+
             await readyToConversationProperty.set(context, 'ready'); // results.ready_to_conversation
             await recentUsersProperty.set(context, []);
 
@@ -129,7 +131,7 @@ module.exports = (controller) => {
             await userState.saveChanges(context);
 
             // Inform to the user about self
-            await bot.say(`Great ${results.username} ! We know about you next things:
+            await bot.say(`Great ${results.username}! We know about you next things:
 
 Your level of English is: ${results.english_level}
 You work in: ${results.community}

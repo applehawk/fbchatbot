@@ -194,7 +194,8 @@ module.exports = (controller) => {
                 // Save userState changes to storage
                 await userState.saveChanges(context);
             } else {
-                await bot.say('Sorry, but at the moment we have not found a single suitable user.\nPlease try again later.');
+                // await bot.say('Sorry, but at the moment we have not found a single suitable user.\nPlease try again later.');
+                await bot.say('Sorry, but at the moment we have not found a suitable user for you.\nPlease try again later.');
             }
 
         } catch (error) {
