@@ -1,20 +1,20 @@
 module.exports = Object.freeze({
-    englishLevelDict: {
-        0: 'Elementary',
-        1: 'Pre-Intermediate',
-        2: 'Intermediate',
-        3: 'Advanced',
-    },
-    communityDict: {
-        0: 'IT',
-        1: 'Startups',
-        2: 'Business',
-        3: 'Design',
-        4: 'Sport',
-        5: 'Networking',
-        6: 'English practice for job interviews',
-        7: 'English practice for the presentation of your product/company',
-    },
+    englishLevelDict: [
+        'Elementary',
+        'Pre-Intermediate',
+        'Intermediate',
+        'Advanced'
+    ],
+    communityDict: [
+        'IT',
+        'Startups',
+        'Business',
+        'Design',
+        'Sport',
+        'Networking',
+        'English practice for job interviews',
+        'English practice for the presentation of your product/company'
+    ],
     askUsernameStr: 'What is your name?',
     sayUsernameStr: 'Great! Your name is {{vars.username}}',
 
