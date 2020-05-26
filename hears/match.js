@@ -34,7 +34,6 @@ module.exports = (controller) => {
     };
 
     const getElement = (user, i = 0) => {
-        console.log(user);
         const buttons = [ ...getButtons() ];
         return {
             title: user.username,
@@ -94,14 +93,10 @@ module.exports = (controller) => {
         const location = `${payload.location}`.split(',').join('|'); // [OK]
 
         const findAllUsersQuery = {
-            $and: [{
-                _id: { // [OK]
-                    $nin: Object.values(payload.recentUsers),
-                },
-            }],
             _id: { // [OK]
                 $regex: `${payload.channelId}/users*`,
                 $ne: `${payload.channelId}/users/${payload.userId}/`,
+                $nin: Object.values(payload.recentUsers),
             },
             $and: [{
                 'state.ready_to_conversation': { // [OK]
