@@ -1,3 +1,5 @@
+'use strict';
+
 //  __   __  ___        ___
 // |__) /  \  |  |__/ |  |
 // |__) \__/  |  |  \ |  |
@@ -17,7 +19,7 @@ const util = require('util');
     process.exit(1)
   });*/
 
-const detectDebug = () => process.env.NODE_ENV !== 'production';
+const detectDebug = () => process.env.NODE_ENV !== 'production'; // [?]
 
 // Load process.env values from .env file
 require('dotenv').config();
@@ -25,7 +27,7 @@ require('dotenv').config();
 let storage = null;
 if (process.env.MONGO_URI) {
     //storage = require('botkit-storage-mongo')({mongoUri: "https:\\"+process.env.MONGO_URI})
-    storage = mongoStorage = new MongoDbStorage({
+    storage = new MongoDbStorage({
         useNewUrlParser: true,
         useUnifiedTopology: true,
         url: process.env.MONGO_URI,
@@ -58,6 +60,7 @@ controller.addDialog(onboarding);
 controller.ready(() => {
     // load traditional developer-created local custom feature modules
     controller.loadModules(__dirname + '/features');
+    controller.loadModules(__dirname + '/hears');
     console.log('ready');
     controller.hears('start', async (bot, message) => {
         try {

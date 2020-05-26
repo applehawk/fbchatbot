@@ -1,49 +1,98 @@
+'use strict';
+
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
 const { Activity } = require('botframework-schema');
+const { FacebookAPI } = require('botbuilder-adapter-facebook');
+
+const api = new FacebookAPI(
+    process.env.FACEBOOK_ACCESS_TOKEN,
+    process.env.FACEBOOK_APP_SECRET);
+
 // #BEGIN DEV
-const { uuid } = require('uuidv4');
 const {
     englishLevelDict,
     communityDict,
 } = require(`../constants.js`);
 // #END DEV
 
-module.exports = function (controller) {
+module.exports = (controller) => {
     // [TODO]
     // Prepare for cache
-    const cachedUsers = {};
+    // const cachedUsers = {};
 
-    const botSay = (bot, obj) => {
-        let message = '';
-        if (Object.keys(obj).length > 1) {
-            Object.values(obj).forEach(user => {
+    const getButtons = () => {
+        const buttons = [];
+        for (let i = 0; i < 3; i++) {
+            buttons.push({
+                type: 'postback',
+                title: `Button ${i}`,
+                payload: i,
+            });
+        }
+        return buttons;
+    };
+
+    const getElement = (user, i = 0) => {
+        const buttons = [ ...getButtons() ];
+        return {
+            title: user.username,
+            image_url: `https://picsum.photos/200/200/?random=${Math.round(Math.random() * 1e2 + i)}`,
+            subtitle: `🗺 ${user.location}\nEnglish level: ${englishLevelDict[user.english_level]}\nCommunity: ${communityDict[communityDict.indexOf(user.community)]}\nProfession: ${user.profession}`,
+            buttons: [buttons[0], buttons[1], buttons[2]],
+        };
+    };
+
+    const botSay = async (payload) => {
+        let context = payload.bot.getConfig('context');
+        let storageKey = userState.getStorageKey(context);
+
+        const activity = context._activity;
+
+        const channelId = activity.channelId;
+        const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+
+        const elements = [];
+
+        if (Object.keys(payload.items).length > 1) {
+            Object.values(payload.items).forEach((user, i) => {
                 if (!Object.values(user).includes('')) {
-                    message = `Name: ${user.username}
-City: ${user.location}
-Community: ${communityDict[communityDict.indexOf(user.community)]}
-Profession: ${user.profession}
-English Level: ${englishLevelDict[user.english_level]}`
+                    elements.push({ ...getElement(user, i) });
                 }
             });
         } else {
-            const user = obj[0];
-            message = `Name: ${user.username}
-City: ${user.location}
-Community: ${communityDict[communityDict.indexOf(user.community)]}
-Profession: ${user.profession}
-English Level: ${englishLevelDict[user.english_level]}`
+            elements.push({ ...getElement(payload.items[0]) });
         }
-        bot.say(message);
+
+        const options = {
+            recipient: {
+                id: userId,
+            },
+            message: {
+                attachment: {
+                    type: 'template',
+                    payload:{
+                        template_type: 'generic',
+                        elements: elements,
+                    }
+                }
+            }
+        };
+
+        try {
+            await api.callAPI('/me/messages', 'POST', options);
+        } catch(error) {
+            console.log(error);
+        }
     };
 
     const userState = new UserState(controller.storage);
-    let storage = controller.storage;
+    const storage = controller.storage;
 
     const chooseWithLevel = async (payload) => {
         const location = `${payload.location}`.split(',').join('|'); // [OK]
 
-        const allUsersQuery = {
+        const findAllUsersQuery = {
             _id: { // [OK]
                 $regex: `${payload.channelId}/users*`,
                 $ne: `${payload.channelId}/users/${payload.userId}/`,
@@ -56,7 +105,7 @@ English Level: ${englishLevelDict[user.english_level]}`
                     $gte: payload.englishLevel || 0,
                 },
                 'state.location': { // [OK]
-                    $regex: `((?!${location}).)+`,
+                    $regex: `^((?!${location}).+)+$`,
                 },
             }],
             $and: [{
@@ -64,9 +113,14 @@ English Level: ${englishLevelDict[user.english_level]}`
                     $nin: Object.values(payload.recentUsers),
                 },
             }],
+            // $and: [{
+            //     'state.location': { // [OK]
+            //         $regex: `((?!${location}).)+`,
+            //     },
+            // }],
         };
 
-        // const docs = await storage.Collection.find(allUsersQuery) // [OK]
+        // const docs = await storage.Collection.find(findAllUsersQuery) // [OK]
         //     .limit(1) // for first 10 documents only
         //     .sort({ "state.english_level": 1 }); // sort ascending
 
@@ -79,14 +133,14 @@ English Level: ${englishLevelDict[user.english_level]}`
 
         // return items;
 
-        const docs = await storage.Collection.findOne(allUsersQuery) || []; // [OK]
-        Object.assign(cachedUsers, docs);
+        const docs = await storage.Collection.findOne(findAllUsersQuery, { sort: 'state.english_level' }) || []; // [OK]
+        // const docs = await storage.Collection.find(findAllUsersQuery, { sort: 'state.english_level', limit: 1 }) || []; // [OK]
+        // Object.assign(cachedUsers, docs);
 
         return docs;
     };
 
     controller.hears('match', ['message', 'direct_message'], async (bot, message) => {
-        // console.log(message);
         try {
             let context = bot.getConfig('context');
             let storageKey = userState.getStorageKey(context);
@@ -108,7 +162,6 @@ English Level: ${englishLevelDict[user.english_level]}`
             let recentUsers = await recentUsersProperty.get(context, []); // [*][?]
             const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
-            //let storageKey = `facebook/users/`;
             const payload = {
                 channelId,
                 community,
@@ -122,9 +175,11 @@ English Level: ${englishLevelDict[user.english_level]}`
             };
 
             const storeItems = await chooseWithLevel(payload) || [];
-            if (Object.keys(storeItems).length) {
-                botSay(bot, [storeItems].map(item => item.state));
 
+            if (Object.keys(storeItems).length) {
+                botSay({ bot, items: [storeItems].map(item => item.state) });
+
+                console.log(storeItems);
                 // Set User State Properties
                 const values = Object.values(storeItems);
                 if (values.length > 1) {
@@ -143,37 +198,6 @@ English Level: ${englishLevelDict[user.english_level]}`
                 bot.say('Sorry, but at the moment we have not found a single suitable user.\nPlease try again later.');
             }
 
-        } catch (error) {
-            console.log(error);
-        }
-    });
-
-    controller.hears('rand', ['message','direct_message'], async(bot,message) => {
-        const locations = ['Nizhnepavlovka','Ufa','Moscow','Khanty','Tyumen', 'Russian', 'Russia', 'Singapour', 'Australian', 'Turkey'];
-        const professions = ['IT-Programmer', 'IT-Manager', 'Financist', 'Saler', 'Marketer', 'Translator','Politic','Developer','Web Designer','Web Developer','Junior Frontend Developer','Middle Frontend Developer','Backend Developer'];
-        const names = ['Nunc', 'Risus', 'Enim', 'Laoreet in', 'Suscipit', 'Eu Facilisis', 'A Nibh'];
-        const users = [];
-        for (let i = 0; i < 1; i++) {
-            const randUserId = uuid();
-
-            const user = {
-                _id: `/facebook/users/${randUserId}/`,
-                dt: new Date(Date.now() - Math.round(Math.random() * 1e9)),
-                state: {
-                    community: communityDict[Math.round(Math.random() * (communityDict.length - 1))],
-                    location: locations[Math.round(Math.random() * (locations.length - 1))],
-                    english_level: Math.round(Math.random() * (englishLevelDict.length - 1)),
-                    profession: professions[Math.round(Math.random() * (professions.length - 1))],
-                    ready_to_conversation: 'ready',
-                    username: names[Math.round(Math.random() * (names.length - 1))],
-                },
-            };
-
-            users.push(user);
-        }
-        try {
-            const result = await storage.Collection.insertMany([...users]);
-            console.log(JSON.stringify(result, null, 2));
         } catch (error) {
             console.log(error);
         }

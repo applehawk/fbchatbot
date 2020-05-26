@@ -1,9 +1,11 @@
+'use strict';
+
 /**
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
 
-module.exports = function(controller) {
+module.exports = (controller) => {
     const GREETING_ID = 'GREETING_ID';
     controller.on('facebook_postback', async (bot, message) => {
         if (message.postback.title === 'Get Started') {
@@ -22,4 +24,4 @@ module.exports = function(controller) {
         await bot.reply(message,`I heard you posting back a post_back about ${ message.text }`);
     });
 */
-}
+};

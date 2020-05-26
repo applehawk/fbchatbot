@@ -1,3 +1,5 @@
+'use strict';
+
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 const { FacebookAPI } = require('botbuilder-adapter-facebook');
@@ -14,8 +16,7 @@ const {
     sayUsernameStr,
 } = require('../constants.js');
 
-
-module.exports = function(controller) {
+module.exports = (controller) => {
     const ONBOARDING_ID = 'ONBOARDING_ID'
     let onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
@@ -42,82 +43,6 @@ module.exports = function(controller) {
         });
         return items;
     };
-
-    const getCommunityButtons = () => {
-        const buttons = [];
-        Object.keys(communityDict).forEach((key, i) => {
-            buttons.push({
-                type: 'postback',
-                title: communityDict[key],
-                payload: i,
-            });
-        });
-        return buttons;
-    };
-
-    controller.hears('btn', ['message','direct_message'], async(bot,message) => {
-        const context = bot.getConfig('context');
-        const activity = context._activity;
-        const channelId = activity.channelId;
-        const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
-
-        const buttons = [ ...getCommunityButtons() ];
-        const elements = [
-            {
-                title: "Welcome!",
-                image_url: "https://picsum.photos/800/600/?random=1",
-                subtitle: "We have the right hat for everyone.",
-                buttons: [buttons[0]],
-            },
-            {
-                title: "Welcome!",
-                image_url: "https://picsum.photos/800/600/?random=2",
-                subtitle: "We have the right hat for everyone.",
-                buttons: [buttons[1]],
-            },
-            {
-                title: "Welcome!",
-                image_url: "https://picsum.photos/800/600/?random=3",
-                subtitle: "We have the right hat for everyone.",
-                buttons: [buttons[2]],
-            },
-            {
-                title: "Welcome!",
-                image_url: "https://picsum.photos/800/600/?random=4",
-                subtitle: "We have the right hat for everyone.",
-                buttons: [buttons[3]],
-            },
-            {
-                title: "Welcome!",
-                image_url: "https://picsum.photos/800/600/?random=5",
-                subtitle: "We have the right hat for everyone.",
-                buttons: [buttons[4]],
-            },
-        ];
-
-        const options = {
-            recipient: {
-                id: userId,
-            },
-            message: {
-                attachment: {
-                    type:"template",
-                    payload:{
-                        template_type: "generic",
-                        elements: elements
-                    }
-                }
-            }
-        };
-
-        try {
-            await api.callAPI('/me/messages','POST',options);
-        } catch(error) {
-            console.log(error);
-        }
-        //bot.say(options, async(answerText, conversation, bot, message) => {
-        //});
-    });
 
     // #BEGIN User Name
     // ask a question, store the responses
@@ -218,4 +143,4 @@ Oh yes, I completely forgot. You are from ${results.location}
         };
 
     });
-}
+};
