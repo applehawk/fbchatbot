@@ -202,4 +202,39 @@ module.exports = (controller) => {
             console.log(error);
         }
     });
+<<<<<<< HEAD:hears/match.js
+=======
+
+    controller.hears('rand', ['message','direct_message'], async(bot,message) => {
+        const locations = ['Nizhnepavlovka','Ufa','Moscow','Khanty','Tyumen', 'Russian', 'Russia', 'Singapour', 'Australian', 'Turkey'];
+        const professions = ['IT-Programmer', 'IT-Manager', 'Financist', 'Saler', 'Marketer', 'Translator','Politic','Developer','Web Designer','Web Developer','Junior Frontend Developer','Middle Frontend Developer','Backend Developer'];
+        const names = ['Nunc', 'Risus', 'Enim', 'Laoreet in', 'Suscipit', 'Eu Facilisis', 'A Nibh'];
+        const users = [];
+        for (let i = 0; i < 1; i++) {
+            const randUserId = uuid();
+
+            const user = {
+                _id: `/facebook/users/${randUserId}/`,
+                dt: new Date(Date.now() - Math.round(Math.random() * 1e9)),
+                state: {
+                    community: communityDict[Math.round(Math.random() * (communityDict.length - 1))],
+                    location: locations[Math.round(Math.random() * (locations.length - 1))],
+                    english_level: Math.round(Math.random() * (englishLevelDict.length - 1)),
+                    profession: professions[Math.round(Math.random() * (professions.length - 1))],
+                    ready_to_conversation: 'ready',
+                    username: names[Math.round(Math.random() * (names.length - 1))],
+                },
+            };
+
+            users.push(user);
+        }
+        try {
+            const result = await storage.Collection.insertMany([...users]);
+            botSayWithState(bot, users)
+            console.log(JSON.stringify(result, null, 2));
+        } catch (error) {
+            console.log(error);
+        }
+    });
+>>>>>>> a0a99968af45e025652a58dc6884c8afc81c9b10:features/matching2.js
 };
