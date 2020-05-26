@@ -111,7 +111,7 @@ module.exports = (controller) => {
             console.log(results);
 
             const context = bot.getConfig('context');
-            await communityProperty.set(context, results.community);
+            await communityProperty.set(context, communityDict.indexOf(results.community));
             await locationProperty.set(context, results.location);
             await englishLevelProperty.set(
                 context,
