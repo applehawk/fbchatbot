@@ -144,7 +144,7 @@ module.exports = function(controller) {
 
     const getEnglishLevelDict = () => {
         const levels = [];
-        Object.keys(englishLevelDict).forEach((key, value) => {
+        Object.keys(englishLevelDict).forEach((key, i) => {
             levels.push({
                 content_type: 'text',
                 title: englishLevelDict[key],
@@ -160,7 +160,7 @@ module.exports = function(controller) {
             communities.push({
                 content_type: 'text',
                 title: communityDict[key],
-                payload: i,
+                payload: key,
             });
         });
         return communities;
@@ -260,11 +260,14 @@ Oh yes, I completely forgot. You are from ${results.country_city}`);
                 console.log(results);
 
                 const botContext = bot.getConfig('context');
-                await communityProperty.set(botContext, results.community);
+                await communityProperty.set(
+                    botContext, 
+                    Object.values(communityDict).indexOf(results.community),
+                );
                 await countryCityProperty.set(botContext, results.country_city);
                 await englishLevelProperty.set(
                     botContext,
-                    results.english_level
+                    Object.values(englishLevelDict).indexOf(results.english_level),
                 );
                 await nameProperty.set(botContext, results.username);
                 await professionProperty.set(botContext, results.profession);

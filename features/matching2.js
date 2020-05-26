@@ -18,21 +18,29 @@ module.exports = function (controller) {
        });
     };
 
+    const botSayWithState = (bot, obj) => {
+        Object.values(obj).forEach((user) => {
+            bot.say(
+                `Name: ${user.state.username}\nCity: ${user.state.country_city}\nProfession: ${user.state.profession}\nCommunity: ${communityDict[user.state.community]}\nEnglish Level: ${user.state.english_level}`
+            );
+        });
+     };
+
     const cachedUsers = {};
     const userState = new UserState(controller.storage);
     let storage = controller.storage;
 
     const chooseWithLevel = async (payload) => {
-        // const countryCity = payload.countryCity.split(',').join('|'); // v1 [OK][*]
+        const countryCity = payload.countryCity.split(',').join('|'); // v1 [OK][*]
 
         // v2 [?]
-        let countryCity = '';
-        if (payload.countryCity.indexOf(',') !== -1) {
-            countryCity = payload.countryCity.replace(/ /gi, ',').split(',').join('|');
-        } else {
-            countryCity = payload.countryCity;
-        }
-        const regexp = new RegExp(`((?!${countryCity}).)+`, 'giu');
+        //let countryCity = '';
+        //if (payload.countryCity.indexOf(',') !== -1) {
+        //    countryCity = payload.countryCity.replace(/ /gi, ',').split(',').join('|');
+        //} else {
+        //    countryCity = payload.countryCity;
+        //}
+        //const regexp = new RegExp(`((?!${countryCity}).)+`, 'giu');
 
         const allUsersQuery = {
             _id: { // [OK]
@@ -45,12 +53,12 @@ module.exports = function (controller) {
             'state.english_level': { // [OK]
                 $gte: payload.englishLevel || 0
             },
-            // 'state.country_city': { // v1 [OK]
-            //     $regex: `^((?!${countryCity}).)+$`,
-            // },
-            'state.country_city': { // v2 [*][?]
-                $regex: `${regexp}`
+            'state.country_city': { // v1 [OK]
+                $regex: `^((?!${countryCity}).)+$`,
             },
+            //'state.country_city': { // v2 [*][?]
+            //    $regex: `${regexp}`
+            //},
         };
 
         // const docs = await storage.Collection.findOne(singleUserQuery); // [OK]
@@ -108,8 +116,11 @@ module.exports = function (controller) {
             } else {
                 const storeItems = await chooseWithLevel(payload);
                 console.log('storeItems:', storeItems);
-                botSay(bot, storeItems);
+                const user = Object.values(storeItems)[Math.round(Math.random() * (Object.keys(storeItems).length - 1))];
 
+                bot.say(
+                    `Name: ${user.username}\nCity: ${user.country_city}\nProfession: ${user.profession}\nCommunity: ${user.community}\nEnglish Level: ${user.english_level}`
+                );
                 // // [TODO]
                 // // Set User State Properties
                 // Object.assign(recentUsers, storeItems);
@@ -140,12 +151,12 @@ module.exports = function (controller) {
                 _id: `/facebook/users/${randUserId}/`,
                 dt: new Date(Date.now() - Math.round(Math.random() * 1e9)),
                 state: {
-                    community: Object.values(communityDict)[Math.round(Math.random() * Object.keys(communityDict).length - 1)],
-                    country_city: cities[Math.round(Math.random() * cities.length - 1)],
-                    english_level: Math.round(Math.random() * Object.keys(englishLevelDict).length - 1),
+                    community: Math.round(Math.random() * (Object.keys(communityDict).length - 1)),
+                    country_city: cities[Math.round(Math.random() * (cities.length - 1))],
+                    english_level: Math.round(Math.random() * (Object.keys(englishLevelDict).length - 1)),
                     eTag: '',
-                    profession: Object.values(professions)[Math.round(Math.random() * Object.keys(professions).length - 1)],
-                    ready_to_conversation: Math.random() > 0.50 ? 'ready' : 'busy',
+                    profession: Object.values(professions)[Math.round(Math.random() * (Object.keys(professions).length - 1))],
+                    ready_to_conversation: 'ready',
                     username: `user${i}`,
                 },
             };
@@ -154,6 +165,7 @@ module.exports = function (controller) {
         }
         try {
             const result = await storage.Collection.insertMany([...users]);
+            botSayWithState(bot, users)
             console.log(JSON.stringify(result, null, 2));
         } catch (error) {
             console.log(error);
