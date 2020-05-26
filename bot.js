@@ -61,6 +61,10 @@ controller.ready(() => {
     // load traditional developer-created local custom feature modules
     controller.loadModules(__dirname + '/features');
     controller.loadModules(__dirname + '/hears');
+
+    // load test modules
+    controller.loadModules(__dirname + '/hears_test');
+
     console.log('ready');
     controller.hears('start', async (bot, message) => {
         try {

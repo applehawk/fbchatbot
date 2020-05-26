@@ -2,7 +2,7 @@
 
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
-const { Activity } = require('botframework-schema');
+const { Activity } = require('botframework-schema'); // [?]
 const { FacebookAPI } = require('botbuilder-adapter-facebook');
 
 const api = new FacebookAPI(
@@ -45,7 +45,7 @@ module.exports = (controller) => {
 
     const botSay = async (payload) => {
         let context = payload.bot.getConfig('context');
-        let storageKey = userState.getStorageKey(context);
+        // let storageKey = payload.userState.getStorageKey(context);
 
         const activity = context._activity;
 
@@ -86,9 +86,6 @@ module.exports = (controller) => {
         }
     };
 
-    const userState = new UserState(controller.storage);
-    const storage = controller.storage;
-
     const chooseWithLevel = async (payload) => {
         const location = `${payload.location}`.split(',').join('|'); // [OK]
 
@@ -103,20 +100,19 @@ module.exports = (controller) => {
                     $eq: 'ready',
                 },
                 'state.english_level': { // [OK]
-                    $gte: payload.englishLevel || 0,
+                    $gte: payload.englishLevel,
                 },
                 'state.location': { // [OK]
-                    $regex: `^((?!${location}).)+$`,
+                    $regex: `((?!${location}).)+`,
                 },
-            }],
-            $and: [{
                 'state.community': { // [OK][?]
                     $eq: payload.community,
                 },
             }],
         };
 
-        // const docs = await storage.Collection.find(findAllUsersQuery) // [OK]
+        // // v1 [OK]
+        // const docs = await payload.storage.Collection.find(findAllUsersQuery) // [OK]
         //     .limit(1) // for first 10 documents only
         //     .sort({ "state.english_level": 1 }); // sort ascending
 
@@ -129,20 +125,25 @@ module.exports = (controller) => {
 
         // return items;
 
-        const docs = await storage.Collection.findOne(findAllUsersQuery, { sort: 'state.english_level' }) || []; // [OK]
-        // const docs = await storage.Collection.find(findAllUsersQuery, { sort: 'state.english_level', limit: 1 }) || []; // [OK]
+        // v2 [OK][*]
+        const docs = await payload.storage.Collection.findOne(findAllUsersQuery, { sort: 'state.english_level' }) || []; // [OK]
+        // const docs = await payload.storage.Collection.find(findAllUsersQuery, { sort: 'state.english_level', limit: 1 }) || []; // [OK]
         // Object.assign(cachedUsers, docs);
 
         return docs;
     };
 
     controller.hears('match', ['message', 'direct_message'], async (bot, message) => {
+        const userState = new UserState(controller.storage);
+        const storage = controller.storage;
+
         try {
             let context = bot.getConfig('context');
-            let storageKey = userState.getStorageKey(context);
+            // let storageKey = userState.getStorageKey(context);
 
             const activity = context._activity;
 
+            // Get User State Properties
             const channelId = activity.channelId;
             const communityProperty = await userState.createProperty('community');
             const community = await communityProperty.get(context);
@@ -155,7 +156,7 @@ module.exports = (controller) => {
             const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
             const readyToConversation = await readyToConversationProperty.get(context);
             const recentUsersProperty = await userState.createProperty('recent_users');
-            let recentUsers = await recentUsersProperty.get(context, []); // [*][?]
+            let recentUsers = await recentUsersProperty.get(context, []);
             const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
             const payload = {
@@ -170,12 +171,15 @@ module.exports = (controller) => {
                 userId,
             };
 
+            // Getting users from DB
             const storeItems = await chooseWithLevel(payload) || [];
 
             if (Object.keys(storeItems).length) {
+                // Send reply with users info
                 botSay({ bot, items: [storeItems].map(item => item.state) });
 
                 console.log(storeItems);
+
                 // Set User State Properties
                 const values = Object.values(storeItems);
                 if (values.length > 1) {
@@ -185,13 +189,12 @@ module.exports = (controller) => {
                         recentUsers = [ ...recentUsers, storeItems[0]._id ];
                     }
                 }
-                // recentUsers = [];
-                await recentUsersProperty.set(context, recentUsers);
 
-                // // Save UserState changes to MondogD
+                await recentUsersProperty.set(context, recentUsers);
+                // Save userState changes to storage
                 await userState.saveChanges(context);
             } else {
-                bot.say('Sorry, but at the moment we have not found a single suitable user.\nPlease try again later.');
+                await bot.say('Sorry, but at the moment we have not found a single suitable user.\nPlease try again later.');
             }
 
         } catch (error) {

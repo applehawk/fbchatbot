@@ -21,10 +21,10 @@ module.exports = (controller) => { // [OK]
     const users = [];
     for (let i = 0; i < total; i++) {
       const user = {
-        _id: `/facebook/users/${Math.round(Math.random() * 1e15).toString(10)}/`,
-        dt: new Date(Date.now() - Math.round(Math.random() * 1e9)),
+        _id: `facebook/users/${Math.round(Math.random() * 1e15).toString(10)}/`,
+        dt: new Date(Date.now() - Math.round(Math.random() * 1e10)),
         state: {
-          community: communityDict[Math.round(Math.random() * (communityDict.length - 1))],
+          community: Math.round(Math.random() * (communityDict.length - 1)),
           location: locations[Math.round(Math.random() * (locations.length - 1))],
           english_level: Math.round(Math.random() * (englishLevelDict.length - 1)),
           profession: professions[Math.round(Math.random() * (professions.length - 1))],
@@ -37,8 +37,8 @@ module.exports = (controller) => { // [OK]
     }
     try {
       const result = await storage.Collection.insertMany([...users]);
-      await bot.say(`Done. Inserted Count: ${result.insertedCount}`);
-      console.log(JSON.stringify(result, null, 2));
+      console.log(message, JSON.stringify(result, null, 2));
+      await bot.say(`[${text}] Inserted Count: ${result.insertedCount}`);
     } catch (error) {
       console.log(error);
     }
