@@ -34,11 +34,12 @@ module.exports = (controller) => {
     };
 
     const getElement = (user, i = 0) => {
+        console.log(user);
         const buttons = [ ...getButtons() ];
         return {
             title: user.username,
             image_url: `https://picsum.photos/200/200/?random=${Math.round(Math.random() * 1e2 + i)}`,
-            subtitle: `🗺 ${user.location}\nEnglish level: ${englishLevelDict[user.english_level]}\nCommunity: ${communityDict[communityDict.indexOf(user.community)]}\nProfession: ${user.profession}`,
+            subtitle: `🗺 ${user.location}\nEnglish level: ${englishLevelDict[user.english_level]}\nCommunity: ${communityDict[user.community]}\nProfession: ${user.profession}`,
             buttons: [buttons[0], buttons[1], buttons[2]],
         };
     };
@@ -93,6 +94,11 @@ module.exports = (controller) => {
         const location = `${payload.location}`.split(',').join('|'); // [OK]
 
         const findAllUsersQuery = {
+            $and: [{
+                _id: { // [OK]
+                    $nin: Object.values(payload.recentUsers),
+                },
+            }],
             _id: { // [OK]
                 $regex: `${payload.channelId}/users*`,
                 $ne: `${payload.channelId}/users/${payload.userId}/`,
@@ -105,19 +111,14 @@ module.exports = (controller) => {
                     $gte: payload.englishLevel || 0,
                 },
                 'state.location': { // [OK]
-                    $regex: `^((?!${location}).+)+$`,
+                    $regex: `^((?!${location}).)+$`,
                 },
             }],
             $and: [{
-                _id: { // [OK][*][?]
-                    $nin: Object.values(payload.recentUsers),
+                'state.community': { // [OK][?]
+                    $eq: payload.community,
                 },
             }],
-            // $and: [{
-            //     'state.location': { // [OK]
-            //         $regex: `((?!${location}).)+`,
-            //     },
-            // }],
         };
 
         // const docs = await storage.Collection.find(findAllUsersQuery) // [OK]
