@@ -1,53 +1,52 @@
+'use strict';
+
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
+const { FacebookAPI } = require('botbuilder-adapter-facebook');
 
-const askUsernameStr = 'What is your name?';
-const sayUsernameStr = 'Great! Your name is {{vars.username}}';
-const askFacebookUrlStr = `Fine. Could you share with me a link to your Facebook profile?
+const {
+    askCityFromStr,
+    askCommunityStr,
+    askEnglishStr,
+    askFacebookUrlStr,
+    askProfessionStr,
+    askUsernameStr,
+    communityDict,
+    englishLevelDict,
+    sayUsernameStr,
+} = require('../constants.js');
 
-It needs for connection with partners. We will send the link to your partner for scheduling the call.
-
-Where you can find the link?
-
-For Facebook Messenger: go to your profile, this is where the chat list is, copy the profile link and send it to the dialogue.
-
-If you use a web browser:
-1) open in a new Facebook.com and go to your profile page
-2) copy the link from the address bar and send it to the dialogue.)`;
-
-const askCityFromStr = `It was not easy, but we did it! 😀
-
-Now tell me where are you from?
-(Country and city)`;
-
-const askEnglishStr = 'Ok. What about English speaking? Choose your English level, it will help us to choose the suited person for the call.'
-const englishLevelDict = {
-    Elementary: 'Elementary',
-    PreIntermediate: 'Pre-Intermediate',
-    Intermediate: 'Intermediate',
-    Advanced: 'Advanced',
-};
-
-const professionAsk = `Next step:
-What are you doing?
-
-Tell us about your work, company, project or startup you are involved in.
-
-For example, I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project.`;
-
-module.exports = function(controller) {
+module.exports = (controller) => {
     const ONBOARDING_ID = 'ONBOARDING_ID'
     let onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
     // user state properties
     const userState = new UserState(controller.storage);
-    let nameProperty = userState.createProperty("username");
-    let countryCityProperty = userState.createProperty("country_city");
-    let professionProperty = userState.createProperty("profession");
-    let englishLevelProperty = userState.createProperty("english_level");
+    const communityProperty = userState.createProperty('community');
+    const englishLevelProperty = userState.createProperty('english_level');
+    const locationProperty = userState.createProperty('location');
+    const nameProperty = userState.createProperty('username');
+    const professionProperty = userState.createProperty('profession');
 
+    const api = new FacebookAPI(
+        process.env.FACEBOOK_ACCESS_TOKEN,
+        process.env.FACEBOOK_APP_SECRET);
+
+    const getDictItems = (dict) => {
+        const items = [];
+        Object.keys(dict).forEach((key, i) => {
+            items.push({
+                content_type: 'text',
+                title: dict[key],
+                payload: i,
+            });
+        });
+        return items;
+    };
+
+    // #BEGIN User Name
     // ask a question, store the responses
-    onboarding.ask(askUsernameStr, async(answerText, convo, bot, message) => {
+    onboarding.ask(askUsernameStr, async (answerText, convo, bot, message) => {
         try {
             console.log(`User has name ${answerText}`);
         } catch(error) {
@@ -55,73 +54,95 @@ module.exports = function(controller) {
         }
     }, {key: 'username'});
 
-    onboarding.say('Great! Your name is {{vars.username}}');
-    //onboarding.ask(askFacebookUrlStr, async(answerText, convo, bot, message) => {
+    onboarding.say(sayUsernameStr);
+    // #END User Name
+
+    //onboarding.ask(askFacebookUrlStr, async (answerText, convo, bot, message) => {
     //}, 'facebook_url');
-    onboarding.ask(askCityFromStr, async(answerText, convo, bot, message) => {
+
+    // #BEGIN Location
+    onboarding.ask(askCityFromStr, async (answerText, convo, bot, message) => {
         try {
             console.log(`User has city ${answerText}`);
         } catch(error) {
             console.log(error);
         }
-    }, {key: 'country_city'});
-    onboarding.ask(professionAsk, async(answerText, convo, bot, message) => {
-        try {
-            console.log(`User has Profession ${answerText}`);
-        } catch(error) {
-            console.log(error);
-        }
-    }, {key: 'profession'});
+    }, {key: 'location'});
+    // #END Location
 
-    onboarding.ask({text: askEnglishStr,
-        quick_replies: [{
-          content_type: 'text',
-          title: englishLevelDict.Elementary,
-          payload: 0,
-        }, {
-          content_type: 'text',
-          title: englishLevelDict.PreIntermediate,
-          payload: 1,
-        }, {
-          content_type: 'text',
-          title: englishLevelDict.Intermediate,
-          payload: 2,
-        }, {
-            content_type: 'text',
-            title: englishLevelDict.Advanced,
-            payload: 3,
-        }],
-      }, async(answerText, conversation, bot, message) => {
+    // #BEGIN English Level
+    onboarding.ask({ text: askEnglishStr,
+        quick_replies: [ ...getDictItems(englishLevelDict) ],
+    }, async (answerText, conversation, bot, message) => {
         try {
             console.log(`User has EnglishLevel: ${answerText}`);
-            await conversation.stop();
         } catch(error) {
             console.log(error);
         }
-      }, {key: 'english_level'});
+    }, { key: 'english_level'});
+    // #END English Level
 
-    onboarding.after(async(results, bot) => {
+    // #BEGIN Community
+    onboarding.ask({ text: askCommunityStr,
+        quick_replies: [ ...getDictItems(communityDict) ],
+    }, async (answerText, conversation, bot, message) => {
         try {
-            await bot.say(`Great ${results.username} ! We know about you next things:
-        
-    What are you doing -> ${results.profession}
-    What is your level of English -> ${results.english_level}
-    You have a Facebook page :), here is it-> ${results.facebook_url}
-        
-    Oh yes, I completely forgot. You are from ${results.country_city}`);
-    
+            console.log(`User has Community: ${answerText}`);
+        } catch(error) {
+            console.log(error);
+        }
+    }, { key: 'community'});
+    // #END Community
+
+    // #BEGIN Profession
+    onboarding.ask(askProfessionStr,
+        async (answerText, convo, bot, message) => {
+            try {
+                console.log(`User has Profession ${answerText}`);
+                await convo.stop();
+            } catch(error) {
+                console.log(error);
+            }
+    }, {key: 'profession'});
+    // #END Profession
+
+    onboarding.after(async (results, bot) => {
+        try {
             console.log(results);
 
-            let botContext = bot.getConfig('context');
-            await nameProperty.set(botContext, results.username);
-            await countryCityProperty.set(botContext, results.country_city);
-            await professionProperty.set(botContext, results.profession);
+            const context = bot.getConfig('context');
 
-            await englishLevelProperty.set(botContext, results.english_level.key);
-            await userState.saveChanges(botContext)
+            await communityProperty.set(context, communityDict.indexOf(results.community));
+            await locationProperty.set(context, results.location);
+            await englishLevelProperty.set(
+                context,
+                englishLevelDict.indexOf(results.english_level)
+            );
+            await nameProperty.set(context, results.username);
+            await professionProperty.set(context, results.profession);
+
+            const readyToConversationProperty = userState.createProperty('ready_to_conversation');
+            const recentUsersProperty = userState.createProperty('recent_users');
+
+            await readyToConversationProperty.set(context, 'ready'); // results.ready_to_conversation
+            await recentUsersProperty.set(context, []);
+
+            // Save User's Info
+            await userState.saveChanges(context);
+
+            // Inform to the user about self
+            await bot.say(`Great ${results.username}! We know about you next things:
+
+Your level of English is: ${results.english_level}
+You work in: ${results.community}
+You work as: ${results.profession}
+You have a Facebook page :), here is it: ${results.facebook_url}
+
+Oh yes, I completely forgot. You are from ${results.location}
+`);
         } catch(error) {
             console.log(error);
         };
-    
+
     });
-}
+};
