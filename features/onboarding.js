@@ -8,6 +8,9 @@ const {
     askCityFromStr,
     askCommunityStr,
     askEnglishStr,
+    askAboutYouself,
+    askAboutExpertIn,
+    askWhoIntroduceIn,
     askFacebookUrlStr,
     askProfessionStr,
     askUsernameStr,
@@ -79,6 +82,10 @@ module.exports = (controller) => {
     const locationProperty = userState.createProperty('location');
     const nameProperty = userState.createProperty('username');
     const professionProperty = userState.createProperty('profession');
+    const aboutYouselfProperty = userState.createProperty('about_yourself');
+    const aboutExpertInProperty = userState.createProperty('about_expertin');
+    const aboutWhoIntroduceIn = userState.createProperty('who_introducein');
+
 
     const api = new FacebookAPI(
         process.env.FACEBOOK_ACCESS_TOKEN,
@@ -122,6 +129,18 @@ module.exports = (controller) => {
     }, {key: 'location'});
     // #END Location
 
+    // #BEGIN Profession
+    onboarding.ask(askProfessionStr,
+        async (answerText, convo, bot, message) => {
+            try {
+                console.log(`User has Profession ${answerText}`);
+                await convo.stop();
+            } catch(error) {
+                console.log(error);
+            }
+    }, {key: 'profession'});
+    // #END Profession
+
     // #BEGIN English Level
     onboarding.ask({ text: askEnglishStr,
         quick_replies: [ ...getDictItems(englishLevelDict) ],
@@ -133,6 +152,30 @@ module.exports = (controller) => {
         }
     }, { key: 'english_level'});
     // #END English Level
+
+    // #BEGIN About Yourself
+    onboarding.ask(askAboutYouself,
+        async (answerText, convo, bot, message) => {
+        try {
+            console.log(`User about yourself ${answerText}`);
+            await convo.stop();
+        } catch(error) {
+            console.log(error);
+        }
+    }, {key: 'about_yourself'});
+    // #END About Yourself
+
+    // #BEGIN About ExpertIn
+    onboarding.ask(askAboutExpertIn,
+        async (answerText, convo, bot, message) => {
+        try {
+            console.log(`User about yourself ${answerText}`);
+            await convo.stop();
+        } catch(error) {
+            console.log(error);
+        }
+    }, {key: 'about_expertin'});
+    // #END About ExportIn
 
     // #BEGIN Community
     onboarding.ask({ text: askCommunityStr,
@@ -146,17 +189,17 @@ module.exports = (controller) => {
     }, { key: 'community'});
     // #END Community
 
-    // #BEGIN Profession
-    onboarding.ask(askProfessionStr,
+    // #BEGIN About ExpertIn
+    onboarding.ask(askWhoIntroduceIn,
         async (answerText, convo, bot, message) => {
-            try {
-                console.log(`User has Profession ${answerText}`);
-                await convo.stop();
-            } catch(error) {
-                console.log(error);
-            }
-    }, {key: 'profession'});
-    // #END Profession
+        try {
+            console.log(`User who introduceIn: ${answerText}`);
+            await convo.stop();
+        } catch(error) {
+            console.log(error);
+        }
+    }, {key: 'who_introducein'});
+    // #END About ExportIn
 
     onboarding.after(async (results, bot) => {
         try {
@@ -172,6 +215,9 @@ module.exports = (controller) => {
             );
             await nameProperty.set(context, results.username);
             await professionProperty.set(context, results.profession);
+            await aboutYouselfProperty.set(context, results.about_yourself);
+            await aboutExpertInProperty.set(context, results.about_expertin);
+            await aboutWhoIntroduceIn.set(conext, results.who_introducein);
 
             const readyToConversationProperty = userState.createProperty('ready_to_conversation');
             const recentUsersProperty = userState.createProperty('recent_users');
@@ -183,15 +229,17 @@ module.exports = (controller) => {
             await userState.saveChanges(context);
 
             // Inform to the user about self
-            await bot.say(`Great ${results.username}! We know about you next things:
-
-Your level of English is: ${results.english_level}
-You work in: ${results.community}
-You work as: ${results.profession}
-You have a Facebook page :), here is it: ${results.facebook_url}
-
-Oh yes, I completely forgot. You are from ${results.location}
-`);
+            await bot.say(`Great. Look at the result:
+${results.username} 
+${results.facebook_url}
+Location: ${results.location}
+English Level: ${results.english_level}
+Community:${results.community}
+Work: ${results.profession}
+How I can help: ${results.about_expertin}
+I have interested in: ${results.about_yourself}
+            
+I can introduce to: ${results.who_introducein}`)
         } catch(error) {
             console.log(error);
         };

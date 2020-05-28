@@ -49,14 +49,24 @@ If you use a web browser:
 // Tell us about your work, company, project or startup you are involved in.
 
 // For example, I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project.`
-    askCommunityStr: `What do you do?`,
+    askCommunityStr: `OK. Now the most important step. Choose the community:`,
+    askAboutYouself: `Well done.
+    Could you tell something interesting about yourself, or you share with us a link to your Twitter or LinkedIn? It will allow the partner has to get to know you better.`,
+    askWhoIntroduceIn: `And the last question, it is not obligatory
 
+    Who can you introduce? Who can you do an intro to?
+    
+    Write a few areas in which you have contacts and which might be useful to our community.
+    For example, I know guys from Bank of America and TransferWise. I can help with the introduction to fintech companies.`,
+    askAboutExpertIn: `How could you be of help? What area are you an expert in?
+
+    For example, I'm a corporative lawyer with eighteenth years of experience. Feel free to ask me about registering the company, international law, and other paperwork.`,
     askProfessionStr: `
-Next step:
-What sort of work do you do?
-
-Tell us about your work, company, project or startup you are involved in.
-
-For example, I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project.`,
+    Next step:
+    What are you doing?
+    
+    Tell us about your work, company, project or startup you are involved in.
+    
+    For example, I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project.`,
 
 });
