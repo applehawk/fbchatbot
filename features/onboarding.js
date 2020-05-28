@@ -2,14 +2,6 @@
 
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
-<<<<<<< HEAD
-
-const { communityDict, englishLevelDict, askUsernameStr,
-    askCityFromStr, askEnglishStr, professionAsk, askCommunityStr,
-     } = require('../constants.js');
-
-module.exports = function(controller) {
-=======
 const { FacebookAPI } = require('botbuilder-adapter-facebook');
 
 const {
@@ -25,7 +17,6 @@ const {
 } = require('../constants.js');
 
 module.exports = (controller) => {
->>>>>>> e4a5e7cca8994d128e225a76bf8f973f332de5bb
     const ONBOARDING_ID = 'ONBOARDING_ID'
     let onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
@@ -128,11 +119,6 @@ module.exports = (controller) => {
         } catch(error) {
             console.log(error);
         }
-<<<<<<< HEAD
-    }, {key: 'country_city'});
-
-    onboarding.ask(professionAsk, async(answerText, convo, bot, message) => {
-=======
     }, {key: 'location'});
     // #END Location
 
@@ -140,7 +126,6 @@ module.exports = (controller) => {
     onboarding.ask({ text: askEnglishStr,
         quick_replies: [ ...getDictItems(englishLevelDict) ],
     }, async (answerText, conversation, bot, message) => {
->>>>>>> e4a5e7cca8994d128e225a76bf8f973f332de5bb
         try {
             console.log(`User has EnglishLevel: ${answerText}`);
         } catch(error) {
@@ -149,32 +134,10 @@ module.exports = (controller) => {
     }, { key: 'english_level'});
     // #END English Level
 
-<<<<<<< HEAD
-      onboarding.ask({text: askEnglishStr,
-        quick_replies: [{
-          content_type: 'text',
-          title: englishLevelDict.Elementary,
-          payload: 0,
-        }, {
-          content_type: 'text',
-          title: englishLevelDict.PreIntermediate,
-          payload: 1,
-        }, {
-          content_type: 'text',
-          title: englishLevelDict.Intermediate,
-          payload: 2,
-        }, {
-            content_type: 'text',
-            title: englishLevelDict.Advanced,
-            payload: 3,
-        }],
-      }, async(answerText, conversation, bot, message) => {
-=======
     // #BEGIN Community
     onboarding.ask({ text: askCommunityStr,
         quick_replies: [ ...getDictItems(communityDict) ],
     }, async (answerText, conversation, bot, message) => {
->>>>>>> e4a5e7cca8994d128e225a76bf8f973f332de5bb
         try {
             console.log(`User has Community: ${answerText}`);
         } catch(error) {
