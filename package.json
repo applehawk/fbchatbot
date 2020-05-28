@@ -12,8 +12,14 @@
     "botbuilder-storage-mongodb": "^0.9.5",
     "botkit": "^4.9.0",
     "botkit-plugin-cms": "^1.0.3",
+<<<<<<< HEAD
     "dotenv": "^7.0.0",
     "uuid": "^8.1.0",
     "uuidv4": "^6.0.9"
   }
+=======
+    "dotenv": "^7.0.0"
+  },
+  "devDependencies": {}
+>>>>>>> e4a5e7cca8994d128e225a76bf8f973f332de5bb
 }

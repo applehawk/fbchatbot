@@ -1,8 +1,10 @@
+'use strict';
+
 /**
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-module.exports = function(controller) {
+module.exports = (controller) => {
 /*
     // use a function to match a condition in the message
     controller.hears(async (message) => message.text && message.text.toLowerCase() === 'foo', ['message'], async (bot, message) => {
@@ -19,4 +21,4 @@ module.exports = function(controller) {
         await bot.reply(message,{ text: 'I HEARD ALL CAPS!' });
     });
 */
-}
+};
