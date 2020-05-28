@@ -134,7 +134,6 @@ module.exports = (controller) => {
         async (answerText, convo, bot, message) => {
             try {
                 console.log(`User has Profession ${answerText}`);
-                await convo.stop();
             } catch(error) {
                 console.log(error);
             }
@@ -158,7 +157,6 @@ module.exports = (controller) => {
         async (answerText, convo, bot, message) => {
         try {
             console.log(`User about yourself ${answerText}`);
-            await convo.stop();
         } catch(error) {
             console.log(error);
         }
@@ -170,7 +168,6 @@ module.exports = (controller) => {
         async (answerText, convo, bot, message) => {
         try {
             console.log(`User about yourself ${answerText}`);
-            await convo.stop();
         } catch(error) {
             console.log(error);
         }
@@ -217,7 +214,7 @@ module.exports = (controller) => {
             await professionProperty.set(context, results.profession);
             await aboutYouselfProperty.set(context, results.about_yourself);
             await aboutExpertInProperty.set(context, results.about_expertin);
-            await aboutWhoIntroduceIn.set(conext, results.who_introducein);
+            await aboutWhoIntroduceIn.set(context, results.who_introducein);
 
             const readyToConversationProperty = userState.createProperty('ready_to_conversation');
             const recentUsersProperty = userState.createProperty('recent_users');
