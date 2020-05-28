@@ -33,6 +33,8 @@ if (process.env.MONGO_URI) {
         useNewUrlParser: true, 
         useUnifiedTopology: true,
         url: process.env.MONGO_URI,
+        collection: process.env.DATABASE_COLLECTION,
+        database: process.env.DATABASE_NAME,
     });
 }
 
