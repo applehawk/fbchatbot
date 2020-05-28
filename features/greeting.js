@@ -30,7 +30,7 @@ module.exports = (controller) => {
         //convo.stop();
       });
 
-    greeting.after(async(results, bot) => {
-        bot.beginDialog(ONBOARDING_ID);
+    greeting.after(async (results, bot) => {
+      await bot.beginDialog(ONBOARDING_ID);
     });
 };

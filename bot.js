@@ -22,7 +22,9 @@ const util = require('util');
 const detectDebug = () => process.env.NODE_ENV !== 'production'; // [?]
 
 // Load process.env values from .env file
-require('dotenv').config();
+require('dotenv').config( detectDebug ? { path: `${__dirname}/.dev.env` } : {});
+
+console.log(process.env.FACEBOOK_APPID);
 
 let storage = null;
 if (process.env.MONGO_URI) {
@@ -66,6 +68,7 @@ controller.ready(() => {
     controller.loadModules(__dirname + '/hears_test');
 
     console.log('ready');
+
     controller.hears('start', async (bot, message) => {
         try {
             await bot.beginDialog(GREETING_ID);
