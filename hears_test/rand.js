@@ -8,8 +8,6 @@ const {
 // #END DEV
 
 module.exports = (controller) => { // [OK]
-  const storage = controller.storage;
-
   controller.hears(new RegExp(/^(rand( +?\d+)?)$/, 'i'), ['message', 'direct_message'], async (bot, message) => {
     const { text } = message;
     let total = text.replace(/([^\d])+/g, '');
@@ -36,6 +34,7 @@ module.exports = (controller) => { // [OK]
       users.push(user);
     }
     try {
+      const storage = controller.storage;
       const result = await storage.Collection.insertMany([...users]);
       console.log(message, JSON.stringify(result, null, 2));
       await bot.say(`[${text}] Inserted Count: ${result.insertedCount}`);

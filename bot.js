@@ -42,6 +42,7 @@ const adapter = new FacebookAdapter({
     verify_token: process.env.FACEBOOK_VERIFY_TOKEN,
     access_token: process.env.FACEBOOK_ACCESS_TOKEN,
     app_secret: process.env.FACEBOOK_APP_SECRET,
+    api_version: 'v7.0',
     require_delivery: true,
 });
 
@@ -66,7 +67,7 @@ controller.ready(() => {
     controller.loadModules(__dirname + '/features');
     controller.loadModules(__dirname + '/hears');
 
-    // load test modules
+    // load test feature modules
     controller.loadModules(__dirname + '/hears_test');
 
     console.log('ready');
