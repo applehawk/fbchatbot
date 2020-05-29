@@ -150,8 +150,9 @@ module.exports = (controller) => {
             const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
             const readyToConversation = await readyToConversationProperty.get(context);
             const recentUsersProperty = await userState.createProperty('recent_users');
-            let recentUsers = await recentUsersProperty.get(context, []);
             const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+
+            let recentUsers = await recentUsersProperty.get(context, []);
 
             const payload = {
                 channelId,
