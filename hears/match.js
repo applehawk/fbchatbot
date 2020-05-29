@@ -93,7 +93,8 @@ module.exports = (controller) => {
             _id: { // [OK]
                 $regex: `${payload.channelId}/users*`,
                 $ne: `${payload.channelId}/users/${payload.userId}/`,
-                $nin: Object.values(payload.recentUsers),
+                // $nin: Object.values(payload.recentUsers), // [OK]
+                $nin: [...payload.recentUsers],
             },
             $and: [{
                 'state.ready_to_conversation': { // [OK]
@@ -191,10 +192,10 @@ module.exports = (controller) => {
                 }
 
                 await recentUsersProperty.set(context, recentUsers);
+
                 // Save userState changes to storage
                 await userState.saveChanges(context);
             } else {
-                // await bot.say('Sorry, but at the moment we have not found a single suitable user.\nPlease try again later.');
                 await bot.say('Sorry, but at the moment we have not found a suitable user for you.\nPlease try again later.');
             }
 

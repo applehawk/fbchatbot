@@ -5,7 +5,7 @@ const { UserState } = require('botbuilder');
 
 module.exports = (controller) => {
   const userState = new UserState(controller.storage);
-  const storage = controller.storage;
+  // const storage = controller.storage;
 
   controller.hears(new RegExp(/^(me)$/), ['message', 'direct_message'], async (bot, message) => {
     const { text } = message;
