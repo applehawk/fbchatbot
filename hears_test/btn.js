@@ -1,11 +1,5 @@
 'use strict';
 
-const { FacebookAPI } = require('botbuilder-adapter-facebook');
-
-const api = new FacebookAPI(
-    process.env.FACEBOOK_ACCESS_TOKEN,
-    process.env.FACEBOOK_APP_SECRET);
-
 const {
     communityDict,
 } = require(`../constants.js`);
@@ -58,11 +52,10 @@ module.exports = (controller) => {
         };
 
         try {
+            const api = await controller.adapter.getAPI(activity);
             await api.callAPI('/me/messages', 'POST', options);
         } catch(error) {
             console.log(error);
         }
-        //bot.say(options, async(answerText, conversation, bot, message) => {
-        //});
     });
 };

@@ -1,18 +1,12 @@
 'use strict';
 
-const { FacebookAPI } = require('botbuilder-adapter-facebook');
-
-const api = new FacebookAPI(
-    process.env.FACEBOOK_ACCESS_TOKEN,
-    process.env.FACEBOOK_APP_SECRET);
-
 const GET_STARTED_PAYLOAD = 'getstarted_payload';
 
 module.exports = (controller) => {
     controller.hears('getstarted', ['message', 'direct_message'], async (bot, message) => {
         const context = bot.getConfig('context');
         const activity = context._activity;
-        // const channelId = activity.channelId;
+
         const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
         const options = {
@@ -26,6 +20,8 @@ module.exports = (controller) => {
 
         try {
             // await api.callAPI('/me/messenger_profile', 'POST', options);
+            const api = await controller.adapter.getAPI(activity);
+
             await api.callAPI('/me/messages', 'POST', options);
         } catch(error) {
             console.log(error);

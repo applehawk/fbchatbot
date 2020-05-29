@@ -2,7 +2,6 @@
 
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
-const { FacebookAPI } = require('botbuilder-adapter-facebook');
 
 const {
     askCityFromStr,
@@ -24,7 +23,7 @@ module.exports = (controller) => {
     let onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
     controller.hears("btn", ['message','direct_message'], async(bot,message) => {
-        var options = {
+        const options = {
             attachment: {
                 type:"template",
                 payload:{
@@ -70,7 +69,7 @@ module.exports = (controller) => {
                 }
             }
         };
-    
+
         bot.say(options, async(answerText, conversation, bot, message) => {
         });
     })
@@ -85,11 +84,6 @@ module.exports = (controller) => {
     const aboutYouselfProperty = userState.createProperty('about_yourself');
     const aboutExpertInProperty = userState.createProperty('about_expertin');
     const aboutWhoIntroduceIn = userState.createProperty('who_introducein');
-
-
-    const api = new FacebookAPI(
-        process.env.FACEBOOK_ACCESS_TOKEN,
-        process.env.FACEBOOK_APP_SECRET);
 
     const getDictItems = (dict) => {
         const items = [];
@@ -227,7 +221,7 @@ module.exports = (controller) => {
 
             // Inform to the user about self
             await bot.say(`Great. Look at the result:
-${results.username} 
+${results.username}
 ${results.facebook_url}
 Location: ${results.location}
 English Level: ${results.english_level}
@@ -235,8 +229,8 @@ Community:${results.community}
 Work: ${results.profession}
 How I can help: ${results.about_expertin}
 I have interested in: ${results.about_yourself}
-            
-I can introduce to: ${results.who_introducein}`)
+
+I can introduce to: ${results.who_introducein}`);
         } catch(error) {
             console.log(error);
         };

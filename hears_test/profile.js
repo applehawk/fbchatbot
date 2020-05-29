@@ -1,14 +1,5 @@
 'use strict';
 
-// const { FacebookAPI } = require('botbuilder-adapter-facebook');
-
-// const {
-//     FACEBOOK_ACCESS_TOKEN,
-//     // FACEBOOK_APP_SECRET,
-// } = process.env;
-
-// const api = new FacebookAPI(FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_SECRET);
-
 module.exports = (controller) => {
     controller.hears('profile', ['message', 'direct_message'], async (bot, message) => {
         const context = bot.getConfig('context');

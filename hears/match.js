@@ -3,11 +3,6 @@
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
 const { Activity } = require('botframework-schema'); // [?]
-const { FacebookAPI } = require('botbuilder-adapter-facebook');
-
-const api = new FacebookAPI(
-    process.env.FACEBOOK_ACCESS_TOKEN,
-    process.env.FACEBOOK_APP_SECRET);
 
 // #BEGIN DEV
 const {
@@ -44,10 +39,10 @@ module.exports = (controller) => {
     };
 
     const botSay = async (payload) => {
-        let context = payload.bot.getConfig('context');
-        // let storageKey = payload.userState.getStorageKey(context);
-
+        const context = payload.bot.getConfig('context');
         const activity = context._activity;
+
+        const api = await controller.adapter.getAPI(activity);
 
         const channelId = activity.channelId;
         const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
@@ -93,7 +88,6 @@ module.exports = (controller) => {
             _id: { // [OK]
                 $regex: `${payload.channelId}/users*`,
                 $ne: `${payload.channelId}/users/${payload.userId}/`,
-                // $nin: Object.values(payload.recentUsers), // [OK]
                 $nin: [...payload.recentUsers],
             },
             $and: [{
@@ -140,7 +134,6 @@ module.exports = (controller) => {
 
         try {
             let context = bot.getConfig('context');
-            // let storageKey = userState.getStorageKey(context);
 
             const activity = context._activity;
 
