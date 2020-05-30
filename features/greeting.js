@@ -60,7 +60,6 @@ Here we go?`,
       payload: 'All right. Let’s go!',
     }],
   }, async (response, convo, bot) => {
-    bot.say('Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen. Thank you!');
     // const userState = new UserState(controller.storage);
     // const context = bot.getConfig('context');
     // const activity = context._activity;

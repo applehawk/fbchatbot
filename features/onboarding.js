@@ -206,6 +206,16 @@ module.exports = (controller) => {
     }, {key: 'who_introducein'});
     // #END About ExportIn
 
+    onboarding.ask({
+        text: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen. Thank you!',
+        quick_replies: [{
+          content_type: 'text',
+          title: 'Ok',
+          payload: 'Ok',
+        }],
+        }, async (response, convo, bot) => {
+    });
+
     onboarding.after(async (results, bot) => {
         try {
             console.log(results);
