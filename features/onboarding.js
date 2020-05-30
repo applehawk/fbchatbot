@@ -151,7 +151,7 @@ module.exports = (controller) => {
     // #BEGIN English Level
     onboarding.ask({ text: askEnglishStr,
         quick_replies: [ ...getDictItems(englishLevelDict) ],
-    }, async (answerText, conversation, bot, message) => {
+    }, async (answerText, convo, bot, message) => {
         try {
             console.log(`User has EnglishLevel: ${answerText}`);
         } catch(error) {
@@ -185,7 +185,7 @@ module.exports = (controller) => {
     // #BEGIN Community
     onboarding.ask({ text: askCommunityStr,
         quick_replies: [ ...getDictItems(communityDict) ],
-    }, async (answerText, conversation, bot, message) => {
+    }, async (answerText, convo, bot, message) => {
         try {
             console.log(`User has Community: ${answerText}`);
         } catch(error) {
@@ -199,21 +199,32 @@ module.exports = (controller) => {
         async (answerText, convo, bot, message) => {
         try {
             console.log(`User who introduceIn: ${answerText}`);
-            await convo.stop();
         } catch(error) {
             console.log(error);
         }
     }, {key: 'who_introducein'});
     // #END About ExportIn
 
+    // Inform to the user about self
     onboarding.ask({
-        text: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen. Thank you!',
+        text: `Great. Look at the result:
+{{vars.username}}
+{{vars.facebook_url}}
+Location: {{vars.location}}
+English Level: {{vars.english_level}}
+Community: {{vars.community}}
+Work: {{vars.profession}}
+How I can help: {{vars.about_expertin}}
+I have interested in: {{vars.about_yourself}}
+
+I can introduce to: {{vars.who_introducein}}`,
         quick_replies: [{
           content_type: 'text',
-          title: 'Ok',
-          payload: 'Ok',
+          title: 'All right. Let’s go!',
+          payload: 'All right. Let’s go!',
         }],
         }, async (response, convo, bot) => {
+            await convo.stop();
     });
 
     onboarding.after(async (results, bot) => {
@@ -243,18 +254,7 @@ module.exports = (controller) => {
             // Save User's Info
             await userState.saveChanges(context);
 
-            // Inform to the user about self
-            await bot.say(`Great. Look at the result:
-${results.username}
-${results.facebook_url}
-Location: ${results.location}
-English Level: ${results.english_level}
-Community:${results.community}
-Work: ${results.profession}
-How I can help: ${results.about_expertin}
-I have interested in: ${results.about_yourself}
-
-I can introduce to: ${results.who_introducein}`);
+            await bot.say('Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen. Thank you!');
         } catch(error) {
             console.log(error);
         };

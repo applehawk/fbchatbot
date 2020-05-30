@@ -56,8 +56,8 @@ First of all, you should share with us some information about yourself, your nee
 Here we go?`,
     quick_replies: [{
       content_type: 'text',
-      title: 'All right. Let’s go!',
-      payload: 'All right. Let’s go!',
+      title: 'Go',
+      payload: 'Go',
     }],
   }, async (response, convo, bot) => {
     // const userState = new UserState(controller.storage);
