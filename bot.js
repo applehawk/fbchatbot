@@ -57,9 +57,10 @@ const controller = new Botkit({
 const GREETING_ID = 'GREETING_ID';
 const ONBOARDING_ID = 'ONBOARDING_ID';
 
-let greeting = new BotkitConversation(GREETING_ID, controller);
+const greeting = new BotkitConversation(GREETING_ID, controller);
 controller.addDialog(greeting);
-let onboarding = new BotkitConversation(ONBOARDING_ID, controller);
+
+const onboarding = new BotkitConversation(ONBOARDING_ID, controller);
 controller.addDialog(onboarding);
 
 controller.ready(() => {

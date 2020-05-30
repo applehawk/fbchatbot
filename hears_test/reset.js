@@ -16,22 +16,30 @@ module.exports = (controller) => {
     const { text } = message;
     const command = text.split(' ');
 
-    console.log(command[0], command[1]);
-
     try {
       const userState = new UserState(controller.storage);
       const context = bot.getConfig('context');
 
-      if (command.length > 1 ? command[1].match('users') : text === 'reset') {
+      if (command.length > 1) {
+        console.log(command[0], command[1]);
+        if (command[1].match('users')) {
+          await clearState(userState, context, 'recent_users');
+        }
+        if (command[1].match('state')) {
+          const userId = `facebook/conversations/${message.user}-${message.user}/`;
+          const before = await bot.controller.storage.read([userId]);
+          await bot.controller.storage.delete([userId]);
+          const after = await bot.controller.storage.read([userId]);
+          console.log('before:', before, 'after:', after);
+        }
+        // if (command[1].match('all')) {
+        //   // clearState(userState, context, 'recent_users');
+        //   // await bot.delete(context);
+        // }
+      } else {
+        // Reset recent_users by default
         await clearState(userState, context, 'recent_users');
       }
-      // if (command[1].match('state')) {
-      //   await bot.delete(context);
-      // }
-      // if (command[1].match('all')) {
-      //   // clearState(userState, context, 'recent_users');
-      //   // await bot.delete(context);
-      // }
 
       // Save userState changes to storage
       await userState.saveChanges(context);

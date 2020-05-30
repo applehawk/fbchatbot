@@ -1,6 +1,6 @@
 'use strict';
 
-const { BotkitConversation } = require('botkit');
+// const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
 const {
@@ -20,65 +20,79 @@ const {
 
 module.exports = (controller) => {
     const ONBOARDING_ID = 'ONBOARDING_ID'
-    let onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
+    const onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
-    controller.hears("btn", ['message','direct_message'], async(bot,message) => {
-        const options = {
-            attachment: {
-                type:"template",
-                payload:{
-                    template_type: "button",
-                    text: askCommunityStr,
-                    buttons:[
-                                {
-                                'type':'postback',
-                                'title':communityDict.IT,
-                                'payload':0,
-                                },
-                                {
-                                'type':'postback',
-                                'title':communityDict.Startups,
-                                'payload':1,
-                                },
-                                {
-                                'type':'postback',
-                                'title':communityDict.Design,
-                                'payload':2,
-                                },
-                                {
-                                'type':'postback',
-                                'title':communityDict.Sport,
-                                'payload':3,
-                                },/*
-                                {
-                                'type':'postback',
-                                'title':communityDict.Networking,
-                                'payload':communityDict.Networking
-                                },
-                                {
-                                'type':'postback',
-                                'title':communityDict.EnglishJobInterview,
-                                'payload':communityDict.EnglishJobInterview
-                                },
-                                {
-                                'type':'postback',
-                                'title':communityDict.EnglishPresentations,
-                                'payload':communityDict.EnglishPresentations
-                                },*/
-                    ]
-                }
-            }
-        };
+    // controller.hears('btn', ['message', 'direct_message'], async (bot, message) => {
+    //     const options = {
+    //         attachment: {
+    //             type:"template",
+    //             payload:{
+    //                 template_type: "button",
+    //                 text: askCommunityStr,
+    //                 buttons:[
+    //                             {
+    //                             'type':'postback',
+    //                             'title':communityDict.IT,
+    //                             'payload':0,
+    //                             },
+    //                             {
+    //                             'type':'postback',
+    //                             'title':communityDict.Startups,
+    //                             'payload':1,
+    //                             },
+    //                             {
+    //                             'type':'postback',
+    //                             'title':communityDict.Design,
+    //                             'payload':2,
+    //                             },
+    //                             {
+    //                             'type':'postback',
+    //                             'title':communityDict.Sport,
+    //                             'payload':3,
+    //                             },/*
+    //                             {
+    //                             'type':'postback',
+    //                             'title':communityDict.Networking,
+    //                             'payload':communityDict.Networking
+    //                             },
+    //                             {
+    //                             'type':'postback',
+    //                             'title':communityDict.EnglishJobInterview,
+    //                             'payload':communityDict.EnglishJobInterview
+    //                             },
+    //                             {
+    //                             'type':'postback',
+    //                             'title':communityDict.EnglishPresentations,
+    //                             'payload':communityDict.EnglishPresentations
+    //                             },*/
+    //                 ]
+    //             }
+    //         }
+    //     };
 
-        bot.say(options, async(answerText, conversation, bot, message) => {
-        });
-    })
+    //     bot.say(options, async(answerText, conversation, bot, message) => {
+    //     });
+    // });
 
     // user state properties
     const userState = new UserState(controller.storage);
+
+    // console.log(userState, controller);
+    // const context = await controller.getConfig('context');
+
+    // const userNameProperty = userState.createProperty('username');
+    // const userPicProperty = userState.createProperty('user_pic');
+
+    // let userName = await userNameProperty.get(context);
+    // let userPic = await userPicProperty.get(context);
+
+    // console.log(userName, userPic);
+    // return;
+
     const communityProperty = userState.createProperty('community');
     const englishLevelProperty = userState.createProperty('english_level');
     const locationProperty = userState.createProperty('location');
+
     const nameProperty = userState.createProperty('username');
     const professionProperty = userState.createProperty('profession');
     const aboutYouselfProperty = userState.createProperty('about_yourself');
@@ -107,7 +121,7 @@ module.exports = (controller) => {
         }
     }, {key: 'username'});
 
-    onboarding.say(sayUsernameStr);
+    // onboarding.say(sayUsernameStr);
     // #END User Name
 
     //onboarding.ask(askFacebookUrlStr, async (answerText, convo, bot, message) => {
@@ -116,7 +130,7 @@ module.exports = (controller) => {
     // #BEGIN Location
     onboarding.ask(askCityFromStr, async (answerText, convo, bot, message) => {
         try {
-            console.log(`User has city ${answerText}`);
+            console.log(`User has location ${answerText}`);
         } catch(error) {
             console.log(error);
         }

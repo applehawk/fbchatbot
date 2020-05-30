@@ -22,6 +22,11 @@ module.exports = (controller) => {
             // await api.callAPI('/me/messenger_profile', 'POST', options);
             const api = await controller.adapter.getAPI(activity);
 
+            const url = `/${userId}`;
+            const response = await api.callAPI(url, 'GET');
+            const result = JSON.stringify(response, null, 2);
+            console.log(result);
+
             await api.callAPI('/me/messages', 'POST', options);
         } catch(error) {
             console.log(error);
