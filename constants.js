@@ -20,9 +20,8 @@ module.exports = Object.freeze({
     askUsernameStr: 'What is your name?',
     // sayUsernameStr: 'Great! Your name is {{{vars.username}}}',
 
-    askCityFromStr: `It was not easy, but we did it! 😀
+    askCityFromStr: `Now tell me where are you from?
 
-Now tell me where are you from?
 _(Country and city)_`,
 
     askProfessionStr: `Next step:
