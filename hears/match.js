@@ -86,8 +86,8 @@ module.exports = async (controller) => {
 
         const findAllUsersQuery = {
             _id: { // [OK]
-                $regex: `\/?${payload.channelId}/users*`,
-                $ne: `\/?${payload.channelId}/users/${payload.userId}/`,
+                $regex: `${payload.channelId}/users*`,
+                $ne: `${payload.channelId}/users/${payload.userId}/`,
                 $nin: [ ...payload.recentUsers ],
             },
             $and: [{
