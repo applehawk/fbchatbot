@@ -12,10 +12,10 @@ const {
     askWhoIntroduceIn,
     // askFacebookUrlStr, // [?]
     askProfessionStr,
-    // askUsernameStr,
+    askUsernameStr,
     communityDict,
     englishLevelDict,
-    // sayUsernameStr,
+    sayUsernameStr,
 } = require('../constants.js');
 
 const data = {};
@@ -57,20 +57,18 @@ module.exports = async (controller) => {
     };
 
     // try {
-        // // [OK][-] Not need
-        // // #BEGIN User Name
-        // // ask a question, store the responses
-        // onboarding.ask({
-        //     text: askUsernameStr,
-        // }, async (answerText, convo, bot, message) => {
-        //     try {
-        //         console.log(`User has name: ${answerText}`);
-        //     } catch(error) {
-        //         console.error(error);
-        //     }
-        // }, { key: 'username' });
-        // // onboarding.say(sayUsernameStr);
-        // // #END User Name
+        // #BEGIN User Name
+        // ask a question, store the responses
+        onboarding.ask({
+            text: askUsernameStr,
+        }, async (answerText, convo, bot, message) => {
+            try {
+                console.log(`User has name: ${answerText}`);
+            } catch(error) {
+                console.error(error);
+            }
+        }, { key: 'username' });
+        // #END User Name
 
         // // [?][?][?]
         // // #BEGIN Facebook URL

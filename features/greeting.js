@@ -8,8 +8,6 @@ module.exports = async (controller) => {
 
   try {
     // send a greeting
-    await greeting.say('Version 1.0.1');
-
     await greeting.ask({
       text: `Hi {{{vars.username}}}! 👋
 

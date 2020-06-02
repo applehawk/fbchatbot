@@ -17,8 +17,8 @@ module.exports = Object.freeze({
         'Other'
     ],
     askTellUsCommunity: 'Tell us which community you are interested in.',
-    // askUsernameStr: 'What is your name?',
-    // sayUsernameStr: 'Great! Your name is {{vars.username}}',
+    askUsernameStr: 'What is your name?',
+    // sayUsernameStr: 'Great! Your name is {{{vars.username}}}',
 
     askCityFromStr: `It was not easy, but we did it! 😀
 
