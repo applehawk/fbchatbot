@@ -209,9 +209,9 @@ module.exports = async (controller) => {
 {{{vars.username}}}
 {{{vars.facebook_url}}}
 *Location:* {{{vars.location}}}
-*English Level:* {{vars.english_level}}
+*English Level:* {{{vars.english_level}}}
 *Community:* {{{vars.community}}}
-*Work:* {{vars.profession}}
+*Work:* {{{vars.profession}}}
 *How I can help:* {{{vars.about_expertin}}}
 *I have interested in:* {{{vars.about_yourself}}}
 
