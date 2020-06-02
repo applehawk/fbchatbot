@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = (controller) => { // [OK]
+module.exports = async (controller) => { // [OK]
   controller.hears(new RegExp(/^(ping)$/), ['message', 'direct_message'], async (bot, message) => {
     const { text } = message;
 

@@ -2,7 +2,7 @@
 
 const { UserState } = require('botbuilder');
 
-module.exports = (controller) => {
+module.exports = async (controller) => {
   controller.hears(new RegExp(/^(start( +?\d+)?)$/, 'i'), ['message', 'direct_message'], async (bot, message) => {
     const { text } = message;
     const userId = text.replace(/([^\d]| )+/g, '');
@@ -23,8 +23,7 @@ module.exports = (controller) => {
 
     const matchUser = await storage.Collection.findOne({ _id: `${channelId}/users/${userId}/` });
 
-    const api = await controller.adapter.getAPI(activity);
-    const { id } = await api.callAPI('/me', 'GET', { recipient: { id: userId }});
+    const { id } = await bot.api.callAPI('/me', 'GET', { recipient: { id: userId }});
 
     const dialogBot = await controller.spawn(id);
     await dialogBot.startConversationWithUser(userId);

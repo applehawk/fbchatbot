@@ -11,7 +11,7 @@ const {
 } = require(`../constants.js`);
 // #END DEV
 
-module.exports = (controller) => {
+module.exports = async (controller) => {
     // [TODO]
     // Prepare for cache
     // const cachedUsers = {};
@@ -31,9 +31,9 @@ module.exports = (controller) => {
     const getElement = (user, i = 0) => {
         const buttons = [ ...getButtons() ];
         return {
-            title: user.username,
             image_url: `https://picsum.photos/200/200/?random=${Math.round(Math.random() * 1e2 + i)}`,
-            subtitle: `🗺 ${user.location}\nEnglish level: ${englishLevelDict[user.english_level]}\nCommunity: ${communityDict[user.community]}\nProfession: ${user.profession}`,
+            title: `${user.username}`,
+            subtitle: `\n🗺 ${user.location}\nEnglish level: ${englishLevelDict[user.english_level]}\nCommunity: ${communityDict[user.community]}\nProfession: ${user.profession}`,
             buttons: [buttons[0], buttons[1], buttons[2]],
         };
     };
@@ -86,7 +86,7 @@ module.exports = (controller) => {
 
         const findAllUsersQuery = {
             _id: { // [OK]
-                $regex: `${payload.channelId}/users*`,
+                $regex: `\/?${payload.channelId}/users*`,
                 $ne: `${payload.channelId}/users/${payload.userId}/`,
                 $nin: [...payload.recentUsers],
             },
@@ -133,7 +133,7 @@ module.exports = (controller) => {
         const storage = controller.storage;
 
         try {
-            let context = bot.getConfig('context');
+            const context = bot.getConfig('context');
 
             const activity = context._activity;
 

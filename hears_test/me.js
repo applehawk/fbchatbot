@@ -3,7 +3,7 @@
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
 
-module.exports = (controller) => {
+module.exports = async (controller) => {
   const userState = new UserState(controller.storage);
   // const storage = controller.storage;
 

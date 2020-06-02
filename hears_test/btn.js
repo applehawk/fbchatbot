@@ -4,7 +4,7 @@ const {
     communityDict,
 } = require(`../constants.js`);
 
-module.exports = (controller) => {
+module.exports = async (controller) => {
     const getCommunityButtons = () => {
         const buttons = [];
         Object.keys(communityDict).forEach((key, i) => {
@@ -52,8 +52,7 @@ module.exports = (controller) => {
         };
 
         try {
-            const api = await controller.adapter.getAPI(activity);
-            await api.callAPI('/me/messages', 'POST', options);
+            await bot.api.callAPI('/me/messages', 'POST', options);
         } catch(error) {
             console.log(error);
         }

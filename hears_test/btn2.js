@@ -6,7 +6,6 @@ module.exports = (controller) => {
 
     const activity = context._activity;
     const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
-    const api = await controller.adapter.getAPI(activity);
 
     const options = {
       recipient: {
@@ -55,7 +54,7 @@ module.exports = (controller) => {
     };
 
     try {
-      const result = await api.callAPI('/me/messages', 'POST', options);
+      const result = await bot.api.callAPI('/me/messages', 'POST', options);
       console.log(result);
     } catch(error) {
       console.log(error);
