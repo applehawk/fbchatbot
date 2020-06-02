@@ -27,6 +27,7 @@ module.exports = async (controller) => {
           cleaned = await clearState(context, userState, 'recent_users');
         }
         if (command[1] === 'state') {
+          // [SO] https://stackoverflow.com/questions/59560604/how-to-clear-state-in-botkit-4-conversation
           const userId = `facebook/conversations/${message.user}-${message.user}/`;
           const before = await bot.controller.storage.read([userId]);
           await bot.controller.storage.delete([userId]);
