@@ -46,7 +46,7 @@ module.exports = async (controller) => {
 
                 await bot.beginDialog(GREETING_ID, { username });
             } catch(error) {
-                console.log(error);
+                console.error(error);
             }
         }
     });

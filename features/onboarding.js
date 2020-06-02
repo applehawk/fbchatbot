@@ -1,5 +1,6 @@
 'use strict';
 
+const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
 const {
@@ -17,9 +18,31 @@ const {
     // sayUsernameStr,
 } = require('../constants.js');
 
+const data = {};
+
 module.exports = async (controller) => {
+
     const ONBOARDING_ID = 'ONBOARDING_ID';
     const onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
+
+    const COMMUNITY_DIALOG_ID = 'COMMUNITY_DIALOG';
+    const community = new BotkitConversation(COMMUNITY_DIALOG_ID, controller);
+
+    await community.ask({
+        text: 'Tell us which community you are interested in.',
+    }, async (answerText, convo, bot, message) => {
+        try {
+            console.log(`User has Community (Other): ${answerText}`);
+        } catch(error) {
+            console.error(error);
+        }
+    }, { key: 'community' });
+
+    await community.after(async (results, bot) => { // [OK]
+        Object.assign(data, results);
+    });
+
+    controller.addDialog(community);
 
     const getDictItems = (dict) => {
         const items = [];
@@ -123,78 +146,39 @@ module.exports = async (controller) => {
         }, { key: 'about_expertin' });
         // #END About ExportIn
 
-        // #BEGIN Community
-        // onboarding.addAction('other', 'community');
-
-        // await onboarding.addQuestion({
-        //     text: 'Tell us which community you are interested in.',
-        // }, async (answerText, convo, bot, message) => {
-        //     try {
-        //         console.log(`User has Community (Other): ${answerText}`);
-        //         // await convo.continueDialog(ONBOARDING_ID);
-        //         // await convo.gotoThread('default');
-        //     } catch(error) {
-        //         console.error(error);
-        //     }
-        // }, 'community', 'other');
-
-        // await onboarding.addQuestion({
-        //     text: askCommunityStr,
-        //     quick_replies: [ ...getDictItems(communityDict) ],
-        // }, [
-        //     {
-        //         default: true,
-        //         handler: async (answerText, convo, bot, message) => {
-        //             try {
-        //                 console.log(`User has Community: ${answerText}`);
-        //             } catch(error) {
-        //                 console.error(error);
-        //             }
-        //         },
-        //     },
-        //     {
-        //         pattern: 'Other',
-        //         handler: async (answerText, convo, bot, message) => {
-        //             try {
-        //                 // console.log(`User has Community (Other): ${answerText}`);
-        //                 // await convo.gotoThread('other');
-
-        //                 // await bot.reply(message, { // [OK][*]
-        //                 //     text: 'Tell us which community you are interested in.',
-        //                 // }, async (answerText, convo, bot, message) => {
-        //                 //     try {
-        //                 //         console.log(`User has Community (Other): ${answerText}`);
-        //                 //         // await bot.continueDialog(ONBOARDING_ID);
-        //                 //         // await convo.gotoThread(ONBOARDING_ID);
-        //                 //     } catch(error) {
-        //                 //         console.error(error);
-        //                 //     }
-        //                 // }, { key: 'community' });
-
-        //             } catch(error) {
-        //                 console.error(error);
-        //             }
-        //         },
-        //     }
-        // ], { key: 'community' });
-        await onboarding.ask({
-            text: `${askCommunityStr}\n\n_If it is not in the list, send it in the message._`,
+        // // #BEGIN Community
+        await onboarding.addQuestion({
+            text: askCommunityStr,
             quick_replies: [ ...getDictItems(communityDict) ],
-        }, async (answerText, convo, bot, message) => {
-            try {
-                console.log(`User has Community: ${answerText}`);
-            } catch(error) {
-                console.error(error);
+        }, [
+            {
+                default: true,
+                handler: async (answerText, convo, bot, message) => {
+                    try {
+                        console.log(`User has Community: ${answerText}`);
+                    } catch(error) {
+                        console.error(error);
+                    }
+                },
+            },
+            {
+                pattern: 'Other',
+                handler: async (answerText, convo, bot, message) => {
+                    try {
+                        await bot.beginDialog(COMMUNITY_DIALOG_ID, { ...convo.vars });
+                    } catch(error) {
+                        console.error(error);
+                    }
+                },
             }
-        }, { key: 'community' });
-        // #END Community
-        // onboarding.addAction('next', 'who_introducein');
+        ], { key: 'community' });
 
         // #BEGIN About ExpertIn
         await onboarding.ask({
             text: askWhoIntroduceIn,
         }, async (answerText, convo, bot, message) => {
             try {
+                Object.assign(convo.vars, data);
                 console.log(`User who introduceIn: ${answerText}`);
             } catch(error) {
                 console.error(error);
@@ -221,7 +205,7 @@ module.exports = async (controller) => {
               title: 'All right. Let’s go!',
               payload: 'All right. Let’s go!',
             }],
-        }, async (response, convo, bot) => {
+        }, async (answerText, convo, bot, message) => {
             await convo.stop();
         });
 

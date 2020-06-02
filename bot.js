@@ -73,7 +73,6 @@ if (detectDebug()) {
 }
 
 controller.on('facebook_postback', async (bot, message) => {
-    // await bot.cancelAllDialogs(); // [!] DEV ONLY
     if (message.postback.title === 'Get Started') {
         try {
             const context = bot.getConfig('context');

@@ -29,5 +29,6 @@ module.exports = async (controller) => {
     await dialogBot.startConversationWithUser(userId);
     await dialogBot.say(`Hi ${matchUser.state.username}! ${username} says hello`);
     await bot.say(`Done. Bot sent message: Hi ${matchUser.state.username}! ${username} says hello`);
+    console.log(bot.getActiveDialog());
   });
 };
