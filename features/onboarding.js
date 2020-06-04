@@ -4,18 +4,28 @@ const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
 const {
+    // askFacebookUrlStr, // [?]
+    // askUsernameStr,
+    // askAboutExpertIn,
+
+    askAboutYouself1,
+    askAboutYouself2,
+
     askCityFromStr,
     askCommunityStr,
     askEnglishStr,
-    askAboutYouself,
-    askAboutExpertIn,
-    askWhoIntroduceIn,
-    // askFacebookUrlStr, // [?]
-    askProfessionStr,
-    askUsernameStr,
+
+    askProfessionStr1,
+    askProfessionStr2,
+    askProfessionStr3,
+
+    askWhoIntroduceIn1,
+    askWhoIntroduceIn2,
+    askWhoIntroduceIn3,
+    askWhoIntroduceIn4,
+
     communityDict,
     englishLevelDict,
-    sayUsernameStr,
 } = require('../constants.js');
 
 module.exports = async (controller) => {
@@ -56,19 +66,19 @@ module.exports = async (controller) => {
         return items;
     };
 
-    // #BEGIN User Name
-    // ask a question, store the responses
-    onboarding.ask({
-        text: askUsernameStr,
-    }, async (answerText, convo, bot, message) => {
-        try {
-            data = { ...convo.vars };
-            console.log(`User has name: ${answerText}`);
-        } catch(error) {
-            console.error(error);
-        }
-    }, { key: 'username' });
-    // #END User Name
+    // // #BEGIN User Name
+    // // ask a question, store the responses
+    // onboarding.ask({
+    //     text: askUsernameStr,
+    // }, async (answerText, convo, bot, message) => {
+    //     try {
+    //         data = { ...convo.vars };
+    //         console.log(`User has name: ${answerText}`);
+    //     } catch(error) {
+    //         console.error(error);
+    //     }
+    // }, { key: 'username' });
+    // // #END User Name
 
     // // [?][?][?]
     // // #BEGIN Facebook URL
@@ -96,8 +106,20 @@ module.exports = async (controller) => {
     // #END Location
 
     // #BEGIN Profession
+    await onboarding.say({
+        text: askProfessionStr1,
+        delay: 1000,
+    }, async (answerText, convo, bot, message) => {
+    });
+
+    await onboarding.say({
+        text: askProfessionStr2,
+        delay: 1000,
+    }, async (answerText, convo, bot, message) => {
+    });
+
     await onboarding.ask({
-        text: askProfessionStr,
+        text: askProfessionStr3,
     }, async (answerText, convo, bot, message) => {
         try {
             console.log(`User has Profession: ${answerText}`);
@@ -121,8 +143,14 @@ module.exports = async (controller) => {
     // #END English Level
 
     // #BEGIN About Yourself
+    await onboarding.say({
+        text: askAboutYouself1,
+        delay: 1000,
+    }, async (answerText, convo, bot, message) => {
+    });
+
     await onboarding.ask({
-        text: askAboutYouself,
+        text: askAboutYouself2,
     }, async (answerText, convo, bot, message) => {
         try {
             console.log(`User about yourself: ${answerText}`);
@@ -132,17 +160,17 @@ module.exports = async (controller) => {
     }, { key: 'about_yourself' });
     // #END About Yourself
 
-    // #BEGIN About ExpertIn
-    await onboarding.ask({
-        text: askAboutExpertIn,
-    }, async (answerText, convo, bot, message) => {
-        try {
-            console.log(`User is an expert in: ${answerText}`);
-        } catch(error) {
-            console.error(error);
-        }
-    }, { key: 'about_expertin' });
-    // #END About ExportIn
+    // // #BEGIN About ExpertIn
+    // await onboarding.ask({
+    //     text: askAboutExpertIn,
+    // }, async (answerText, convo, bot, message) => {
+    //     try {
+    //         console.log(`User is an expert in: ${answerText}`);
+    //     } catch(error) {
+    //         console.error(error);
+    //     }
+    // }, { key: 'about_expertin' });
+    // // #END About ExportIn
 
     // // #BEGIN Community
     await onboarding.addQuestion({
@@ -172,8 +200,26 @@ module.exports = async (controller) => {
     ], { key: 'community' });
 
     // #BEGIN About ExpertIn
+    await onboarding.say({
+        text: askWhoIntroduceIn1,
+        delay: 1000,
+    }, async (answerText, convo, bot, message) => {
+    });
+
+    await onboarding.say({
+        text: askWhoIntroduceIn2,
+        delay: 1000,
+    }, async (answerText, convo, bot, message) => {
+    });
+
+    await onboarding.say({
+        text: askWhoIntroduceIn3,
+        delay: 1000,
+    }, async (answerText, convo, bot, message) => {
+    });
+
     await onboarding.ask({
-        text: askWhoIntroduceIn,
+        text: askWhoIntroduceIn4,
     }, async (answerText, convo, bot, message) => {
         try {
             // Put user's temporary data back into the convo.vars
@@ -187,7 +233,7 @@ module.exports = async (controller) => {
 
     // Inform to the user about self
     await onboarding.ask({ // [OK]
-        text: `Great. Look at the result:
+        text: `😎 Great. Look at the result:
 
 {{{vars.username}}}
 {{{vars.facebook_url}}}
@@ -195,7 +241,6 @@ module.exports = async (controller) => {
 *English Level:* {{{vars.english_level}}}
 *Community:* {{{vars.community}}}
 *Work:* {{{vars.profession}}}
-*How I can help:* {{{vars.about_expertin}}}
 *I have interested in:* {{{vars.about_yourself}}}
 
 *I can introduce to:* {{{vars.who_introducein}}}`,
@@ -217,19 +262,16 @@ module.exports = async (controller) => {
 
             const usernameProperty = userState.createProperty('username');
             const profilePicProperty = userState.createProperty('profile_pic');
-
-            // let username = await usernameProperty.get(context);
-            // let profilePic = await profilePicProperty.get(context);
-
             // const facebookURLProperty = userState.createProperty('facebook_url');
             const communityProperty = userState.createProperty('community');
             const englishLevelProperty = userState.createProperty('english_level');
             const locationProperty = userState.createProperty('location');
-
             const professionProperty = userState.createProperty('profession');
             const aboutYouselfProperty = userState.createProperty('about_yourself');
-            const aboutExpertInProperty = userState.createProperty('about_expertin');
+            // const aboutExpertInProperty = userState.createProperty('about_expertin');
             const aboutWhoIntroduceIn = userState.createProperty('who_introducein');
+            const readyToConversationProperty = userState.createProperty('ready_to_conversation');
+            const recentUsersProperty = userState.createProperty('recent_users');
 
             await communityProperty.set(context, communityDict.indexOf(results.community));
             await locationProperty.set(context, results.location);
@@ -242,12 +284,8 @@ module.exports = async (controller) => {
             await profilePicProperty.set(context, results.profilePic);
             await professionProperty.set(context, results.profession);
             await aboutYouselfProperty.set(context, results.about_yourself);
-            await aboutExpertInProperty.set(context, results.about_expertin);
+            // await aboutExpertInProperty.set(context, results.about_expertin);
             await aboutWhoIntroduceIn.set(context, results.who_introducein);
-
-            const readyToConversationProperty = userState.createProperty('ready_to_conversation');
-            const recentUsersProperty = userState.createProperty('recent_users');
-
             await readyToConversationProperty.set(context, 'ready'); // results.ready_to_conversation
             await recentUsersProperty.set(context, []);
 
