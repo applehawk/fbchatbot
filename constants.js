@@ -21,14 +21,14 @@ module.exports = Object.freeze({
 
     askCityFromStr: `Now tell me where are you from?
 
-_(Country)_`,
+(Country)`,
 
     askProfessionStr1: `Next step:
 What are you doing? 👨‍💻👩‍💻`,
     askProfessionStr2: `Tell us about your work, company, project or startup you are involved in.`,
     askProfessionStr3: `For example:
 
-_I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project._`,
+I'm a web designer in the Spanish game design studio or I am a marketer in the fintech project.`,
 
     askEnglishStr: `Ok. What about English speaking? Choose your level of English, it will help us to choose the right person for the call.`,
 
@@ -50,19 +50,19 @@ If you use a web browser:
 What is your passion? 👩‍🎨👨‍🎨
 Could you tell something interesting about yourself, or could you share with us a link to your Twitter or LinkedIn? It will allow your partner to get to know you better.
 
-_(If you don’t know what to say, just text “none”)_`,
+(If you don’t know what to say, just text “none”)`,
 
     answerAboutTestMode: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen. Thank you!',
 //     askAboutExpertIn: `How could you be helpful? What area are you an expert in?
 
-// _For example, I'm a corporative lawyer with eighteenth years of experience. Feel free to ask me about registering the company, international law, and other paperwork._`,
+// For example, I'm a corporative lawyer with eighteenth years of experience. Feel free to ask me about registering the company, international law, and other paperwork.`,
 
     askWhoIntroduceIn1: `And the last question, it is not necessary.`,
     askWhoIntroduceIn2: `Who can you introduce? Who can you introduce to? 🤝`,
     askWhoIntroduceIn3: `Write a few areas in which you have contacts and which might be useful to our community.`,
     askWhoIntroduceIn4: `For example:
 
-_I know guys from Bank of America and TransferWise. I can help with the introduction to fintech companies._
+I know guys from Bank of America and TransferWise. I can help with the introduction to fintech companies.
 
-_(If you don’t know what to say, just text “none”)_`,
+(If you don’t know what to say, just text “none”)`,
 });

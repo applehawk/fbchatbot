@@ -14,8 +14,8 @@ module.exports = async (controller) => {
 We are the RandomEnglish. An international online platform that is intended for training business English skills through a friendly networking format.`,
       quick_replies: [{
         content_type: 'text',
-        title: 'Tell me how it works 🤔',
-        payload: 'Tell me how it works 🤔',
+        title: 'Tell me more 🤔',
+        payload: 'Tell me more 🤔',
       }],
     }, async (response, convo, bot) => {
     });

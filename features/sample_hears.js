@@ -4,7 +4,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-module.exports = (controller) => {
+module.exports = async (controller) => {
+    // controller.on('hello', async (bot, message) => {
+    //     await bot.say('Hello!');
+    // });
 /*
     // use a function to match a condition in the message
     controller.hears(async (message) => message.text && message.text.toLowerCase() === 'foo', ['message'], async (bot, message) => {

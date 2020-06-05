@@ -237,13 +237,13 @@ module.exports = async (controller) => {
 
 {{{vars.username}}}
 {{{vars.facebook_url}}}
-*Location:* {{{vars.location}}}
-*English Level:* {{{vars.english_level}}}
-*Community:* {{{vars.community}}}
-*Work:* {{{vars.profession}}}
-*I have interested in:* {{{vars.about_yourself}}}
+Location: {{{vars.location}}}
+English Level: {{{vars.english_level}}}
+Community: {{{vars.community}}}
+Work: {{{vars.profession}}}
+I have interested in: {{{vars.about_yourself}}}
 
-*I can introduce to:* {{{vars.who_introducein}}}`,
+I can introduce to: {{{vars.who_introducein}}}`,
         quick_replies: [{
           content_type: 'text',
           title: 'All right. Let’s go!',
@@ -292,7 +292,27 @@ module.exports = async (controller) => {
             // Save User's Info
             await userState.saveChanges(context);
 
-            await bot.say('Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen. Thank you!');
+            await bot.say('Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.');
+
+            // Sending Gif
+            const activity = context._activity;
+
+            const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+            const options = {
+                recipient: {
+                    id: userId,
+                },
+                message: {
+                    attachment: {
+                        type: "image",
+                        payload: {
+                            url: "https://media.giphy.com/media/StXP3dSGStWDBvsCjF/giphy.gif",
+                            is_reusable: true,
+                        }
+                    }
+                }
+            };
+            await bot.api.callAPI('/me/messages', 'POST', options);
         } catch(error) {
             console.error(error);
         };
