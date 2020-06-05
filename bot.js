@@ -87,6 +87,22 @@ controller.on('facebook_postback', async (bot, message) => {
             const username = `${response.first_name !== '' ? response.first_name : ''}${response.last_name !== '' ? ' ' + response.last_name : ''}`;
             const profilePic = response.profile_pic;
 
+            const options = {
+                recipient: {
+                    id: userId,
+                },
+                message: {
+                    attachment: {
+                        type: "image",
+                        payload: {
+                            url: "https://media.giphy.com/media/kaHP7Ci7xVFzN8JJbk/giphy.gif",
+                            is_reusable: true,
+                        }
+                    }
+                }
+            };
+            await bot.api.callAPI('/me/messages', 'POST', options);
+
             await bot.beginDialog(GREETING_ID, { username, profilePic });
         } catch(error) {
             console.error(error);
