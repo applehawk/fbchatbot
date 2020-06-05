@@ -1,5 +1,13 @@
 'use strict';
 
+const {
+  GREETING_1,
+  GREETING_2,
+  GREETING_3,
+  GREETING_4,
+  GREETING_5,
+} = require('../constants.js');
+
 module.exports = async (controller) => {
   const GREETING_ID = 'GREETING_ID';
   const ONBOARDING_ID = 'ONBOARDING_ID';
@@ -9,9 +17,7 @@ module.exports = async (controller) => {
   try {
     // send a greeting
     await greeting.ask({
-      text: `Hi {{{vars.username}}}! 👋
-
-We are the RandomEnglish. An international online platform that is intended for training business English skills through a friendly networking format.`,
+      text: GREETING_1,
       quick_replies: [{
         content_type: 'text',
         title: 'Tell me more 🤔',
@@ -21,12 +27,12 @@ We are the RandomEnglish. An international online platform that is intended for 
     });
 
     await greeting.say({
-      text: `Every Monday and Thursday we will offer you an interesting person for a conversation, selected following your interests among other participants.`
+      text: GREETING_2,
     }, async (response, convo, bot) => {
     });
 
     await greeting.ask({
-      text: `First of all, you should share with us some information about yourself, your needs and your knowledge. It allows other people to know what topics it will be interesting to discuss with you before the call.`,
+      text: GREETING_3,
       quick_replies: [{
         content_type: 'text',
         title: 'I got it 👍',
@@ -36,12 +42,12 @@ We are the RandomEnglish. An international online platform that is intended for 
     });
 
     await greeting.say({
-      text: `Let me ask you some questions and we will create your profile that will be available to other participants. 🤓`,
+      text: GREETING_4,
     }, async (response, convo, bot) => {
     });
 
     await greeting.ask({
-      text: `Here we go?`,
+      text: GREETING_5,
       quick_replies: [{
         content_type: 'text',
         title: 'Go 🚀',

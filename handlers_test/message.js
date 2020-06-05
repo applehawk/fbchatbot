@@ -4,6 +4,8 @@ module.exports = async (controller) => {
     // look for sticker, image and audio attachments
     // capture them, and fire special events
     controller.on('message_received', async (bot, message) => {
+        // await bot.cancelAllDialogs();
+        // console.log('[message]:', message);
 
         // if (!message.text) {
         //     if (message.sticker_id) {
