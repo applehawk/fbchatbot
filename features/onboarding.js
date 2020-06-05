@@ -8,24 +8,25 @@ const {
     // askUsernameStr,
     // askAboutExpertIn,
 
-    askAboutYouself1,
-    askAboutYouself2,
-
-    askCityFromStr,
-    askCommunityStr,
-    askEnglishStr,
-
-    askProfessionStr1,
-    askProfessionStr2,
-    askProfessionStr3,
-
-    askWhoIntroduceIn1,
-    askWhoIntroduceIn2,
-    askWhoIntroduceIn3,
-    askWhoIntroduceIn4,
+    ONBOARDING_1,
+    ONBOARDING_2_1,
+    ONBOARDING_2_2,
+    ONBOARDING_2_3,
+    ONBOARDING_3,
+    ONBOARDING_4_1,
+    ONBOARDING_4_2,
+    ONBOARDING_5,
+    ONBOARDING_6_1,
+    ONBOARDING_6_2,
+    ONBOARDING_6_3,
+    ONBOARDING_6_4,
+    ONBOARDING_7,
+    ONBOARDING_8,
 
     communityDict,
     englishLevelDict,
+
+    GIF_ONBOARDING,
 } = require('../constants.js');
 
 module.exports = async (controller) => {
@@ -35,24 +36,25 @@ module.exports = async (controller) => {
     const ONBOARDING_ID = 'ONBOARDING_ID';
     const onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
-    const COMMUNITY_DIALOG_ID = 'COMMUNITY_DIALOG';
-    const community = new BotkitConversation(COMMUNITY_DIALOG_ID, controller);
+    // [OK][-]
+    // const COMMUNITY_DIALOG_ID = 'COMMUNITY_DIALOG';
+    // const community = new BotkitConversation(COMMUNITY_DIALOG_ID, controller);
 
-    await community.ask({
-        text: 'Tell us which community you are interested in.',
-    }, async (answerText, convo, bot, message) => {
-        try {
-            console.log(`User has Community (Other): ${answerText}`);
-        } catch(error) {
-            console.error(error);
-        }
-    }, { key: 'community' });
+    // await community.ask({
+    //     text: 'Tell us which community you are interested in.',
+    // }, async (answerText, convo, bot, message) => {
+    //     try {
+    //         console.log(`User has Community (Other): ${answerText}`);
+    //     } catch(error) {
+    //         console.error(error);
+    //     }
+    // }, { key: 'community' });
 
-    await community.after(async (results, bot) => { // [OK]
-        Object.assign(data, results);
-    });
+    // await community.after(async (results, bot) => { // [OK]
+    //     Object.assign(data, results);
+    // });
 
-    controller.addDialog(community);
+    // controller.addDialog(community);
 
     const getDictItems = (dict) => {
         const items = [];
@@ -95,7 +97,7 @@ module.exports = async (controller) => {
 
     // #BEGIN Location
     await onboarding.ask({
-        text: askCityFromStr,
+        text: ONBOARDING_1,
     }, async (answerText, convo, bot, message) => {
         try {
             console.log(`User has location: ${answerText}`);
@@ -107,19 +109,19 @@ module.exports = async (controller) => {
 
     // #BEGIN Profession
     await onboarding.say({
-        text: askProfessionStr1,
+        text: ONBOARDING_2_1,
         delay: 1000,
     }, async (answerText, convo, bot, message) => {
     });
 
     await onboarding.say({
-        text: askProfessionStr2,
+        text: ONBOARDING_2_2,
         delay: 1000,
     }, async (answerText, convo, bot, message) => {
     });
 
     await onboarding.ask({
-        text: askProfessionStr3,
+        text: ONBOARDING_2_3,
     }, async (answerText, convo, bot, message) => {
         try {
             console.log(`User has Profession: ${answerText}`);
@@ -131,7 +133,7 @@ module.exports = async (controller) => {
 
     // #BEGIN English Level
     await onboarding.ask({
-        text: askEnglishStr,
+        text: ONBOARDING_3,
         quick_replies: [ ...getDictItems(englishLevelDict) ],
     }, async (answerText, convo, bot, message) => {
         try {
@@ -144,13 +146,13 @@ module.exports = async (controller) => {
 
     // #BEGIN About Yourself
     await onboarding.say({
-        text: askAboutYouself1,
+        text: ONBOARDING_4_1,
         delay: 1000,
     }, async (answerText, convo, bot, message) => {
     });
 
     await onboarding.ask({
-        text: askAboutYouself2,
+        text: ONBOARDING_4_2,
     }, async (answerText, convo, bot, message) => {
         try {
             console.log(`User about yourself: ${answerText}`);
@@ -172,9 +174,10 @@ module.exports = async (controller) => {
     // }, { key: 'about_expertin' });
     // // #END About ExportIn
 
-    // // #BEGIN Community
+    // #BEGIN Community
+/*  // [OK][-]
     await onboarding.addQuestion({
-        text: askCommunityStr,
+        text: ONBOARDING_5,
         quick_replies: [ ...getDictItems(communityDict) ],
     }, [
         {
@@ -198,28 +201,41 @@ module.exports = async (controller) => {
             },
         }
     ], { key: 'community' });
+*/
+    await onboarding.ask({
+        text: ONBOARDING_5,
+        quick_replies: [ ...getDictItems(communityDict) ],
+    }, async (answerText, convo, bot, message) => {
+        try {
+            console.log(`User has Community: ${answerText}`);
+        } catch(error) {
+            console.error(error);
+        }
+    }, { key: 'community' });
+
+    // #END Community
 
     // #BEGIN About ExpertIn
     await onboarding.say({
-        text: askWhoIntroduceIn1,
+        text: ONBOARDING_6_1,
         delay: 1000,
     }, async (answerText, convo, bot, message) => {
     });
 
     await onboarding.say({
-        text: askWhoIntroduceIn2,
+        text: ONBOARDING_6_2,
         delay: 1000,
     }, async (answerText, convo, bot, message) => {
     });
 
     await onboarding.say({
-        text: askWhoIntroduceIn3,
+        text: ONBOARDING_6_3,
         delay: 1000,
     }, async (answerText, convo, bot, message) => {
     });
 
     await onboarding.ask({
-        text: askWhoIntroduceIn4,
+        text: ONBOARDING_6_4,
     }, async (answerText, convo, bot, message) => {
         try {
             // Put user's temporary data back into the convo.vars
@@ -233,17 +249,7 @@ module.exports = async (controller) => {
 
     // Inform to the user about self
     await onboarding.ask({ // [OK]
-        text: `😎 Great. Look at the result:
-
-{{{vars.username}}}
-{{{vars.facebook_url}}}
-Location: {{{vars.location}}}
-English Level: {{{vars.english_level}}}
-Community: {{{vars.community}}}
-Work: {{{vars.profession}}}
-I have interested in: {{{vars.about_yourself}}}
-
-I can introduce to: {{{vars.who_introducein}}}`,
+        text: ONBOARDING_7,
         quick_replies: [{
           content_type: 'text',
           title: 'All right. Let’s go!',
@@ -292,27 +298,28 @@ I can introduce to: {{{vars.who_introducein}}}`,
             // Save User's Info
             await userState.saveChanges(context);
 
-            await bot.say('Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.');
+            await bot.say(ONBOARDING_8);
 
             // Sending Gif
             const activity = context._activity;
-
             const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+
             const options = {
                 recipient: {
                     id: userId,
                 },
                 message: {
                     attachment: {
-                        type: "image",
+                        type: 'image',
                         payload: {
-                            url: "https://media.giphy.com/media/StXP3dSGStWDBvsCjF/giphy.gif",
+                            url: GIF_ONBOARDING,
                             is_reusable: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             };
             await bot.api.callAPI('/me/messages', 'POST', options);
+
         } catch(error) {
             console.error(error);
         };

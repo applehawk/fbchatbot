@@ -5,7 +5,7 @@
  * Licensed under the MIT License.
  */
 
-const { UserState } = require('botbuilder');
+const { GIF_GREETING } = require('../constants.js');
 
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
@@ -14,37 +14,36 @@ module.exports = async (controller) => {
     controller.on('facebook_postback', async (bot, message) => {
         if (message.postback.title === 'Get Started') {
             try {
+                await bot.cancelAllDialogs();
                 const context = bot.getConfig('context');
                 const activity = context._activity;
 
                 const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
-                // user state properties
-                const userState = new UserState(controller.storage);
-
-                const usernameProperty = userState.createProperty('username');
-                const profilePicProperty = userState.createProperty('user_pic');
-
-                let username = await usernameProperty.get(context);
-                let profilePic = await profilePicProperty.get(context);
-
                 // Get user's FB Profile Info
                 const url = `/${userId}`;
                 const response = await bot.api.callAPI(url, 'GET');
 
-                username = `${response.first_name} ${response.last_name}`;
-                profilePic = response.profile_pic;
+                const username = `${response.first_name !== '' ? response.first_name : ''}${response.last_name !== '' ? ' ' + response.last_name : ''}`;
+                const profilePic = response.profile_pic;
 
-                const result = JSON.stringify(response, null, 2);
-                console.log(result, username, profilePic);
+                const options = {
+                    recipient: {
+                        id: userId,
+                    },
+                    message: {
+                        attachment: {
+                            type: 'image',
+                            payload: {
+                                url: GIF_GREETING,
+                                is_reusable: true,
+                            },
+                        },
+                    },
+                };
+                await bot.api.callAPI('/me/messages', 'POST', options);
 
-                await usernameProperty.set(context, username);
-                await profilePicProperty.set(context, profilePic);
-
-                // Save userState changes to storage
-                await userState.saveChanges(context);
-
-                await bot.beginDialog(GREETING_ID, { username });
+                await bot.beginDialog(GREETING_ID, { username, profilePic });
             } catch(error) {
                 console.error(error);
             }
