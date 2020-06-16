@@ -1,22 +1,19 @@
 'use strict';
 
-const { MongoDbStorage } = require('botbuilder-storage-mongodb');
+// const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
 
+const { englishLevelDict, communityDict } = require('../constants.js');
+
 module.exports = async (controller) => {
-  const userState = new UserState(controller.storage);
-  // const storage = controller.storage;
-
-  controller.hears(new RegExp(/^(me)$/), ['message', 'direct_message'], async (bot, message) => {
-    const { text } = message;
+  controller.hears(new RegExp(/^me$/), ['message', 'direct_message', 'facebook_postback', 'messaging_postback'], async (bot, message) => {
     try {
-      let context = bot.getConfig('context');
-      // let storageKey = userState.getStorageKey(context);
-
-      const activity = context._activity;
+      const { text } = message;
 
       // Get User State Properties
-      const channelId = activity.channelId;
+      let context = bot.getConfig('context');
+      const userState = new UserState(controller.storage);
+      const { channelId } = message.incoming_message;
       const communityProperty = await userState.createProperty('community');
       const community = await communityProperty.get(context);
       const englishLevelProperty = await userState.createProperty('english_level');
@@ -25,11 +22,17 @@ module.exports = async (controller) => {
       const location = await locationProperty.get(context);
       const professionProperty = await userState.createProperty('profession');
       const profession = await professionProperty.get(context);
+      const profilePicProperty = await userState.createProperty('profile_pic');
+      const profilePic = await profilePicProperty.get(context);
       const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
       const readyToConversation = await readyToConversationProperty.get(context);
       const recentUsersProperty = await userState.createProperty('recent_users');
       let recentUsers = await recentUsersProperty.get(context, []);
-      const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+
+      const userId = message.sender.id;
+
+      const usernameProperty = await userState.createProperty('username');
+      const username = await usernameProperty.get(context);
 
       const payload = {
         channelId,
@@ -37,15 +40,59 @@ module.exports = async (controller) => {
         englishLevel,
         location,
         profession,
+        profilePic,
         readyToConversation,
         recentUsers,
         userId,
+        username,
       };
 
       console.log(message, JSON.stringify(payload, null, 2));
-      await bot.say(`[${text}]\n${JSON.stringify(payload, null, 2)}`);
+
+      const recipient = {
+          id: userId,
+      };
+
+      const options = {
+        recipient,
+        message: {
+          attachment: {
+            type: 'template',
+            payload: {
+              template_type: 'generic',
+              elements: [{
+                image_url: profilePic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+                title: `${username} [id: ${userId}]`,
+                subtitle: `
+🗺 ${location}
+💬 ${englishLevelDict[englishLevel]}
+👔 ${communityDict[community]}
+🛠 ${profession}
+${readyToConversation === 'ready' ? '✔ Ready' : '❗ On Air'}
+⌛ ${recentUsers.length}`,
+              }],
+            },
+          },
+        },
+      };
+
+      await bot.api.callAPI('/me/messages', 'POST', options);
+
+      if (recentUsers.length) {
+        const rUsers = [];
+        recentUsers.forEach(user => {
+          rUsers.push(user.match(/(\d+)\/$/)[1]);
+        });
+
+        await bot.api.callAPI('/me/messages', 'POST', {
+          recipient,
+          message: {
+            text: `Recent user${recentUsers.length === 1 ? '' : 's'}:\n\n${rUsers.join('\n')}`,
+          },
+        });
+      }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   });
 };
