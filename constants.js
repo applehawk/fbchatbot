@@ -20,7 +20,11 @@ module.exports = Object.freeze({
     // greeting.js
     GREETING_1: `Hi {{{vars.username}}}! 👋
 
-We are the RandomEnglish. An international online platform that is intended for training business English skills through a friendly networking format.`,
+We are the Random English. An international online platform that is intended for training business English skills through a friendly networking format.`,
+//     GREETING_1: `Hi {{user_first_name}} {{user_last_name}} {{user_full_name}}! 👋
+
+// We are the Random English. An international online platform that is intended for training business English skills through a friendly networking format.`,
+
     GREETING_2: `Every Monday and Thursday we will offer you an interesting person for a conversation, selected following your interests among other participants.`,
     GREETING_3: `First of all, you should share with us some information about yourself, your needs and your knowledge. It allows other people to know what topics it will be interesting to discuss with you before the call.`,
     GREETING_4: `Let me ask you some questions and we will create your profile that will be available to other participants. 🤓`,
@@ -92,5 +96,13 @@ I can introduce to: {{{vars.who_introducein}}}`,
     ONBOARDING_8: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.',
     GIF_GREETING: 'https://media.giphy.com/media/kaHP7Ci7xVFzN8JJbk/giphy.gif',
     GIF_ONBOARDING: 'https://media.giphy.com/media/StXP3dSGStWDBvsCjF/giphy.gif',
+
+    INVITATION_MESSAGE: `We sent an invitation message to user!
+We will notify you of his decision.
+
+Thank you for being with us! 😊`,
+
+    MATCH_NOT_FOUND_SUITABLE_USER: 'Sorry, but at the moment we have not found a suitable user for you.\n\nPlease try again later.',
+    USER_DIALOG_SESSION_EXPIRED: 'Your session has expired.',
 
 });

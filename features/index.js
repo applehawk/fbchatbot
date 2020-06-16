@@ -11,26 +11,34 @@ module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
     const greeting = controller.dialogSet.dialogs[GREETING_ID];
 
-    controller.on('facebook_postback', async (bot, message) => {
+    controller.on(['facebook_postback', 'messaging_postback'], async (bot, message) => {
+        await bot.cancelAllDialogs();
         if (message.postback.title === 'Get Started') {
             try {
-                await bot.cancelAllDialogs();
-                const context = bot.getConfig('context');
-                const activity = context._activity;
+                await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+                const recipient = {
+                    id: message.sender.id,
+                };
 
-                const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+                // [Tip] Deleting menu
+                const deleteMenu = await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
+                    recipient,
+                    psid: message.sender.id,
+                    params: ['persistent_menu'],
+                });
+
+                // #BEGIN Bot typing
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
                 // Get user's FB Profile Info
-                const url = `/${userId}`;
+                const url = `/${message.sender.id}`;
                 const response = await bot.api.callAPI(url, 'GET');
 
                 const username = `${response.first_name !== '' ? response.first_name : ''}${response.last_name !== '' ? ' ' + response.last_name : ''}`;
                 const profilePic = response.profile_pic;
 
                 const options = {
-                    recipient: {
-                        id: userId,
-                    },
+                    recipient,
                     message: {
                         attachment: {
                             type: 'image',
@@ -43,22 +51,22 @@ module.exports = async (controller) => {
                 };
                 await bot.api.callAPI('/me/messages', 'POST', options);
 
+                // #BEGIN Bot typing
+                // [Tip] It will be automatically deleted at the beginning of the next dialog.
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                 await bot.beginDialog(GREETING_ID, { username, profilePic });
             } catch(error) {
                 console.error(error);
             }
+        } else {
+            // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+            // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+            await bot.changeContext(message.reference);
+
+            if (message.text) {
+                console.log('[postback]:', message.postback.payload);
+                controller.trigger([message.postback.payload], bot, message);
+            }
         }
     });
-/*
-    /**
-     * Detect when a message has a sticker attached
-
-    controller.hears(async(message) => message.sticker_id, 'message', async(bot, message) => {
-        await bot.reply(message,'Cool sticker.');
-    });
-
-    controller.on('facebook_postback', async(bot, message) => {
-        await bot.reply(message,`I heard you posting back a post_back about ${ message.text }`);
-    });
-*/
 };
