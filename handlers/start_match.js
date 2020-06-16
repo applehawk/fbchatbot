@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = async (controller) => {
-  const delay = 10000;
+  const delay = 300000;
   const timer = async (bot, message) => { // [OK]
     // Running a timer if the user doesn't have an active dialog or message.value is empty
     if (!bot.hasActiveDialog() && message.value === undefined) {
