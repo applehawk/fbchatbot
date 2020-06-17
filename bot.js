@@ -11,6 +11,7 @@ const { Botkit, BotkitConversation } = require('botkit');
 // Import a platform-specific adapter for facebook.
 const { FacebookAdapter, FacebookEventTypeMiddleware } = require('botbuilder-adapter-facebook');
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
+// const { UserState } = require('botbuilder');
 
 // const util = require('util');
 
@@ -35,19 +36,23 @@ const {
     FACEBOOK_APP_SECRET,
 } = process.env;
 
-const storage = new MongoDbStorage({
-    collection: DATABASE_COLLECTION,
-    database: DATABASE_NAME,
-    url: MONGO_URI,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+let storage = null;
+
+// if (!isDev) {
+    storage = new MongoDbStorage({
+        collection: DATABASE_COLLECTION,
+        database: DATABASE_NAME,
+        url: MONGO_URI,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    });
+// }
 
 const adapter = new FacebookAdapter({
     access_token: FACEBOOK_ACCESS_TOKEN,
     api_version: 'v7.0',
     app_secret: FACEBOOK_APP_SECRET,
-    require_delivery: true,//!isDev,
+    require_delivery: !isDev,
     verify_token: FACEBOOK_VERIFY_TOKEN,
 });
 
@@ -56,33 +61,42 @@ adapter.use(new FacebookEventTypeMiddleware());
 
 const controller = new Botkit({
     webhook_uri: '/api/messages',
-    // scheduler_url: '/scheduler',
+    // scheduler_uri: '/api/scheduler',
     adapter,
     storage,
 });
 
 // console.log(JSON.stringify(controller._config.scheduler_url)); // [OK]
 
-const GREETING_ID = 'GREETING_ID';
-const ONBOARDING_ID = 'ONBOARDING_ID';
+// if (!isDev) {
+    const GREETING_ID = 'GREETING_ID';
+    const ONBOARDING_ID = 'ONBOARDING_ID';
 
-const greeting = new BotkitConversation(GREETING_ID, controller);
-const onboarding = new BotkitConversation(ONBOARDING_ID, controller);
+    const greeting = new BotkitConversation(GREETING_ID, controller);
+    const onboarding = new BotkitConversation(ONBOARDING_ID, controller);
 
-controller.addDialog(greeting);
-controller.addDialog(onboarding);
+    controller.addDialog(greeting);
+    controller.addDialog(onboarding);
+// }
 
-// [!] DEV ONLY
-if (isDev) {
-    controller.on('message', async(bot, message) => {
-        console.log('[message]:', message);
-    });
-}
+// #BEGIN Configure routers
+controller.webserver.get('/', async (req, res) => {
+    await res.send(`This app is running Botkit ${ controller.version }.`);
+});
 
-controller.ready(() => {
+// // make content of the local public folder available at http://MYBOTURL/path/to/folder
+// controller.publicFolder('/api/sheduler', `${__dirname}/api/sheduler`);
+
+// controller.webserver.get('/api/sheduler', async (req, res) => {
+//     await res.send(`This is Sheduler Page.`);
+// });
+// #END Configure routers
+
+controller.ready(async () => {
     // load traditional developer-created local custom feature modules
     const modules = [
         'features',
+        'handlers',
         'hears'
     ];
 
@@ -92,17 +106,14 @@ controller.ready(() => {
 
     // load test feature modules
     if (isDev) {
-        controller.loadModules(__dirname + '/handlers_test');
-        controller.loadModules(__dirname + '/hears_test');
+        await controller.loadModules(__dirname + '/handlers_test');
+        await controller.loadModules(__dirname + '/hears_test');
+
+        // const result = await controller.storage.Collection['BotFrameworkState'].findOneAndDelete({ _id: `facebook/users/3049377188434960/` });
+        // console.log('reset user', result);
     }
 
     console.log('ready');
 });
 
-controller.webserver.get('/', async (req, res) => {
-    await res.send(`This app is running Botkit ${ controller.version }.`);
-});
 
-// controller.webserver.get('/scheduler', async (req, res) => { // [OK][*]
-//     await res.send(`This is scheduler_url.`);
-// });

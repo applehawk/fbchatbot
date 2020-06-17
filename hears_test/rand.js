@@ -1,11 +1,9 @@
 'use strict';
 
-// #BEGIN DEV
 const {
   englishLevelDict,
   communityDict,
 } = require(`../constants.js`);
-// #END DEV
 
 module.exports = async (controller) => { // [OK]
   controller.hears(new RegExp(/^(rand)( +)?(\d+)?$/i), ['message', 'direct_message'], async (bot, message) => {
@@ -13,7 +11,7 @@ module.exports = async (controller) => { // [OK]
 
     const locations = ['Nizhnepavlovka', 'Ufa', 'Moscow', 'Khanty', 'Tyumen', 'Russian', 'Russia', 'Singapour', 'Australian', 'Turkey'];
     const professions = ['IT-Programmer', 'IT-Manager', 'Financist', 'Saler', 'Marketer', 'Translator', 'Politic', 'Developer', 'Web Designer', 'Web Developer', 'Junior Frontend Developer', 'Middle Frontend Developer', 'Backend Developer'];
-    const names = ['Nunc', 'Risus', 'Enim', 'Laoreet in', 'Suscipit', 'Eu Facilisis', 'A Nibh'];
+    const names = ['Nunc', 'Risus', 'Enim', 'Laoreet in', 'Suscipit', 'Eu Facilisis', 'A Nibh', 'Ibh Facil', 'Pit', 'Laor', 'Su', 'En', 'Lisi', 'du`Fa'];
     const users = [];
     for (let i = 0; i < total; i++) {
       const user = {
@@ -24,6 +22,7 @@ module.exports = async (controller) => { // [OK]
           english_level: Math.round(Math.random() * (englishLevelDict.length - 1)),
           location: locations[Math.round(Math.random() * (locations.length - 1))],
           profession: professions[Math.round(Math.random() * (professions.length - 1))],
+          profile_pic: `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
           ready_to_conversation: 'ready',
           username: `${names[Math.round(Math.random() * (names.length - 1))]} ${names[Math.round(Math.random() * (names.length - 1))]}`,
         },
@@ -32,12 +31,11 @@ module.exports = async (controller) => { // [OK]
       users.push(user);
     }
     try {
-      const storage = controller.storage;
-      const result = await storage.Collection.insertMany([...users]);
+      const result = await controller.storage.Collection.insertMany([...users]);
       console.log(message, JSON.stringify(result, null, 2));
       await bot.say(`[${message.matches[1]}] Inserted Count: ${result.insertedCount}`);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   });
 };

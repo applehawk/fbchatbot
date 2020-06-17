@@ -2,33 +2,144 @@
 
 const { UserState } = require('botbuilder');
 
+const { communityDict, englishLevelDict } = require('../constants.js');
+
 module.exports = async (controller) => {
-  controller.hears(new RegExp(/^(start( +?\d+)?)$/, 'i'), ['message', 'direct_message'], async (bot, message) => {
-    const { text } = message;
-    const userId = text.replace(/([^\d]| )+/g, '');
+    controller.hears(new RegExp(/^(start)\s+?(\d+)\s+?(.+)$/ius), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
+        try {
+            const recipient = { id: message.matches[2] };
 
-    const storage = controller.storage;
+            const text = message.matches[3].trim();
+            const { storage } = controller;
+            const context = bot.getConfig('context');
+            // const activity = context._activity;
+            const userState = new UserState(storage);
 
-    const context = bot.getConfig('context');
+            // Get User State Properties
+            // const channelId = activity.channelId;
+            const { channelId } = message.incoming_message;
+            const matchUser = await storage.Collection.findOne({ _id: `${channelId}/users/${recipient.id}/` });
 
-    const activity = context._activity;
+            if (!!matchUser) {
+                const personas = await bot.api.callAPI('/me/personas', 'GET'); // [OK]
 
-    const userState = new UserState(controller.storage);
+                if (Object.values(personas.data).length) {
+                    console.log(personas.data[0]);
+                    let count = 0;
+                    Object.values(personas.data).forEach(persona => {
+                        setTimeout(async () => {
+                            await bot.changeContext(message.reference);
+                            await bot.api.callAPI(`/${persona.id}`, 'DELETE');
+                        }, 1000);
+                        count++;
+                    });
+                    console.log(`[PERSONAS]: ${count} deleted.`);
+                }
 
-    const usernameProperty = await userState.createProperty('username');
-    const username = await usernameProperty.get(context);
+                // let persona_id = null;
 
-    // Get User State Properties
-    const channelId = activity.channelId;
+                // Create a Persona
+                // if (!Object.values(personas.data).length) {
+                    let { id: persona_id } = await bot.api.callAPI('/me/personas', 'POST', { // [OK]
+                        recipient,
+                        // dialog: recipient.id,
+                        name: matchUser.state.username || 'User',
+                        profile_picture_url: matchUser.state.profile_pic || 'https://picsum.photos/200/200/?random=1',
+                    });
+                    console.log('[persona] created:', persona_id);
+                // }
 
-    const matchUser = await storage.Collection.findOne({ _id: `${channelId}/users/${userId}/` });
+                const personaOptions = {
+                    recipient,
+                    persona_id/*: !Object.values(personas.data).length ? persona_id : personas.data[0].id*/,
+                };
 
-    const { id } = await bot.api.callAPI('/me', 'GET', { recipient: { id: userId }});
+                // // [OK]
+                // const { id } = await bot.api.callAPI('/me', 'GET');
+                // const dialogBot = await controller.spawn(id);
+                // await dialogBot.startConversationWithUser(recipient.id);
 
-    const dialogBot = await controller.spawn(id);
-    await dialogBot.startConversationWithUser(userId);
-    await dialogBot.say(`Hi ${matchUser.state.username}! ${username} says hello`);
-    await bot.say(`Done. Bot sent message: Hi ${matchUser.state.username}! ${username} says hello`);
-    console.log(bot.getActiveDialog());
-  });
+                // #BEGIN Bot typing
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+
+                // Send text from Persona
+                await bot.api.callAPI('/me/messages', 'POST', {
+                    ...personaOptions,
+                    message: {
+                        // text,
+                        dynamic_text: {
+                            text,
+                        },
+                        // attachment: {
+                        //     type: 'template',
+                        //     payload: {
+                        //         template_type: 'generic',
+                        //         elements: [{
+                        //             title: matchUser.state.username,
+                        //             subtitle: `\n🗺 ${matchUser.state.location}\n💬 ${englishLevelDict[matchUser.state.english_level]}\n👔 ${communityDict[matchUser.state.community]}\n🛠 ${matchUser.state.profession}`,
+                        //         }],
+                        //     },
+                        // },
+                    },
+                });
+
+                // // v1 [OK]
+                // const { id } = await bot.api.callAPI('/me', 'GET');
+                // const dialogBot = await controller.spawn(id);
+                // await dialogBot.startConversationWithUser(recipient.id);
+
+                // // v2 [*]
+                // const dialogBot = await controller.spawn(message.recipient.id);
+                // await dialogBot.startConversationWithUser(recipient.id);
+
+                // // [*][?]
+                // await dialogBot.addQuestion({
+                //     text: '???',
+                //     quick_replies: [{
+                //         content_type: 'text',
+                //         title: 'No',
+                //         payload: 'no',
+                //     }, {
+                //         content_type: 'text',
+                //         title: 'Yes',
+                //         payload: 'yes',
+                //     }],
+                // }, [
+                //     {
+                //         default: true,
+                //         pattern: 'No',
+                //         handler: async (answerText, convo, bot, message) => {
+                //             try {
+                //                 console.log(`start dialog with user: ${answerText}`);
+                //             } catch(error) {
+                //                 console.error(error);
+                //             }
+                //         },
+                //     },
+                //     {
+                //         pattern: 'Yes',
+                //         handler: async (answerText, convo, bot, message) => {
+                //             try {
+                //                 // await bot.beginDialog(COMMUNITY_DIALOG_ID, { ...convo.vars });
+                //                 console.log(`start dialog with user: ${answerText}`);
+                //             } catch(error) {
+                //                 console.error(error);
+                //             }
+                //         },
+                //     }
+                // ], { key: 'message' });
+
+                // await dialogBot.say({
+                //     text,
+                // });
+            } else {
+                // #BEGIN Bot typing
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+
+                await bot.say('Sorry, but user was not found.');
+            }
+        } catch(error) {
+            console.error(`[ERROR]: ${error}`);
+        }
+    });
 };

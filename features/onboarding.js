@@ -1,13 +1,8 @@
 'use strict';
 
-const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
 const {
-    // askFacebookUrlStr, // [?]
-    // askUsernameStr,
-    // askAboutExpertIn,
-
     ONBOARDING_1,
     ONBOARDING_2_1,
     ONBOARDING_2_2,
@@ -42,9 +37,9 @@ module.exports = async (controller) => {
 
     // await community.ask({
     //     text: 'Tell us which community you are interested in.',
-    // }, async (answerText, convo, bot, message) => {
+    // }, async (response, convo, bot, message) => {
     //     try {
-    //         console.log(`User has Community (Other): ${answerText}`);
+    //         console.log(`User has Community (Other): ${response}`);
     //     } catch(error) {
     //         console.error(error);
     //     }
@@ -60,7 +55,7 @@ module.exports = async (controller) => {
         const items = [];
         Object.keys(dict).forEach((key, i) => {
             items.push({
-                content_type: 'text',
+                // content_type: 'text',
                 title: dict[key],
                 payload: i,
             });
@@ -72,10 +67,10 @@ module.exports = async (controller) => {
     // // ask a question, store the responses
     // onboarding.ask({
     //     text: askUsernameStr,
-    // }, async (answerText, convo, bot, message) => {
+    // }, async (response, convo, bot, message) => {
     //     try {
     //         data = { ...convo.vars };
-    //         console.log(`User has name: ${answerText}`);
+    //         console.log(`User has name: ${response}`);
     //     } catch(error) {
     //         console.error(error);
     //     }
@@ -86,9 +81,9 @@ module.exports = async (controller) => {
     // // #BEGIN Facebook URL
     // await onboarding.ask({
     //     text: askFacebookUrlStr,
-    // }, async (answerText, convo, bot, message) => {
+    // }, async (response, convo, bot, message) => {
     //     try {
-    //         console.log(`Facebook url: ${answerText}`);
+    //         console.log(`Facebook url: ${response}`);
     //     } catch(error) {
     //         console.error(error);
     //     }
@@ -98,36 +93,37 @@ module.exports = async (controller) => {
     // #BEGIN Location
     await onboarding.ask({
         text: ONBOARDING_1,
-    }, async (answerText, convo, bot, message) => {
-        try {
-            console.log(`User has location: ${answerText}`);
-        } catch(error) {
-            console.error(error);
-        }
+    }, async (response, convo, bot, message) => {
+        // const regexp = new RegExp(/(\s|\d)+?/gius);
+        // if (!regexp.test(response)) {
+            message.value = 'Step 5';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+            console.log(`User has location: ${response}`);
+            // #BEGIN Profession
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await bot.say(ONBOARDING_2_1);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await bot.say(ONBOARDING_2_2);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        // } else {
+        //     await convo.repeat();
+        // }
     }, { key: 'location' });
     // #END Location
 
     // #BEGIN Profession
-    await onboarding.say({
-        text: ONBOARDING_2_1,
-        delay: 1000,
-    }, async (answerText, convo, bot, message) => {
-    });
-
-    await onboarding.say({
-        text: ONBOARDING_2_2,
-        delay: 1000,
-    }, async (answerText, convo, bot, message) => {
-    });
-
     await onboarding.ask({
         text: ONBOARDING_2_3,
-    }, async (answerText, convo, bot, message) => {
-        try {
-            console.log(`User has Profession: ${answerText}`);
-        } catch(error) {
-            console.error(error);
-        }
+    }, async (response, convo, bot, message) => {
+        // const regexp = new RegExp(/(\s|\d)+?/gius);
+        // if (!regexp.test(response)) {
+            message.value = 'Step 6';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+            console.log(`User has Profession: ${response}`);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        // } else {
+        //     await convo.repeat();
+        // }
     }, { key: 'profession' });
     // #END Profession
 
@@ -135,39 +131,38 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_3,
         quick_replies: [ ...getDictItems(englishLevelDict) ],
-    }, async (answerText, convo, bot, message) => {
-        try {
-            console.log(`User has EnglishLevel: ${answerText}`);
-        } catch(error) {
-            console.error(error);
+    }, async (response, convo, bot, message) => {
+        if (englishLevelDict.includes(response)) {
+            message.value = 'Step 7';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+            console.log(`User has EnglishLevel: ${response}`);
+            // #BEGIN About Yourself
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await bot.say(ONBOARDING_4_1);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        } else {
+            await convo.repeat();
         }
     }, { key: 'english_level' });
     // #END English Level
 
     // #BEGIN About Yourself
-    await onboarding.say({
-        text: ONBOARDING_4_1,
-        delay: 1000,
-    }, async (answerText, convo, bot, message) => {
-    });
-
     await onboarding.ask({
         text: ONBOARDING_4_2,
-    }, async (answerText, convo, bot, message) => {
-        try {
-            console.log(`User about yourself: ${answerText}`);
-        } catch(error) {
-            console.error(error);
-        }
+    }, async (response, convo, bot, message) => {
+        message.value = 'Step 8';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+        console.log(`User about yourself: ${response}`);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
     }, { key: 'about_yourself' });
     // #END About Yourself
 
     // // #BEGIN About ExpertIn
     // await onboarding.ask({
     //     text: askAboutExpertIn,
-    // }, async (answerText, convo, bot, message) => {
+    // }, async (response, convo, bot, message) => {
     //     try {
-    //         console.log(`User is an expert in: ${answerText}`);
+    //         console.log(`User is an expert in: ${response}`);
     //     } catch(error) {
     //         console.error(error);
     //     }
@@ -182,9 +177,9 @@ module.exports = async (controller) => {
     }, [
         {
             default: true,
-            handler: async (answerText, convo, bot, message) => {
+            handler: async (response, convo, bot, message) => {
                 try {
-                    console.log(`User has Community: ${answerText}`);
+                    console.log(`User has Community: ${response}`);
                 } catch(error) {
                     console.error(error);
                 }
@@ -192,7 +187,7 @@ module.exports = async (controller) => {
         },
         {
             pattern: 'Other',
-            handler: async (answerText, convo, bot, message) => {
+            handler: async (response, convo, bot, message) => {
                 try {
                     await bot.beginDialog(COMMUNITY_DIALOG_ID, { ...convo.vars });
                 } catch(error) {
@@ -205,58 +200,55 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_5,
         quick_replies: [ ...getDictItems(communityDict) ],
-    }, async (answerText, convo, bot, message) => {
-        try {
-            console.log(`User has Community: ${answerText}`);
-        } catch(error) {
-            console.error(error);
+    }, async (response, convo, bot, message) => {
+        if (communityDict.includes(response)) {
+            message.value = 'Step 9';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+            console.log(`User has Community: ${response}`);
+            // #BEGIN About ExpertIn
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await bot.say(ONBOARDING_6_1);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await bot.say(ONBOARDING_6_2);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await bot.say(ONBOARDING_6_3);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        } else {
+            await convo.repeat();
         }
     }, { key: 'community' });
-
     // #END Community
 
     // #BEGIN About ExpertIn
-    await onboarding.say({
-        text: ONBOARDING_6_1,
-        delay: 1000,
-    }, async (answerText, convo, bot, message) => {
-    });
-
-    await onboarding.say({
-        text: ONBOARDING_6_2,
-        delay: 1000,
-    }, async (answerText, convo, bot, message) => {
-    });
-
-    await onboarding.say({
-        text: ONBOARDING_6_3,
-        delay: 1000,
-    }, async (answerText, convo, bot, message) => {
-    });
-
     await onboarding.ask({
         text: ONBOARDING_6_4,
-    }, async (answerText, convo, bot, message) => {
-        try {
-            // Put user's temporary data back into the convo.vars
-            Object.assign(convo.vars, data);
-            console.log(`User who introduceIn: ${answerText}`);
-        } catch(error) {
-            console.error(error);
-        }
+    }, async (response, convo, bot, message) => {
+        message.value = 'Step 10';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+        // Put user's temporary data back into the convo.vars
+        Object.assign(convo.vars, data);
+        console.log(`User who introduceIn: ${response}`);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
     }, { key: 'who_introducein' });
-    // #END About ExportIn
+    // #END About ExpertIn
 
     // Inform to the user about self
     await onboarding.ask({ // [OK]
         text: ONBOARDING_7,
         quick_replies: [{
-          content_type: 'text',
           title: 'All right. Let’s go!',
           payload: 'All right. Let’s go!',
         }],
-    }, async (answerText, convo, bot, message) => {
-        await convo.stop();
+    }, async (response, convo, bot, message) => {
+        if (response === 'All right. Let’s go!') {
+            message.value = 'Step 11';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await controller.trigger(['start_match'], bot, message);
+            await convo.stop();
+        } else {
+            await convo.repeat();
+        }
     });
 
     await onboarding.after(async (results, bot) => { // [OK]
@@ -298,16 +290,26 @@ module.exports = async (controller) => {
             // Save User's Info
             await userState.saveChanges(context);
 
-            await bot.say(ONBOARDING_8);
-
-            // Sending Gif
             const activity = context._activity;
             const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
+            const recipient = {
+                id: userId,
+            };
+
+            // #BEGIN Bot typing
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+
+            await bot.say({
+                text: ONBOARDING_8,
+            });
+
+            // #BEGIN Bot typing
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+
+            // Sending Gif
             const options = {
-                recipient: {
-                    id: userId,
-                },
+                recipient,
                 message: {
                     attachment: {
                         type: 'image',
@@ -319,6 +321,45 @@ module.exports = async (controller) => {
                 },
             };
             await bot.api.callAPI('/me/messages', 'POST', options);
+
+            const menu = {
+                recipient,
+                psid: recipient.id,
+                persistent_menu: [
+                    {
+                        locale: 'default',
+                        composer_input_disabled: false,
+                        call_to_actions: [
+                            {
+                                type: 'postback',
+                                title: 'Match',
+                                payload: 'match',
+                            },
+                            {
+                                type: 'postback',
+                                title: 'Profile',
+                                payload: 'me',
+                            },
+                            {
+                                type: 'postback',
+                                title: 'Help',
+                                payload: 'help',
+                            },
+                        ],
+                    }
+                ],
+            };
+            await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+
+            const message = {
+                recipient,
+                sender: { id: userId },
+                value: 'Finish',
+                timestamp: Date.now(),
+                text: 'Finish',
+            };
+
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
         } catch(error) {
             console.error(error);

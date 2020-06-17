@@ -19,42 +19,57 @@ module.exports = async (controller) => {
     await greeting.ask({
       text: GREETING_1,
       quick_replies: [{
-        content_type: 'text',
         title: 'Tell me more 🤔',
         payload: 'Tell me more 🤔',
       }],
-    }, async (response, convo, bot) => {
-    });
-
-    await greeting.say({
-      text: GREETING_2,
-    }, async (response, convo, bot) => {
+    }, async (response, convo, bot, message) => {
+      // const regexp = new RegExp(/(\s|\d)+?/gius);
+      if (response === 'Tell me more 🤔'/* && !regexp.test(response)*/) {
+        message.value = 'Step 1';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        await bot.say(GREETING_2);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+      } else {
+        await convo.repeat();
+      }
     });
 
     await greeting.ask({
       text: GREETING_3,
       quick_replies: [{
-        content_type: 'text',
         title: 'I got it 👍',
         payload: 'I got it 👍',
       }],
-    }, async (response, convo, bot) => {
-    });
-
-    await greeting.say({
-      text: GREETING_4,
-    }, async (response, convo, bot) => {
+    }, async (response, convo, bot, message) => {
+      // const regexp = new RegExp(/(\s|\d)+?/gius);
+      if (response === 'I got it 👍'/* && !regexp.test(response)*/) {
+        message.value = 'Step 2';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        await bot.say(GREETING_4);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+      } else {
+        await convo.repeat();
+      }
     });
 
     await greeting.ask({
       text: GREETING_5,
       quick_replies: [{
-        content_type: 'text',
         title: 'Go 🚀',
         payload: 'Go 🚀',
       }],
-    }, async (response, convo, bot) => {
-      await convo.stop();
+    }, async (response, convo, bot, message) => {
+      // const regexp = new RegExp(/(\s|\d)+?/gius);
+      if (response === 'Go 🚀'/* && !regexp.test(response)*/) {
+        message.value = 'Step 3';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        await convo.stop();
+      } else {
+        await convo.repeat();
+      }
     });
 
     await greeting.after(async (results, bot) => {

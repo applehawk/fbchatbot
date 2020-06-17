@@ -1,113 +1,106 @@
 'use strict';
 
-const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
-const { Activity } = require('botframework-schema'); // [?]
 
-// #BEGIN DEV
 const {
     englishLevelDict,
     communityDict,
+    MATCH_NOT_FOUND_SUITABLE_USER,
 } = require(`../constants.js`);
-// #END DEV
 
 module.exports = async (controller) => {
     // [TODO]
     // Prepare for cache
     // const cachedUsers = {};
 
-    const getButtons = () => {
-        const buttons = [];
-        for (let i = 0; i < 3; i++) {
-            buttons.push({
-                type: 'postback',
-                title: `Button ${i}`,
-                payload: i,
-            });
-        }
-        return buttons;
+    const getButtons = (id) => { // [OK]
+        return [{
+            type: 'postback',
+            title: `Start`,
+            payload: `start2 ${id.match(/(\d+)\/$/)[1]}`,
+        }, {
+            type: 'postback',
+            title: `Next`,
+            payload: `match`,
+        }];
     };
 
-    const getElement = (user, i = 0) => {
-        const buttons = [ ...getButtons() ];
+    const formatUserInfo = (user, i = 0) => { // [OK]
+        const buttons = [ ...getButtons(user._id) ];
+        const {
+            community,
+            english_level,
+            location,
+            profession,
+            profile_pic,
+            username,
+        } = user.state;
+
         return {
-            image_url: user.profile_pic || `https://picsum.photos/200/200/?random=${Math.round(Math.random() * 1e2 + i)}`,
-            title: `${user.username}`,
-            subtitle: `\n🗺 ${user.location}\nEnglish level: ${englishLevelDict[user.english_level]}\nCommunity: ${communityDict[user.community]}\nProfession: ${user.profession}`,
-            buttons: [buttons[0], buttons[1], buttons[2]],
+            image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+            title: `${username}`,
+            subtitle: `\n🗺 ${location}\n💬 ${englishLevelDict[english_level]}\n👔 ${communityDict[community]}\n🛠 ${profession}`,
+            buttons: [ ...buttons ],
         };
     };
 
-    const botSay = async (payload) => {
-        const context = payload.bot.getConfig('context');
-        const activity = context._activity;
-
-        const api = await controller.adapter.getAPI(activity);
-
-        const channelId = activity.channelId;
-        const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
-
+    const botSay = async (payload) => { // [OK]
         const elements = [];
 
-        if (Object.keys(payload.items).length > 1) {
-            Object.values(payload.items).forEach((user, i) => {
-                if (!Object.values(user).includes('')) {
-                    elements.push({ ...getElement(user, i) });
-                }
-            });
-        } else {
-            elements.push({ ...getElement(payload.items[0]) });
-        }
+        Object.values(payload.users).forEach((user, i = 0) => {
+            elements.push({ ...formatUserInfo(payload.users[i], i) });
+        });
 
-        const options = {
-            recipient: {
-                id: userId,
-            },
+        const options = { // [OK]
+            recipient: payload.message.sender,
             message: {
                 attachment: {
                     type: 'template',
-                    payload:{
+                    payload: {
                         template_type: 'generic',
-                        elements: elements,
-                    }
-                }
-            }
+                        elements,
+                    },
+                },
+            },
         };
 
         try {
-            await api.callAPI('/me/messages', 'POST', options);
+            await payload.bot.api.callAPI('/me/messages', 'POST', options);
         } catch(error) {
-            console.log(error);
+            console.error(error);
         }
     };
 
     const chooseWithLevel = async (payload) => {
-        const location = `${payload.location}`.split(',').join('|'); // [OK]
+        // const location = `${payload.location}`.split(',').join('|'); // [OK] v1
 
         const findAllUsersQuery = {
-            _id: { // [OK]
+            _id: {
                 $regex: `${payload.channelId}/users*`,
                 $ne: `${payload.channelId}/users/${payload.userId}/`,
                 $nin: [ ...payload.recentUsers ],
             },
-            $and: [{
+            // $and: [{
                 'state.ready_to_conversation': { // [OK]
                     $eq: 'ready',
                 },
                 'state.english_level': { // [OK]
                     $gte: payload.englishLevel,
                 },
-                'state.location': { // [OK]
-                    $regex: `((?!${location}).)+`,
+                // 'state.location': { // [OK] v1
+                //     $regex: `((?!${location}).)+`,
+                // },
+                'state.location': { // [OK][*] v2
+                    $ne: payload.location,
                 },
                 'state.community': { // [OK][?]
                     $eq: payload.community,
                 },
-            }],
+            // }],
         };
 
         // // v1 [OK]
-        // const docs = await payload.storage.Collection.find(findAllUsersQuery) // [OK]
+        // const docs = await controller.storage.Collection.find(findAllUsersQuery) // [OK]
         //     .limit(1) // for first 10 documents only
         //     .sort({ "state.english_level": 1 }); // sort ascending
 
@@ -121,24 +114,33 @@ module.exports = async (controller) => {
         // return items;
 
         // v2 [OK][*]
-        const docs = await payload.storage.Collection.findOne(findAllUsersQuery, { sort: 'state.english_level' }) || []; // [OK]
-        // const docs = await payload.storage.Collection.find(findAllUsersQuery, { sort: 'state.english_level', limit: 1 }) || []; // [OK]
+        // const docs = await controller.storage.Collection.findOne(findAllUsersQuery, { sort: 'state.english_level' }) || []; // [OK]
+        const docs = await controller.storage.Collection.findOne(findAllUsersQuery, { sort: 'state.english_level' }) || []; // [OK]
+        // const docs = await controller.storage.Collection.find(findAllUsersQuery, { sort: 'state.english_level', limit: 1 }) || []; // [OK]
         // Object.assign(cachedUsers, docs);
 
         return docs;
     };
 
-    controller.hears('match', ['message', 'direct_message'], async (bot, message) => {
-        const userState = new UserState(controller.storage);
-        const storage = controller.storage;
-
+    // controller.hears(new RegExp(/^match$/i), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
+    controller.on(['match'/*, 'message', 'direct_message', 'facebook_postback', 'messaging_postback'*/], async (bot, message) => {
         try {
+            // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+            // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+            await bot.changeContext(message.reference);
+
+            const userState = new UserState(controller.storage);
+
             const context = bot.getConfig('context');
 
-            const activity = context._activity;
+            const userId = message.sender.id;
+            const recipient = { id: userId };
+
+            // #BEGIN Bot typing
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
             // Get User State Properties
-            const channelId = activity.channelId;
+            const { channelId } = message.incoming_message;
             const communityProperty = await userState.createProperty('community');
             const community = await communityProperty.get(context);
             const englishLevelProperty = await userState.createProperty('english_level');
@@ -150,7 +152,6 @@ module.exports = async (controller) => {
             const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
             const readyToConversation = await readyToConversationProperty.get(context);
             const recentUsersProperty = await userState.createProperty('recent_users');
-            const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
             let recentUsers = await recentUsersProperty.get(context, []);
 
@@ -162,39 +163,52 @@ module.exports = async (controller) => {
                 profession,
                 readyToConversation,
                 recentUsers,
-                storage,
+                // storage,
                 userId,
             };
 
             // Getting users from DB
-            const storeItems = await chooseWithLevel(payload) || [];
+            const users = await chooseWithLevel(payload) || [];
 
-            if (Object.keys(storeItems).length) {
+            if (Object.keys(users).length) {
                 // Send reply with users info
-                botSay({ bot, items: [storeItems].map(item => item.state) });
+                botSay({ bot, message, users: [users].map(user => user) });
 
-                console.log(storeItems);
+                console.log('[match.js:177 users]:', users);
 
                 // Set User State Properties
-                const values = Object.values(storeItems);
+                const values = Object.values(users);
                 if (values.length > 1) {
-                    recentUsers = [ ...recentUsers, ...[storeItems].map(item => item._id) ];
+                    // recentUsers = [ ...recentUsers, ...[users].map(user => user._id.match(/(\d+)\/$/)[1]) ];
+                    recentUsers = [ ...recentUsers, ...[users].map(user => user._id) ];
                 } else {
-                    if (!values.includes(item._id)) {
-                        recentUsers = [ ...recentUsers, storeItems[0]._id ];
+                    if (!values.includes(users[0]._id)) {
+                        recentUsers = [ ...recentUsers, users[0]._id ];
                     }
                 }
 
+                // Save recent users to state
                 await recentUsersProperty.set(context, recentUsers);
 
                 // Save userState changes to storage
                 await userState.saveChanges(context);
             } else {
-                await bot.say('Sorry, but at the moment we have not found a suitable user for you.\nPlease try again later.');
-            }
+                clearTimeout(message.value);
+                message.value = null;
 
+                // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+                // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+                // await bot.changeContext(message.reference);
+
+                // #BEGIN Bot typing
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+
+                await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
+            }
+            // // #END Bot typing
+            // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
         } catch (error) {
-            console.log(error);
+            console.log('[match.js:210 ERROR]:', error);
         }
     });
 };

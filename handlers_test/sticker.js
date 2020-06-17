@@ -1,7 +1,9 @@
 'use strict';
 
 module.exports = async (controller) => {
-    controller.on('sticker_received', async (bot, message) => {
-        // await bot.reply(message, 'Cool sticker.');
-    });
+  controller.on(['message'], async (bot, message) => {
+    if (message.attachments && message.attachments.type === 'sticker') {
+      // await bot.reply(message, 'Nice picture.');
+    }
+  });
 };
