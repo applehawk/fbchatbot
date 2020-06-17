@@ -9,7 +9,6 @@ const { GIF_GREETING } = require('../constants.js');
 
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
-    const greeting = controller.dialogSet.dialogs[GREETING_ID];
 
     controller.on(['facebook_postback', 'messaging_postback'], async (bot, message) => {
         await bot.cancelAllDialogs();
@@ -22,7 +21,7 @@ module.exports = async (controller) => {
                 };
 
                 // [Tip] Deleting menu
-                const deleteMenu = await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
+                await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
                     recipient,
                     psid: message.sender.id,
                     params: ['persistent_menu'],
