@@ -351,16 +351,6 @@ module.exports = async (controller) => {
             };
             await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
 
-            const message = {
-                recipient,
-                sender: { id: userId },
-                value: 'Finish',
-                timestamp: Date.now(),
-                text: 'Finish',
-            };
-
-            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-
         } catch(error) {
             console.error(error);
         };
