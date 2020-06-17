@@ -1,42 +1,46 @@
 'use strict';
 
-const { ANALYTICS_API_KEY } = process.env;
-
-const Amplitude = require('@amplitude/node');
-
 module.exports = async (controller) => {
-  const client = Amplitude.init(process.env.ANALYTICS_API_KEY);
-
   controller.on(['ANALYTICS_EVENT'], async (bot, message) => {
-    // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-    // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-    // const botRef = await bot.changeContext(message.reference);
+
+    // let _eventName = '';
+
+    // /*if (message.text === 'getstarted_payload') {
+    //   _eventName = 'Get Started';
+    // } else if (message.text === 'All right. Let’s go!') {
+    //   _eventName = 'Finish';
+    // } else */if (message.value !== undefined) {
+    //   _eventName = message.value;
+    // } else {
+    //   _eventName = message.type;
+    // }
+
+    // // if (message.postback !== undefined && message.postback.title !== undefined) {
+    // //   _eventName = message.postback.title;
+    // // } else {
+    // // }
+
+    //   // message?.postback?.title === 'Get Started' ? 'Get Started' : message.type;
+    // console.log(!!message.value ? message.value : message.type, !!message.value, message.value);
+    // return;
 
     const options = {
-      event_type: message.text === 'All right. Let’s go!' ? 'Finish' : message.postback.title !== undefined ? 'Get Started' : 'Button click',
-      event_properties: {
-        user_id: message.sender.id,
-        time: message.time,
+      event: 'CUSTOM_APP_EVENTS',
+      custom_events: JSON.stringify([{
+        _eventName: !!message.value ? message.value : message.type,
+        _user_id: message.sender.id,
+        _time: message.timestamp,
         text: message.text,
-      },
-      insert_id: `${message.sender.id}_${message.timestamp}`,
+      }]),
+      advertiser_tracking_enabled: 1,
+      application_tracking_enabled: 1,
+      // extinfo: JSON.stringify(['mb1']),
+      page_id: message.recipient.id,
+      page_scoped_user_id: message.sender.id,
     };
-    // const options = {
-    //   event: 'CUSTOM_APP_EVENTS',
-    //   custom_events: JSON.stringify([{
-    //     _eventName: message.text === 'All right. Let’s go!' ? 'Finish' : message.postback.title !== undefined ? 'Get Started' : 'Button click',
-    //     _user_id: message.sender.id,
-    //     _time: message.time,
-    //     text: message.text,
-    //   }]),
-    //   page_id: message.reference.bot.id,
-    //   page_scoped_user_id: message.recipient.id,
-    // };
+    const status = await bot.api.callAPI(`/${process.env.FACEBOOK_APPID}/activities`, 'POST', options);
 
-    // await controller.adapter.sendActivities(options);
-    // // await botRef.api.callAPI(`/activities`, 'POST', options);
-
-    client.logEvent({ ...options });
-    // console.log(client, { ...options });
+    console.log(status);
+    return status;
   });
 };

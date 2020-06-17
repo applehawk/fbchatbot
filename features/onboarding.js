@@ -96,6 +96,8 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
         // const regexp = new RegExp(/(\s|\d)+?/gius);
         // if (!regexp.test(response)) {
+            message.value = 'Step 5';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has location: ${response}`);
             // #BEGIN Profession
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -115,6 +117,8 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
         // const regexp = new RegExp(/(\s|\d)+?/gius);
         // if (!regexp.test(response)) {
+            message.value = 'Step 6';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has Profession: ${response}`);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         // } else {
@@ -129,6 +133,8 @@ module.exports = async (controller) => {
         quick_replies: [ ...getDictItems(englishLevelDict) ],
     }, async (response, convo, bot, message) => {
         if (englishLevelDict.includes(response)) {
+            message.value = 'Step 7';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has EnglishLevel: ${response}`);
             // #BEGIN About Yourself
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -144,6 +150,8 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_4_2,
     }, async (response, convo, bot, message) => {
+        message.value = 'Step 8';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         console.log(`User about yourself: ${response}`);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
     }, { key: 'about_yourself' });
@@ -194,6 +202,8 @@ module.exports = async (controller) => {
         quick_replies: [ ...getDictItems(communityDict) ],
     }, async (response, convo, bot, message) => {
         if (communityDict.includes(response)) {
+            message.value = 'Step 9';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has Community: ${response}`);
             // #BEGIN About ExpertIn
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -213,12 +223,14 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_6_4,
     }, async (response, convo, bot, message) => {
+        message.value = 'Step 10';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         // Put user's temporary data back into the convo.vars
         Object.assign(convo.vars, data);
         console.log(`User who introduceIn: ${response}`);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
     }, { key: 'who_introducein' });
-    // #END About ExportIn
+    // #END About ExpertIn
 
     // Inform to the user about self
     await onboarding.ask({ // [OK]
@@ -229,9 +241,10 @@ module.exports = async (controller) => {
         }],
     }, async (response, convo, bot, message) => {
         if (response === 'All right. Let’s go!') {
+            message.value = 'Step 11';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await controller.trigger(['start_match'], bot, message);
-            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             await convo.stop();
         } else {
             await convo.repeat();
@@ -337,6 +350,17 @@ module.exports = async (controller) => {
                 ],
             };
             await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+
+            const message = {
+                recipient,
+                sender: { id: userId },
+                value: 'Finish',
+                timestamp: Date.now(),
+                text: 'Finish',
+            };
+
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+
         } catch(error) {
             console.error(error);
         };

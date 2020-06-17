@@ -22,8 +22,8 @@ module.exports = async (controller) => {
   };
 
   controller.on(['start_match'], async (bot, message) => {
-    if (!bot.hasActiveDialog() || !message.value) {
+    // if (!bot.hasActiveDialog() || !message.value) {
       await timer(bot, message);
-    }
+    // }
   });
 };

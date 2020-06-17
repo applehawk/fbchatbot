@@ -25,6 +25,8 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'Tell me more 🤔'/* && !regexp.test(response)*/) {
+        message.value = 'Step 1';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await bot.say(GREETING_2);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -42,6 +44,8 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'I got it 👍'/* && !regexp.test(response)*/) {
+        message.value = 'Step 2';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await bot.say(GREETING_4);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -59,6 +63,8 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'Go 🚀'/* && !regexp.test(response)*/) {
+        message.value = 'Step 3';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await convo.stop();
       } else {
