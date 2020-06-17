@@ -15,6 +15,7 @@ module.exports = async (controller) => {
         await bot.cancelAllDialogs();
         if (message.postback.title === 'Get Started') {
             try {
+                message.value = 'Get Started';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                 const recipient = {
                     id: message.sender.id,

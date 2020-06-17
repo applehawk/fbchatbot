@@ -64,6 +64,7 @@ module.exports = async (controller) => {
     // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
     // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
     await bot.changeContext(message.reference);
+    await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
     await bot.api.callAPI('/me/messages', 'POST', {
       recipient,
