@@ -2,32 +2,28 @@
 
 module.exports = async (controller) => {
   const delay = 300000;
-  const timer = (bot, message) => { // [OK]
-    clearTimeout(message.value);
-    message.value = setTimeout(async () => { // [OK]
-      // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-      // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-      const botRef = await bot.changeContext(message.reference);
+  const timer = async (bot, message) => { // [OK]
+    // Running a timer if the user doesn't have an active dialog or message.value is empty
+    if (!bot.hasActiveDialog() && message.value === undefined) {
+      clearTimeout(message.value);
+      message.value = setTimeout(async () => { // [OK]
+        // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+        // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+        await bot.changeContext(message.reference);
 
-      if (!botRef.hasActiveDialog() || !message.value) {
-        await controller.trigger(['match'], botRef, message);
-        setTimeout(() => { // [OK]
+        await controller.trigger(['match'], bot, message);
+        setTimeout(async () => { // [OK]
+          await bot.changeContext(message.reference);
           clearTimeout(message.value);
-          timer(botRef, message);
+          timer(bot, message);
         }, 5000);
-      }
-    }, delay);
+      }, delay);
+    }
   };
 
   controller.on(['start_match'], async (bot, message) => {
-    // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-    // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-    const botRef = await bot.changeContext(message.reference);
-    // Running a timer if the user doesn't have an active dialog or message.value is empty
-    if (!botRef.hasActiveDialog() || !message.value) {
-      clearTimeout(message.value);
-      message.value = null;
-      timer(botRef, message);
-    }
+    // if (!bot.hasActiveDialog() || !message.value) {
+      await timer(bot, message);
+    // }
   });
 };

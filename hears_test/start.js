@@ -9,13 +9,6 @@ module.exports = async (controller) => {
         try {
             const recipient = { id: message.matches[2] };
 
-            // // #BEGIN Bot typing
-            // await bot.api.callAPI('/me/messages', 'POST', {
-            //     recipient,
-            //     sender_action: 'typing_on',
-            // });
-            // await typing({ bot, options: { recipient }, mode: true });
-
             const text = message.matches[3].trim();
             const { storage } = controller;
             const context = bot.getConfig('context');
@@ -35,7 +28,8 @@ module.exports = async (controller) => {
                     let count = 0;
                     Object.values(personas.data).forEach(persona => {
                         setTimeout(async () => {
-                            await bot.api.callAPI(persona.id, 'DELETE');
+                            await bot.changeContext(message.reference);
+                            await bot.api.callAPI(`/${persona.id}`, 'DELETE');
                         }, 1000);
                         count++;
                     });
@@ -66,8 +60,7 @@ module.exports = async (controller) => {
                 // await dialogBot.startConversationWithUser(recipient.id);
 
                 // #BEGIN Bot typing
-                // await typing({ bot, options: { ...personaOptions }, mode: true });
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: true });
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
                 // Send text from Persona
                 await bot.api.callAPI('/me/messages', 'POST', {
@@ -138,29 +131,12 @@ module.exports = async (controller) => {
 
                 // await dialogBot.say({
                 //     text,
-                // // }, async (bot, message) => {
-                // //     // #END Bot typing
-                // //     await bot.api.callAPI('/me/messages', 'POST', {
-                // //         recipient,
-                // //         sender_action: 'typing_off',
-                // //     });
                 // });
-
-                // // #END Bot typing
-                // // await typing({ bot, options: { ...personaOptions }, mode: false });
-                // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
             } else {
                 // #BEGIN Bot typing
-                // await typing({ bot, options: { recipient: message.sender }, mode: true });
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: true });
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
-                await bot.say({
-                    text: 'Sorry, but user was not found.',
-                });
-
-                // // #END Bot typing
-                // await typing({ bot, options: { recipient: message.sender }, mode: false });
-                // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
+                await bot.say('Sorry, but user was not found.');
             }
         } catch(error) {
             console.error(`[ERROR]: ${error}`);
