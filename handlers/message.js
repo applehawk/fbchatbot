@@ -163,7 +163,9 @@ module.exports = async (controller) => {
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
         await bot.say(USER_DIALOG_SESSION_EXPIRED);
       }
-      await controller.trigger(['start_match'], bot, message);
+      if (process.env.NODE_ENV !== 'production') {
+          await controller.trigger(['start_match'], bot, message);
+      }
     }
   });
 };

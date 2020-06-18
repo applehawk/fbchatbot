@@ -21,9 +21,6 @@ module.exports = Object.freeze({
     GREETING_1: `Hi {{{vars.username}}}! 👋
 
 We are the Random English. An international online platform that is intended for training business English skills through a friendly networking format.`,
-//     GREETING_1: `Hi {{user_first_name}} {{user_last_name}} {{user_full_name}}! 👋
-
-// We are the Random English. An international online platform that is intended for training business English skills through a friendly networking format.`,
 
     GREETING_2: `Every Monday and Thursday we will offer you an interesting person for a conversation, selected following your interests among other participants.`,
     GREETING_3: `First of all, you should share with us some information about yourself, your needs and your knowledge. It allows other people to know what topics it will be interesting to discuss with you before the call.`,
@@ -96,6 +93,8 @@ I can introduce to: {{{vars.who_introducein}}}`,
     ONBOARDING_8: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.',
     GIF_GREETING: 'https://media.giphy.com/media/kaHP7Ci7xVFzN8JJbk/giphy.gif',
     GIF_ONBOARDING: 'https://media.giphy.com/media/StXP3dSGStWDBvsCjF/giphy.gif',
+    // GIF_GREETING: `${__dirname}/assets/start.gif`,
+    // GIF_ONBOARDING: `${__dirname}/assets/finish.gif`,
 
     INVITATION_MESSAGE: `We sent an invitation message to user!
 We will notify you of his decision.

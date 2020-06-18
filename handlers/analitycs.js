@@ -5,7 +5,7 @@ module.exports = async (controller) => {
     // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
     // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
     await bot.changeContext(message.reference);
-
+    console.log(!!message.value ? message.value : message.type);
     const options = {
       event: 'CUSTOM_APP_EVENTS',
       custom_events: JSON.stringify([{
