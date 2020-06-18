@@ -123,13 +123,10 @@ module.exports = async (controller) => {
                   }
                   convo.stop();
 
-                  // // const { storage } = controller;
                   // const context = dialogBot.getConfig('context');
-                  // // const activity = context._activity;
                   // const userState = new UserState(controller.storage);
 
                   // // Get User State Properties
-                  // // const channelId = activity.channelId;
                   // const { channelId } = message.incoming_message;
                   // const matchUser = await controller.storage.Collection.findOne({ _id: `${channelId}/users/${recipient.id}/` });
 
@@ -157,7 +154,7 @@ module.exports = async (controller) => {
                   //             recipient,
                   //             // dialog: recipient.id,
                   //             name: matchUser.state.username || 'User',
-                  //             profile_picture_url: matchUser.state.profile_pic || 'https://picsum.photos/200/200/?random=1',
+                  //             profile_picture_url: matchUser.state.profile_pic || 'https://picsum.photos/300/200/?random=1',
                   //         });
                   //         console.log('[persona] created:', persona_id);
                   //     // }
@@ -166,9 +163,6 @@ module.exports = async (controller) => {
                   //         recipient,
                   //         persona_id/*: !Object.values(personas.data).length ? persona_id : personas.data[0].id*/,
                   //     };
-
-                  //     // // #BEGIN Bot typing
-                  //     await typing({ bot, options: { ...personaOptions } });
 
                   //     // Send text from Persona
                   //     await bot.api.callAPI('/me/messages', 'POST', {
@@ -191,8 +185,6 @@ module.exports = async (controller) => {
                   //         },
                   //     });
 
-                  // // #END Bot typing
-                  // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
                   await convo.stop();
                 } catch(error) {
                   console.error(error);

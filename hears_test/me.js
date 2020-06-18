@@ -1,6 +1,5 @@
 'use strict';
 
-// const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
 
 const { englishLevelDict, communityDict } = require('../constants.js');

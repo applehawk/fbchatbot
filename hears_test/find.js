@@ -7,7 +7,6 @@ const {
 
 module.exports = async (controller) => {
   const formatUserInfo = (user) => { // [OK]
-    // const buttons = [ ...getButtons(user._id) ];
     const {
       community,
       english_level,
@@ -41,7 +40,7 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
     });
 
     const options = { // [OK]
-      recipient: payload.message.sender,
+      recipient: payload.message.recipient,
       message: {
         attachment: {
           type: 'template',
@@ -56,7 +55,7 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
     try {
       await payload.bot.api.callAPI('/me/messages', 'POST', options);
     } catch(error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

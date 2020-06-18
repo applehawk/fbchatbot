@@ -1,16 +1,10 @@
 const { communityDict, askCommunityStr } = require('../constants.js');
 
-module.exports = (controller) => {
+module.exports = async (controller) => {
   controller.hears('btn2', ['message', 'direct_message'], async (bot, message) => {
-    const context = bot.getConfig('context');
-
-    const activity = context._activity;
-    const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
 
     const options = {
-      recipient: {
-        id: userId,
-      },
+      recipient: message.recipient,
       message: {
         attachment: {
           type: 'template',
@@ -27,11 +21,11 @@ module.exports = (controller) => {
                 payload: 1 },
               { type: 'postback',
                 title: communityDict[2],
-                payload: 2 },
-              { type: 'postback',
-                title: communityDict[3],
-                payload: 3 }/*
-              {
+                payload: 2 }//,
+              // { type: 'postback',
+              //   title: communityDict[3],
+              //   payload: 3 }
+              /*{
               'type':'postback',
               'title':communityDict.Networking,
               'payload':communityDict.Networking
@@ -57,10 +51,7 @@ module.exports = (controller) => {
       const result = await bot.api.callAPI('/me/messages', 'POST', options);
       console.log(result);
     } catch(error) {
-      console.log(error);
+      console.error(error);
     }
-
-    // bot.say(options, async (answerText, conversation, bot, message) => {
-    // });
   });
 };

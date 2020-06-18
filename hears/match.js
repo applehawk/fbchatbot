@@ -205,10 +205,8 @@ module.exports = async (controller) => {
 
                 await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
             }
-            // // #END Bot typing
-            // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
         } catch (error) {
-            console.log('[match.js:210 ERROR]:', error);
+            console.error('[match.js:211 ERROR]:', error);
         }
     });
 };
