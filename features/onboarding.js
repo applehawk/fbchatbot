@@ -316,7 +316,7 @@ module.exports = async (controller) => {
                     attachment: {
                         type: 'image',
                         payload: {
-                            attachment_id: process.env.GIF_FINISH,
+                            attachment_id: process.env.GIF_END,
                             // url: GIF_ONBOARDING,
                             // is_reusable: true,
                         },
