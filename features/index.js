@@ -13,9 +13,9 @@ module.exports = async (controller) => {
     controller.on(['facebook_postback', 'messaging_postback'], async (bot, message) => {
         await bot.cancelAllDialogs();
         if (message.postback.title === 'Get Started') {
+            message.value = 'Get Started';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             try {
-                message.value = 'Get Started';
-                await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                 const recipient = {
                     id: message.sender.id,
                 };
@@ -43,8 +43,9 @@ module.exports = async (controller) => {
                         attachment: {
                             type: 'image',
                             payload: {
-                                url: GIF_GREETING,
-                                is_reusable: true,
+                                attachment_id: '553003612042169',
+                                // url: GIF_GREETING,
+                                // is_reusable: true,
                             },
                         },
                     },
