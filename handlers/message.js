@@ -84,7 +84,6 @@ module.exports = async (controller) => {
 
     if (readyToConversation === 'ready' && message.sender.id !== message.user) { // [OK][?]
     // if (message.sender.id !== message.reference.bot) { // [OK][SELF]
-    // if (readyToConversation === 'ready') { // [OK][*]
       await readyToConversationProperty.set(context, 'busy');
       await conversationWithProperty.set(context, message.sender.id);
       await expiredAtProperty.set(context, message.timestamp + ((Date.now() + 300000) - message.timestamp)); // ~5 min
@@ -110,12 +109,9 @@ module.exports = async (controller) => {
       // #BEGIN Bot typing
       await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
       await bot.say({ // [OK]
-        // channel: message.channel,
-        // is_echo: true,
+        channel: message.channel,
         text: `${message.text}\n\n[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
       });
-      // // #END Bot typing
-      // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
 
       const end = expiredAt - Date.now();
 
@@ -141,8 +137,6 @@ module.exports = async (controller) => {
             // #BEGIN Bot typing
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
             await bot.say(USER_DIALOG_SESSION_EXPIRED);
-            // // #END Bot typing
-            // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
 
             // Reset conversation status
             await resetUsersConvoWithProperties(bot, message);
@@ -168,10 +162,10 @@ module.exports = async (controller) => {
         // #BEGIN Bot typing
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
         await bot.say(USER_DIALOG_SESSION_EXPIRED);
-        // // #END Bot typing
-        // await controller.trigger(['sender_action_typing'], bot, { options: { recipient }, mode: false });
       }
-      await controller.trigger(['start_match'], bot, message);
+      if (process.env.NODE_ENV !== 'production') {
+          await controller.trigger(['start_match'], bot, message);
+      }
     }
   });
 };

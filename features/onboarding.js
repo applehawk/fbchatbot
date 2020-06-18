@@ -96,7 +96,7 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
         // const regexp = new RegExp(/(\s|\d)+?/gius);
         // if (!regexp.test(response)) {
-            message.value = 'Step 5';
+            message.value = 'Step 4 City question';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has location: ${response}`);
             // #BEGIN Profession
@@ -117,7 +117,7 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
         // const regexp = new RegExp(/(\s|\d)+?/gius);
         // if (!regexp.test(response)) {
-            message.value = 'Step 6';
+            message.value = 'Step 5 Professional activities';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has Profession: ${response}`);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -133,7 +133,7 @@ module.exports = async (controller) => {
         quick_replies: [ ...getDictItems(englishLevelDict) ],
     }, async (response, convo, bot, message) => {
         if (englishLevelDict.includes(response)) {
-            message.value = 'Step 7';
+            message.value = 'Step 6 English level';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has EnglishLevel: ${response}`);
             // #BEGIN About Yourself
@@ -150,7 +150,7 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_4_2,
     }, async (response, convo, bot, message) => {
-        message.value = 'Step 8';
+        message.value = 'Step 7 Passion';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         console.log(`User about yourself: ${response}`);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -202,7 +202,7 @@ module.exports = async (controller) => {
         quick_replies: [ ...getDictItems(communityDict) ],
     }, async (response, convo, bot, message) => {
         if (communityDict.includes(response)) {
-            message.value = 'Step 9';
+            message.value = 'Step 8 Community';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has Community: ${response}`);
             // #BEGIN About ExpertIn
@@ -223,7 +223,7 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_6_4,
     }, async (response, convo, bot, message) => {
-        message.value = 'Step 10';
+        message.value = 'Step 9 Someone introduce';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         // Put user's temporary data back into the convo.vars
         Object.assign(convo.vars, data);
@@ -236,15 +236,17 @@ module.exports = async (controller) => {
     await onboarding.ask({ // [OK]
         text: ONBOARDING_7,
         quick_replies: [{
-          title: 'All right. Let’s go!',
-          payload: 'All right. Let’s go!',
+            title: 'All right. Let’s go!',
+            payload: 'All right. Let’s go!',
         }],
     }, async (response, convo, bot, message) => {
         if (response === 'All right. Let’s go!') {
-            message.value = 'Step 11';
+            message.value = 'Finish Onboarding';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-            await controller.trigger(['start_match'], bot, message);
+            if (process.env.NODE_ENV !== 'production') {
+                await controller.trigger(['start_match'], bot, message);
+            }
             await convo.stop();
         } else {
             await convo.repeat();
@@ -314,8 +316,9 @@ module.exports = async (controller) => {
                     attachment: {
                         type: 'image',
                         payload: {
-                            url: GIF_ONBOARDING,
-                            is_reusable: true,
+                            attachment_id: '3621987054482195',
+                            // url: GIF_ONBOARDING,
+                            // is_reusable: true,
                         },
                     },
                 },
@@ -350,16 +353,6 @@ module.exports = async (controller) => {
                 ],
             };
             await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
-
-            const message = {
-                recipient,
-                sender: { id: userId },
-                value: 'Finish',
-                timestamp: Date.now(),
-                text: 'Finish',
-            };
-
-            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
         } catch(error) {
             console.error(error);
