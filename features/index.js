@@ -43,7 +43,7 @@ module.exports = async (controller) => {
                         attachment: {
                             type: 'image',
                             payload: {
-                                attachment_id: '553003612042169',
+                                attachment_id: process.env.GIF_START,
                                 // url: GIF_GREETING,
                                 // is_reusable: true,
                             },
