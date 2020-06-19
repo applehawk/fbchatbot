@@ -31,6 +31,12 @@ module.exports = async (controller) => {
     const ONBOARDING_ID = 'ONBOARDING_ID';
     const onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
 
+    onboarding.before('getstarted_payload', async (bot, message) => {
+        console.log('before:', message);
+        // const userId = `facebook/conversations/${message.user}-${message.user}/`;
+        // await bot.controller.storage.delete([userId]);
+    });
+
     // [OK][-]
     // const COMMUNITY_DIALOG_ID = 'COMMUNITY_DIALOG';
     // const community = new BotkitConversation(COMMUNITY_DIALOG_ID, controller);
@@ -94,6 +100,10 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_1,
     }, async (response, convo, bot, message) => {
+        if (response === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
+        } else {
         // const regexp = new RegExp(/(\s|\d)+?/gius);
         // if (!regexp.test(response)) {
             message.value = 'Step 4 City question';
@@ -108,6 +118,7 @@ module.exports = async (controller) => {
         // } else {
         //     await convo.repeat();
         // }
+        }
     }, { key: 'location' });
     // #END Location
 
@@ -115,6 +126,11 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_2_3,
     }, async (response, convo, bot, message) => {
+        console.log('response:', response, bot, message);
+        if (response === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
+        } else {
         // const regexp = new RegExp(/(\s|\d)+?/gius);
         // if (!regexp.test(response)) {
             message.value = 'Step 5 Professional activities';
@@ -124,6 +140,7 @@ module.exports = async (controller) => {
         // } else {
         //     await convo.repeat();
         // }
+        }
     }, { key: 'profession' });
     // #END Profession
 
@@ -140,6 +157,9 @@ module.exports = async (controller) => {
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await bot.say(ONBOARDING_4_1);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        } else if (response === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
         } else {
             await convo.repeat();
         }
@@ -150,10 +170,15 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_4_2,
     }, async (response, convo, bot, message) => {
-        message.value = 'Step 7 Passion';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        console.log(`User about yourself: ${response}`);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        if (response === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
+        } else {
+            message.value = 'Step 7 Passion';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+            console.log(`User about yourself: ${response}`);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        }
     }, { key: 'about_yourself' });
     // #END About Yourself
 
@@ -213,6 +238,9 @@ module.exports = async (controller) => {
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await bot.say(ONBOARDING_6_3);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        } else if (response === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
         } else {
             await convo.repeat();
         }
@@ -223,12 +251,17 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_6_4,
     }, async (response, convo, bot, message) => {
-        message.value = 'Step 9 Someone introduce';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        // Put user's temporary data back into the convo.vars
-        Object.assign(convo.vars, data);
-        console.log(`User who introduceIn: ${response}`);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        if (response === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
+        } else {
+            message.value = 'Step 9 Someone introduce';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+            // Put user's temporary data back into the convo.vars
+            Object.assign(convo.vars, data);
+            console.log(`User who introduceIn: ${response}`);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        }
     }, { key: 'who_introducein' });
     // #END About ExpertIn
 
@@ -248,6 +281,9 @@ module.exports = async (controller) => {
                 await controller.trigger(['start_match'], bot, message);
             }
             await convo.stop();
+        } else if (response === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
         } else {
             await convo.repeat();
         }
@@ -255,6 +291,10 @@ module.exports = async (controller) => {
 
     await onboarding.after(async (results, bot) => { // [OK]
         try {
+            if (results.text === 'getstarted_payload') {
+                await controller.trigger(['start'], bot, results);
+                return;
+            }
             // user state properties
             const userState = new UserState(controller.storage);
 
@@ -302,9 +342,7 @@ module.exports = async (controller) => {
             // #BEGIN Bot typing
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
-            await bot.say({
-                text: ONBOARDING_8,
-            });
+            await bot.say(ONBOARDING_8);
 
             // #BEGIN Bot typing
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
@@ -316,7 +354,7 @@ module.exports = async (controller) => {
                     attachment: {
                         type: 'image',
                         payload: {
-                            attachment_id: process.env.GIF_FINISH,
+                            attachment_id: process.env.GIF_END,
                             // url: GIF_ONBOARDING,
                             // is_reusable: true,
                         },

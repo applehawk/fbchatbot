@@ -10,9 +10,22 @@ const { GIF_GREETING } = require('../constants.js');
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
 
-    controller.on(['facebook_postback', 'messaging_postback'], async (bot, message) => {
+    controller.on(['start'], async (bot, message) => {
         await bot.cancelAllDialogs();
-        if (message.postback.title === 'Get Started') {
+
+        const refer = message.recipient.user_ref !== undefined ? 'chat_plugin' : 'messenger';
+        console.log('[GET STARTED]:', message, '[refer]:', refer, message.recipient.user_ref);
+
+        const userId = `facebook/conversations/${message.user}-${message.user}/`;
+        await bot.controller.storage.delete([userId]);
+        // if (message.recipient.user_ref !== undefined) {
+
+        // }
+        if (message.postback.title === 'Get Started' ||
+            ( (message.type === 'legacy_reply_to_message_action' && message.message === 'Get Started') ||
+                (message.recipient.user_ref !== undefined && message.message === 'Get Started')) ||
+                    message.text === 'getstarted_payload' ) {
+
             message.value = 'Get Started';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             try {
