@@ -40,7 +40,7 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
     });
 
     const options = { // [OK]
-      recipient: payload.message.recipient,
+      recipient: payload.message.sender,
       message: {
         attachment: {
           type: 'template',
