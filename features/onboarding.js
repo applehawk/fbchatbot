@@ -390,7 +390,7 @@ module.exports = async (controller) => {
                     }
                 ],
             };
-            await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+            // await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
 
         } catch(error) {
             console.error(error);
