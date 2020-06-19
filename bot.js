@@ -95,9 +95,13 @@ controller.webserver.get('/', async (req, res) => {
 controller.ready(async () => {
     // load traditional developer-created local custom feature modules
     const modules = [
-        'features',
         'handlers',
-        'hears'
+        'hears',
+
+        /**
+         * @Tip Features folder must be loaded finally after all behind
+         */
+        'features'
     ];
 
     for (let i = 0; i < modules.length; i++) {

@@ -50,20 +50,32 @@ module.exports = async (controller) => {
 
     // Save userState changes to storage
     const result = await userState.saveChanges(context);
-    await controller.trigger(['start_match'], bot, message);
+    if (process.env.NODE_ENV !== 'production') {
+      await controller.trigger(['start_match'], bot, message);
+    }
     return result;
   };
 
-  controller.on(['message', 'facebook_postback', 'direct_message', 'messaging_postback'], async (bot, message) => {
+  controller.on(['facebook_postback', 'messaging_postback', 'legacy_reply_to_message_action', 'message', 'direct_message'], async (bot, message) => {
     const recipient = {
       id: message.sender.id,
     };
 
-    console.log(`[${message.type}]:`, message);
+    if (message.text === 'getstarted_payload'/* || message.text === 'Get Started'*/) {
+      await controller.trigger(['start'], bot, message);
+      return;
+    }
+
+    console.log(`[message.js:67 ${message.type}]:`, message);
 
     // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
     // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
     await bot.changeContext(message.reference);
+
+
+    // const userId = `facebook/conversations/${message.user}-${message.user}/`;
+    // await bot.controller.storage.delete([userId]);
+
     await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
     await bot.api.callAPI('/me/messages', 'POST', {
