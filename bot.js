@@ -11,21 +11,23 @@ const { Botkit, BotkitConversation } = require('botkit');
 // Import a platform-specific adapter for facebook.
 const { FacebookAdapter, FacebookEventTypeMiddleware } = require('botbuilder-adapter-facebook');
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
-// const { UserState } = require('botbuilder');
-
-// const util = require('util');
 
 /*process.on('unhandledRejection', (reason, p) => {
     console.error('Unhandled Rejection at:', p, 'reason:', reason)
     process.exit(1)
   });*/
 
+/**
+ * Load process.env values from .env file
+ */
+require('dotenv').config(
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === undefined ?
+    { path: `${__dirname}/.dev.env` } : {}
+);
+
 const isDev = process.env.NODE_ENV !== 'production';
-
 console.log('[DEBUG]:', isDev);
-
-// Load process.env values from .env file
-require('dotenv').config( isDev ? { path: `${__dirname}/.dev.env` } : {});
 
 const {
     MONGO_URI,
@@ -50,13 +52,17 @@ let storage = null;
 
 const adapter = new FacebookAdapter({
     access_token: FACEBOOK_ACCESS_TOKEN,
+    receive_via_postback: true,
+    debug: true,
     api_version: 'v7.0',
     app_secret: FACEBOOK_APP_SECRET,
     require_delivery: !isDev,
     verify_token: FACEBOOK_VERIFY_TOKEN,
 });
 
-// emit events based on the type of facebook event being received
+/**
+ * emit events based on the type of facebook event being received
+ */
 adapter.use(new FacebookEventTypeMiddleware());
 
 const controller = new Botkit({
@@ -66,7 +72,7 @@ const controller = new Botkit({
     storage,
 });
 
-// console.log(JSON.stringify(controller._config.scheduler_url)); // [OK]
+// console.log(JSON.stringify(controller._config.scheduler_url)); // [OK][Tip] bot.getConfig('sheduler_uri')
 
 // if (!isDev) {
     const GREETING_ID = 'GREETING_ID';
@@ -93,7 +99,9 @@ controller.webserver.get('/', async (req, res) => {
 // #END Configure routers
 
 controller.ready(async () => {
-    // load traditional developer-created local custom feature modules
+    /**
+     * load traditional developer-created local custom feature modules
+     */
     const modules = [
         'handlers',
         'hears',
@@ -108,7 +116,9 @@ controller.ready(async () => {
         controller.loadModules(`${__dirname}/${modules[i]}`);
     }
 
-    // load test feature modules
+    /**
+     * load test feature modules
+     */
     if (isDev) {
         await controller.loadModules(__dirname + '/handlers_test');
         await controller.loadModules(__dirname + '/hears_test');
