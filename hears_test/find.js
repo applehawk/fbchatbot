@@ -19,7 +19,13 @@ module.exports = async (controller) => {
     } = user.state;
 
     return {
-      image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+      default_action: {
+        type: 'web_url',
+        url: profile_pic, // <DEFAULT_URL_TO_OPEN>
+        // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+        webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+      },
+      image_url: profile_pic,
       title: `${username}`,
       subtitle: `
 🗺 ${location}
@@ -45,6 +51,7 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
         attachment: {
           type: 'template',
           payload: {
+            image_aspect_ratio: 'square', // <square | horizontal>
             template_type: 'generic',
             elements,
           }
