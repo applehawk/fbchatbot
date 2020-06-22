@@ -14,11 +14,11 @@ module.exports = async (controller) => {
 
   const greeting = controller.dialogSet.dialogs[GREETING_ID];
 
-  greeting.before('getstarted_payload', async (bot, message) => {
-    console.log('before:', message);
-    // const userId = `facebook/conversations/${message.user}-${message.user}/`;
-    // await bot.controller.storage.delete([userId]);
-  });
+  // greeting.before('getstarted_payload', async (bot, message) => {
+  //   console.log('before:', message);
+  //   // const userId = `facebook/conversations/${message.user}-${message.user}/`;
+  //   // await bot.controller.storage.delete([userId]);
+  // });
 
   try {
     // send a greeting
@@ -29,6 +29,8 @@ module.exports = async (controller) => {
         payload: 'Tell me more 🤔',
       }],
     }, async (response, convo, bot, message) => {
+      Object.assign(convo.vars, message);
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'Tell me more 🤔'/* && !regexp.test(response)*/) {
         message.value = 'Step 1 Click on Tell me more';
@@ -37,11 +39,9 @@ module.exports = async (controller) => {
         await bot.say(GREETING_2);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
       } else if (response === 'getstarted_payload') {
-        // console.log('convo message:', message);
-        Object.assign(convo.vars, message);
         await convo.stop();
       } else {
-       await convo.repeat();
+        await convo.repeat();
       }
     });
 
@@ -52,6 +52,8 @@ module.exports = async (controller) => {
         payload: 'I got it 👍',
       }],
     }, async (response, convo, bot, message) => {
+      Object.assign(convo.vars, message);
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'I got it 👍'/* && !regexp.test(response)*/) {
         message.value = 'Step 2 Click on I got it';
@@ -60,7 +62,6 @@ module.exports = async (controller) => {
         await bot.say(GREETING_4);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
       } else if (response === 'getstarted_payload') {
-        Object.assign(convo.vars, message);
         await convo.stop();
       } else {
         await convo.repeat();
@@ -74,6 +75,8 @@ module.exports = async (controller) => {
         payload: 'Go 🚀',
       }],
     }, async (response, convo, bot, message) => {
+      Object.assign(convo.vars, message);
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'Go 🚀'/* && !regexp.test(response)*/) {
         message.value = 'Step 3 Click on Go';
@@ -81,7 +84,6 @@ module.exports = async (controller) => {
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await convo.stop();
       } else if (response === 'getstarted_payload') {
-        Object.assign(convo.vars, message);
         await convo.stop();
       } else {
         await convo.repeat();
@@ -89,6 +91,7 @@ module.exports = async (controller) => {
     });
 
     await greeting.after(async (results, bot) => {
+      await controller.trigger(['mark_seen'], bot, results);
       if (results.text === 'getstarted_payload') {
         await controller.trigger(['start'], bot, results);
         return;

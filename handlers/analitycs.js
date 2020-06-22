@@ -3,8 +3,10 @@
 module.exports = async (controller) => {
   controller.on(['ANALYTICS_EVENT'], async (bot, message) => {
     if (process.env.NODE_ENV !== 'production') {
-      // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-      // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+      /**
+       * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+       * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+       */
       // await bot.changeContext(message.reference);
 
       console.log(!!message.value ? message.value : message.type);
