@@ -7,13 +7,17 @@ module.exports = async (controller) => {
   const setTimer = async (bot, message) => { // [OK]
     clearTimeout(timersQueue[message.user]);
     timersQueue[message.user] = null;
-    // Running a timer if the user doesn't have an active dialog and message.value is empty
+    /**
+     * Running a timer if the user doesn't have an active dialog and message.value is empty
+     */
     if (!bot.hasActiveDialog() && message.value === undefined) {
       const reference = message.reference;
       clearTimeout(message.value);
       message.value = setTimeout(async () => { // [OK]
-        // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-        // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+        /**
+         * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+         * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+         */
         await bot.changeContext(reference);
 
         await controller.trigger(['match'], bot, message);
