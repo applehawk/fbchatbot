@@ -25,18 +25,37 @@ module.exports = async (controller) => {
     await greeting.ask({
       text: GREETING_1,
       quick_replies: [{
-        title: 'Tell me more 🤔',
-        payload: 'Tell me more 🤔',
+        title: 'Yes! Tell me how it works! 🤔',
+        payload: 'Yes! Tell me how it works! 🤔',
       }],
     }, async (response, convo, bot, message) => {
       Object.assign(convo.vars, message);
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'Tell me more 🤔'/* && !regexp.test(response)*/) {
-        message.value = 'Step 1 Click on Tell me more';
+      if (response === 'Yes! Tell me how it works! 🤔'/* && !regexp.test(response)*/) {
+        message.value = 'Step 1 Click on Tell me how it works';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        await bot.say(GREETING_2);
+      } else if (response === 'getstarted_payload') {
+        await convo.stop();
+      } else {
+        await convo.repeat();
+      }
+    });
+
+    await greeting.ask({
+      text: GREETING_2,
+      quick_replies: [{
+        title: 'Yes! How to start?',
+        payload: 'Yes! How to start?',
+      }],
+    }, async (response, convo, bot, message) => {
+      Object.assign(convo.vars, message);
+      await controller.trigger(['mark_seen'], bot, message);
+      // const regexp = new RegExp(/(\s|\d)+?/gius);
+      if (response === 'Yes! How to start?'/* && !regexp.test(response)*/) {
+        message.value = 'Step 2 Click on How to start';
+        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
       } else if (response === 'getstarted_payload') {
         await convo.stop();
@@ -48,19 +67,18 @@ module.exports = async (controller) => {
     await greeting.ask({
       text: GREETING_3,
       quick_replies: [{
-        title: 'I got it 👍',
-        payload: 'I got it 👍',
+        title: 'Let’s do it! 👍',
+        payload: 'Let’s do it! 👍',
       }],
     }, async (response, convo, bot, message) => {
       Object.assign(convo.vars, message);
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'I got it 👍'/* && !regexp.test(response)*/) {
-        message.value = 'Step 2 Click on I got it';
+      if (response === 'Let’s do it! 👍'/* && !regexp.test(response)*/) {
+        message.value = 'Step 3 Click on Lets do it';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        await bot.say(GREETING_4);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        await convo.stop();
       } else if (response === 'getstarted_payload') {
         await convo.stop();
       } else {
@@ -68,27 +86,23 @@ module.exports = async (controller) => {
       }
     });
 
-    await greeting.ask({
-      text: GREETING_5,
-      quick_replies: [{
-        title: 'Go 🚀',
-        payload: 'Go 🚀',
-      }],
-    }, async (response, convo, bot, message) => {
-      Object.assign(convo.vars, message);
-      await controller.trigger(['mark_seen'], bot, message);
-      // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'Go 🚀'/* && !regexp.test(response)*/) {
-        message.value = 'Step 3 Click on Go';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        await convo.stop();
-      } else if (response === 'getstarted_payload') {
-        await convo.stop();
-      } else {
-        await convo.repeat();
-      }
-    });
+    // await greeting.ask({
+    //   text: GREETING_5,
+    //   quick_replies: [{
+    //     title: 'Go 🚀',
+    //     payload: 'Go 🚀',
+    //   }],
+    // }, async (response, convo, bot, message) => {
+    //   // const regexp = new RegExp(/(\s|\d)+?/gius);
+    //   if (response === 'Go 🚀'/* && !regexp.test(response)*/) {
+    //     message.value = 'Step 4 Click on Go';
+    //     await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+    //     await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+    //     await convo.stop();
+    //   } else {
+    //     await convo.repeat();
+    //   }
+    // });
 
     await greeting.after(async (results, bot) => {
       await controller.trigger(['mark_seen'], bot, results);

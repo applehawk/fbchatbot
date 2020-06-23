@@ -20,20 +20,20 @@ module.exports = Object.freeze({
     // greeting.js
     GREETING_1: `Hi {{{vars.username}}}! 👋
 
-We are the Random English. An international online platform that is intended for training business English skills through a friendly networking format.`,
+We are the Random English. An international online platform that is intended for training business English skills through a friendly networking format.
 
-    GREETING_2: `Every Monday and Thursday we will offer you an interesting person for a conversation, selected following your interests among other participants.`,
-    GREETING_3: `First of all, you should share with us some information about yourself, your needs and your knowledge. It allows other people to know what topics it will be interesting to discuss with you before the call.`,
-    GREETING_4: `Let me ask you some questions and we will create your profile that will be available to other participants. 🤓`,
-    GREETING_5: `Here we go?`,
+Are you interested in practicing English?`,
+
+    GREETING_2: `Every Monday and Thursday we will offer you an interesting person for a conversation, selected following your interests among other participants. Are you interested?`,
+    GREETING_3: `First of all, you should share with us some information about yourself, your needs and your knowledge. It allows other people to know what topics it will be interesting to discuss with you before the call. Are you ready?`,
+    // GREETING_4: `Let me ask you some questions and we will create your profile that will be available to other participants. 🤓`,
+    // GREETING_5: `Here we go?`,
 
     // onboarding.js
     askTellUsCommunity: 'Tell us which community you are interested in.',
     // askUsernameStr: 'What is your name?',
 
-    ONBOARDING_1: `Now tell me where are you from?
-
-(Country)`,
+    ONBOARDING_1: `The first question is: Where are you from? (Country)`,
 
     ONBOARDING_2_1: `Next step:
 What are you doing? 👨‍💻👩‍💻`,
@@ -44,17 +44,17 @@ I'm a web designer in the Spanish game design studio or I am a marketer in the f
 
     ONBOARDING_3: `Ok. What about English speaking? Choose your level of English, it will help us to choose the right person for the call.`,
 
-    askFacebookUrlStr: `Fine. Could you share with me a link to your Facebook profile?
+//     askFacebookUrlStr: `Fine. Could you share with me a link to your Facebook profile?
 
-It is necessary for the connection with your partners. We will send your partner the link in order to schedule the call.
+// It is necessary for the connection with your partners. We will send your partner the link in order to schedule the call.
 
-Where can you find the link?
+// Where can you find the link?
 
-For Facebook Messenger: go to your profile, this is where the chat list is, copy the profile link and send it to the dialogue.
+// For Facebook Messenger: go to your profile, this is where the chat list is, copy the profile link and send it to the dialogue.
 
-If you use a web browser:
-1) open Facebook.com in a new page and go to your profile page
-2) copy the link from the address bar and send it to the dialogue.`,
+// If you use a web browser:
+// 1) open Facebook.com in a new page and go to your profile page
+// 2) copy the link from the address bar and send it to the dialogue.`,
 
     ONBOARDING_4_1: `Well done. 👍`,
     ONBOARDING_4_2: `Next question:
