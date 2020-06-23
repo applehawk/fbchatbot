@@ -132,7 +132,7 @@ module.exports = async (controller) => {
        */
       await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
-      await dialogBot.say({ // [OK]
+      await bot.say({ // [OK]
         // channel: message.channel,
         recipient,
         text: `${message.text}\n\n[Session end at: ${new Date(expiredAt).toLocaleString()}]`,

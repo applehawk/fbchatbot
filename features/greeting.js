@@ -78,8 +78,8 @@ module.exports = async (controller) => {
         message.value = 'Step 3 Click on Lets do it';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        // await bot.say(GREETING_4);
-        // await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        await convo.stop();
+      } else if (response === 'getstarted_payload') {
         await convo.stop();
       } else if (response === 'getstarted_payload') {
         await convo.stop();
