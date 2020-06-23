@@ -325,34 +325,36 @@ module.exports = async (controller) => {
             };
             await bot.api.callAPI('/me/messages', 'POST', options);
 
-            const menu = {
-                recipient,
-                psid: recipient.id,
-                persistent_menu: [
-                    {
-                        locale: 'default',
-                        composer_input_disabled: false,
-                        call_to_actions: [
-                            {
-                                type: 'postback',
-                                title: 'Match',
-                                payload: 'match',
-                            },
-                            {
-                                type: 'postback',
-                                title: 'Profile',
-                                payload: 'me',
-                            },
-                            {
-                                type: 'postback',
-                                title: 'Help',
-                                payload: 'help',
-                            },
-                        ],
-                    }
-                ],
-            };
-            await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+            if (process.env.NODE_ENV === 'development') {
+                const menu = {
+                    recipient,
+                    psid: recipient.id,
+                    persistent_menu: [
+                        {
+                            locale: 'default',
+                            composer_input_disabled: false,
+                            call_to_actions: [
+                                {
+                                    type: 'postback',
+                                    title: 'Match',
+                                    payload: 'match',
+                                },
+                                {
+                                    type: 'postback',
+                                    title: 'Profile',
+                                    payload: 'me',
+                                },
+                                {
+                                    type: 'postback',
+                                    title: 'Help',
+                                    payload: 'help',
+                                },
+                            ],
+                        }
+                    ],
+                };
+                await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+            }
 
         } catch(error) {
             console.error(error);
