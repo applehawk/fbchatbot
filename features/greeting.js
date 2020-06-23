@@ -14,6 +14,12 @@ module.exports = async (controller) => {
 
   const greeting = controller.dialogSet.dialogs[GREETING_ID];
 
+  // greeting.before('getstarted_payload', async (bot, message) => {
+  //   console.log('before:', message);
+  //   // const userId = `facebook/conversations/${message.user}-${message.user}/`;
+  //   // await bot.controller.storage.delete([userId]);
+  // });
+
   try {
     // send a greeting
     await greeting.ask({
@@ -23,13 +29,15 @@ module.exports = async (controller) => {
         payload: 'Yes! Tell me how it works! 🤔',
       }],
     }, async (response, convo, bot, message) => {
+      Object.assign(convo.vars, message);
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'Yes! Tell me how it works! 🤔'/* && !regexp.test(response)*/) {
         message.value = 'Step 1 Click on Tell me how it works';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        // await bot.say(GREETING_2);
-        // await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+      } else if (response === 'getstarted_payload') {
+        await convo.stop();
       } else {
         await convo.repeat();
       }
@@ -42,13 +50,15 @@ module.exports = async (controller) => {
         payload: 'Yes! How to start?',
       }],
     }, async (response, convo, bot, message) => {
+      Object.assign(convo.vars, message);
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'Yes! How to start?'/* && !regexp.test(response)*/) {
         message.value = 'Step 2 Click on How to start';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        // await bot.say(GREETING_2);
-        // await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+      } else if (response === 'getstarted_payload') {
+        await convo.stop();
       } else {
         await convo.repeat();
       }
@@ -61,13 +71,15 @@ module.exports = async (controller) => {
         payload: 'Let’s do it! 👍',
       }],
     }, async (response, convo, bot, message) => {
+      Object.assign(convo.vars, message);
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'Let’s do it! 👍'/* && !regexp.test(response)*/) {
         message.value = 'Step 3 Click on Lets do it';
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        // await bot.say(GREETING_4);
-        // await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        await convo.stop();
+      } else if (response === 'getstarted_payload') {
         await convo.stop();
       } else {
         await convo.repeat();
@@ -93,7 +105,17 @@ module.exports = async (controller) => {
     // });
 
     await greeting.after(async (results, bot) => {
-      await bot.beginDialog(ONBOARDING_ID, { username: results.username, profilePic: results.profilePic });
+      await controller.trigger(['mark_seen'], bot, results);
+      if (results.text === 'getstarted_payload') {
+        await controller.trigger(['start'], bot, results);
+        return;
+      }
+      const context = bot.getConfig('context');
+      const activity = context._activity;
+      const _userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+      const userId = `facebook/conversations/${_userId}-${_userId}/`;
+      await bot.controller.storage.delete([userId]);
+      await bot.replaceDialog(ONBOARDING_ID, { username: results.username, profilePic: results.profilePic });
     });
   } catch(error) {
     console.error(error);
