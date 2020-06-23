@@ -40,7 +40,7 @@ const {
 
 let storage = null;
 
-// if (!isDev) {
+if (!isDev) {
     storage = new MongoDbStorage({
         collection: DATABASE_COLLECTION,
         database: DATABASE_NAME,
@@ -48,14 +48,14 @@ let storage = null;
         useNewUrlParser: true,
         useUnifiedTopology: true,
     });
-// }
+}
 
 const adapter = new FacebookAdapter({
     access_token: FACEBOOK_ACCESS_TOKEN,
-    receive_via_postback: true,
-    debug: true,
     api_version: 'v7.0',
     app_secret: FACEBOOK_APP_SECRET,
+    debug: true, // [*]
+    receive_via_postback: true, // [*]
     require_delivery: !isDev,
     verify_token: FACEBOOK_VERIFY_TOKEN,
 });
@@ -66,10 +66,10 @@ const adapter = new FacebookAdapter({
 adapter.use(new FacebookEventTypeMiddleware());
 
 const controller = new Botkit({
-    webhook_uri: '/api/messages',
     // scheduler_uri: '/api/scheduler',
     adapter,
     storage,
+    webhook_uri: '/api/messages',
 });
 
 // console.log(JSON.stringify(controller._config.scheduler_url)); // [OK][Tip] bot.getConfig('sheduler_uri')
@@ -85,7 +85,9 @@ const controller = new Botkit({
     controller.addDialog(onboarding);
 // }
 
-// #BEGIN Configure routers
+/**
+ * #BEGIN Configure routers
+ */
 controller.webserver.get('/', async (req, res) => {
     await res.send(`This app is running Botkit ${ controller.version }.`);
 });
@@ -96,7 +98,53 @@ controller.webserver.get('/', async (req, res) => {
 // controller.webserver.get('/api/sheduler', async (req, res) => {
 //     await res.send(`This is Sheduler Page.`);
 // });
-// #END Configure routers
+/**
+ * #END Configure routers
+ */
+
+/**
+ * #BEGIN Configure middlewares
+ *
+ * @ingest occurs immediately after the message has been received, before any other processing
+ * @receive occurs after the message has been evaluated for interruptions and for inclusion in an ongoing dialog. signals the receipt of a message that needs to be handled.
+ * @send occurs just before a message is sent out of the bot to the messaging platform
+ *
+ * @url https://botkit.ai/docs/v4/core.html#botkit-middleware
+ */
+const middlewares = {
+    // spawn: async (bot, message, next) => {
+    //     console.log('[spawn]:', message);
+    //     // call next, or else the message will be intercepted
+    //     next();
+    // },
+    ingest: async (bot, message, next) => {
+        console.log('[ingest]:', message);
+        // call next, or else the message will be intercepted
+        next();
+    },
+    send: async (bot, message, next) => {
+        console.log('[send]:', message);
+        // call next, or else the message will be intercepted
+        next();
+    },
+    receive: async (bot, message, next) => {
+        console.log('[receive]:', message);
+        // call next, or else the message will be intercepted
+        next();
+    },
+    // interpret: async (bot, message, next) => {
+    //     console.log('[interpret]:', message);
+    //     // call next, or else the message will be intercepted
+    //     next();
+    // },
+};
+
+Object.keys(middlewares).forEach(func => {
+    controller.middleware[func].use(middlewares[func]);
+});
+/**
+ * #END Configure middlewares
+ */
 
 controller.ready(async () => {
     /**

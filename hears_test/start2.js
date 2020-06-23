@@ -84,14 +84,15 @@ module.exports = async (controller) => {
                   await userState.saveChanges(context);
 
                   const dialogBot = await controller.spawn(message.sender.id);
-                  // await dialogBot.changeContext(message.reference);
-                  await dialogBot.startConversationWithUser(recipient.id/*3006475179445768*/);
+                  await dialogBot.changeContext(message.reference);
+                  await dialogBot.startConversationWithUser(recipient.id);
 
                   const text = `Hello!\n\nMy name is Dmitry and I'm a web developer.\nI would like to chat with you. Can we start a conversation?`;
                   // const { text } = message;
 
                   if (!!text) {
                     // #BEGIN Bot typing
+                    // await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                     await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
                     // const options = {
@@ -101,7 +102,7 @@ module.exports = async (controller) => {
                     //       type: 'template',
                     //       payload: {
                     //         template_type: 'one_time_notif_req',
-                    //         title: '<TITLE_TEXT>',
+                    //         title: message.sender.id,
                     //         payload: text,
                     //       },
                     //     },
