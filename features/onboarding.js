@@ -387,7 +387,6 @@ module.exports = async (controller) => {
             await bot.api.callAPI('/me/messages', 'POST', options);
 
             if (process.env.NODE_ENV !== 'production') {
-
                 /**
                  * Creating user's menu
                  */
