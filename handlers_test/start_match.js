@@ -2,7 +2,7 @@
 
 module.exports = async (controller) => {
   const delay = 300000;
-  const timer = async (bot, message) => { // [OK]
+  const timer = (bot, message) => { // [OK]
     // Running a timer if the user doesn't have an active dialog or message.value is empty
     if (!bot.hasActiveDialog() && message.value === undefined) {
       clearTimeout(message.value);
@@ -22,8 +22,6 @@ module.exports = async (controller) => {
   };
 
   controller.on(['start_match'], async (bot, message) => {
-    // if (!bot.hasActiveDialog() || !message.value) {
-      await timer(bot, message);
-    // }
+    timer(bot, message);
   });
 };

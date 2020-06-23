@@ -108,9 +108,6 @@ controller.ready(async () => {
     if (isDev) {
         await controller.loadModules(__dirname + '/handlers_test');
         await controller.loadModules(__dirname + '/hears_test');
-
-        // const result = await controller.storage.Collection['BotFrameworkState'].findOneAndDelete({ _id: `facebook/users/3049377188434960/` });
-        // console.log('reset user', result);
     }
 
     console.log('ready');

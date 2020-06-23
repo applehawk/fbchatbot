@@ -12,11 +12,9 @@ module.exports = async (controller) => {
             const text = message.matches[3].trim();
             const { storage } = controller;
             const context = bot.getConfig('context');
-            // const activity = context._activity;
             const userState = new UserState(storage);
 
             // Get User State Properties
-            // const channelId = activity.channelId;
             const { channelId } = message.incoming_message;
             const matchUser = await storage.Collection.findOne({ _id: `${channelId}/users/${recipient.id}/` });
 
@@ -44,7 +42,7 @@ module.exports = async (controller) => {
                         recipient,
                         // dialog: recipient.id,
                         name: matchUser.state.username || 'User',
-                        profile_picture_url: matchUser.state.profile_pic || 'https://picsum.photos/200/200/?random=1',
+                        profile_picture_url: matchUser.state.profile_pic || 'https://picsum.photos/300/200/?random=1',
                     });
                     console.log('[persona] created:', persona_id);
                 // }

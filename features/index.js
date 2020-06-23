@@ -9,20 +9,19 @@ const { GIF_GREETING } = require('../constants.js');
 
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
-    const greeting = controller.dialogSet.dialogs[GREETING_ID];
 
     controller.on(['facebook_postback', 'messaging_postback'], async (bot, message) => {
         await bot.cancelAllDialogs();
         if (message.postback.title === 'Get Started') {
+            message.value = 'Get Started';
+            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             try {
-                message.value = 'Get Started';
-                await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                 const recipient = {
                     id: message.sender.id,
                 };
 
                 // [Tip] Deleting menu
-                const deleteMenu = await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
+                await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
                     recipient,
                     psid: message.sender.id,
                     params: ['persistent_menu'],
@@ -44,8 +43,9 @@ module.exports = async (controller) => {
                         attachment: {
                             type: 'image',
                             payload: {
-                                url: GIF_GREETING,
-                                is_reusable: true,
+                                attachment_id: process.env.GIF_START,
+                                // url: GIF_GREETING,
+                                // is_reusable: true,
                             },
                         },
                     },
