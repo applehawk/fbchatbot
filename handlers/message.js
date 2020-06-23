@@ -73,6 +73,12 @@ module.exports = async (controller) => {
       id: message.sender.id,
     };
 
+    /**
+     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+     */
+    await bot.changeContext(message.reference);
+
     await controller.trigger(['mark_seen'], bot, message);
 
     if (message.text === 'getstarted_payload') {
@@ -80,13 +86,7 @@ module.exports = async (controller) => {
       return;
     }
 
-    console.log(`[message.js:79 ${message.type}]:`, message);
-
-    /**
-     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-     */
-    await bot.changeContext(message.reference);
+    console.log(`[message.js:83 ${message.type}]:`, message);
 
     await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
@@ -123,18 +123,20 @@ module.exports = async (controller) => {
       clearTimeout(message.value);
       message.value = null;
 
-      const bot = await controller.spawn(message.sender.id); // [OK]
-      await bot.changeContext(message.reference);
-      await bot.startConversationWithUser(recipient.id/*3006475179445768*/);
+      const dialogBot = await controller.spawn(message.sender.id); // [OK]
+      await dialogBot.changeContext(message.reference);
+      await dialogBot.startConversationWithUser(recipient.id);
 
       /**
        * #BEGIN Bot typing
        */
-      await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+      await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+
       await bot.say({ // [OK]
         // channel: message.channel,
         recipient,
         text: `${message.text}\n\n[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
+        sender: message.user,
       });
 
       const end = expiredAt - Date.now();

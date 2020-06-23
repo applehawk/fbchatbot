@@ -81,6 +81,8 @@ module.exports = async (controller) => {
         await convo.stop();
       } else if (response === 'getstarted_payload') {
         await convo.stop();
+      } else if (response === 'getstarted_payload') {
+        await convo.stop();
       } else {
         await convo.repeat();
       }
