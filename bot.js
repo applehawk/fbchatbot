@@ -52,6 +52,8 @@ let storage = null;
 
 const adapter = new FacebookAdapter({
     access_token: FACEBOOK_ACCESS_TOKEN,
+    receive_via_postback: true,
+    debug: true,
     api_version: 'v7.0',
     app_secret: FACEBOOK_APP_SECRET,
     debug: true, // [*]
