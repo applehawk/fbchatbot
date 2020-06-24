@@ -152,7 +152,7 @@ controller.ready(async () => {
      */
     const modules = [
         'handlers',
-        'hears',
+        // 'hears',
 
         /**
          * @Tip Features folder must be loaded finally after all behind
