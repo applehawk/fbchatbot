@@ -25,8 +25,8 @@ module.exports = async (controller) => {
     await greeting.ask({
       text: GREETING_1,
       quick_replies: [{
-        title: 'Yes! Tell me how it works! 🤔',
-        payload: 'Yes! Tell me how it works! 🤔',
+        title: 'Yes! How it works? 🤔',
+        payload: 'Yes! How it works?',
       }],
     }, async (response, convo, bot, message) => {
       // console.log(message);
@@ -36,7 +36,7 @@ module.exports = async (controller) => {
           Object.assign(convo.vars, message);
           await convo.stop();
       } else {
-        if (message.quick_reply.payload === 'Yes! Tell me how it works! 🤔' /* && !regexp.test(response)*/) {
+        if (message.quick_reply.payload === 'Yes! How it works?' /* && !regexp.test(response)*/) {
           message.value = 'Step 1 Click on Tell me how it works';
           await controller.trigger(['ANALYTICS_EVENT'], bot, message);
           await controller.trigger(['sender_action_typing'], bot, {
@@ -51,8 +51,8 @@ module.exports = async (controller) => {
     await greeting.ask({
       text: GREETING_2,
       quick_replies: [{
-        title: 'Yes! How to start?',
-        payload: 'Yes! How to start?',
+        title: 'Cool! I am ready!',
+        payload: 'GREETING_2',
       }],
     }, async (response, convo, bot, message) => {
       await controller.trigger(['mark_seen'], bot, message);
@@ -61,7 +61,7 @@ module.exports = async (controller) => {
         Object.assign(convo.vars, message);
         await convo.stop();
       } else {
-        if (message.quick_reply.payload === 'Yes! How to start?' /* && !regexp.test(response)*/) {
+        if (message.quick_reply.payload === 'GREETING_2' /* && !regexp.test(response)*/) {
           message.value = 'Step 2 Click on How to start';
           await controller.trigger(['ANALYTICS_EVENT'], bot, message);
           await controller.trigger(['sender_action_typing'], bot, {

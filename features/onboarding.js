@@ -244,13 +244,14 @@ module.exports = async (controller) => {
                 message.value = 'Step 8 Community';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                 // #BEGIN About ExpertIn
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                await bot.say(ONBOARDING_6_1);
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                await bot.say(ONBOARDING_6_2);
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                await bot.say(ONBOARDING_6_3);
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+
+                //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                //await bot.say(ONBOARDING_6_1);
+                //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                //await bot.say(ONBOARDING_6_2);
+                //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                //await bot.say(ONBOARDING_6_3);
+                //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             } else {
                 await convo.repeat();
             }
@@ -259,6 +260,7 @@ module.exports = async (controller) => {
     // #END Community
 
     // #BEGIN About ExpertIn
+    /*
     await onboarding.ask({
         text: ONBOARDING_6_4,
     }, async (response, convo, bot, message) => {
@@ -272,7 +274,7 @@ module.exports = async (controller) => {
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         }
-    }, { key: 'who_introducein' });
+    }, { key: 'who_introducein' });*/
     // #END About ExpertIn
 
     /**
