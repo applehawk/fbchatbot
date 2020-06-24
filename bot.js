@@ -52,12 +52,10 @@ let storage = null;
 
 const adapter = new FacebookAdapter({
     access_token: FACEBOOK_ACCESS_TOKEN,
-    receive_via_postback: true,
-    debug: true,
     api_version: 'v7.0',
     app_secret: FACEBOOK_APP_SECRET,
     debug: true, // [*]
-    receive_via_postback: true, // [*]
+    // receive_via_postback: true, // [*]
     require_delivery: !isDev,
     verify_token: FACEBOOK_VERIFY_TOKEN,
 });
@@ -114,11 +112,11 @@ controller.webserver.get('/', async (req, res) => {
  * @url https://botkit.ai/docs/v4/core.html#botkit-middleware
  */
 const middlewares = {
-    // spawn: async (bot, message, next) => {
-    //     console.log('[spawn]:', message);
-    //     // call next, or else the message will be intercepted
-    //     next();
-    // },
+    spawn: async (bot, /* message,  */next) => {
+        console.log('[spawn]');
+        // call next, or else the message will be intercepted
+        next();
+    },
     ingest: async (bot, message, next) => {
         console.log('[ingest]:', message);
         // call next, or else the message will be intercepted
@@ -134,11 +132,11 @@ const middlewares = {
         // call next, or else the message will be intercepted
         next();
     },
-    // interpret: async (bot, message, next) => {
-    //     console.log('[interpret]:', message);
-    //     // call next, or else the message will be intercepted
-    //     next();
-    // },
+    interpret: async (bot, message, next) => {
+        console.log('[interpret]:', message);
+        // call next, or else the message will be intercepted
+        next();
+    },
 };
 
 Object.keys(middlewares).forEach(func => {
@@ -163,15 +161,15 @@ controller.ready(async () => {
     ];
 
     for (let i = 0; i < modules.length; i++) {
-        controller.loadModules(`${__dirname}/${modules[i]}`);
+        controller.loadModules(`${__dirname}/${modules[i]}`, '.js');
     }
 
     /**
      * load test feature modules
      */
     if (isDev) {
-        await controller.loadModules(__dirname + '/handlers_test');
-        await controller.loadModules(__dirname + '/hears_test');
+        await controller.loadModules(__dirname + '/handlers_test', '.js');
+        await controller.loadModules(__dirname + '/hears_test', '.js');
     }
 
     console.log('ready');

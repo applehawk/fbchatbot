@@ -29,17 +29,22 @@ module.exports = async (controller) => {
         payload: 'Yes! Tell me how it works! 🤔',
       }],
     }, async (response, convo, bot, message) => {
-      Object.assign(convo.vars, message);
+      // console.log(message);
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'Yes! Tell me how it works! 🤔'/* && !regexp.test(response)*/) {
-        message.value = 'Step 1 Click on Tell me how it works';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-      } else if (response === 'getstarted_payload') {
-        await convo.stop();
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+          Object.assign(convo.vars, message);
+          await convo.stop();
       } else {
-        await convo.repeat();
+        if (message.quick_reply.payload === 'Yes! Tell me how it works! 🤔' /* && !regexp.test(response)*/) {
+          message.value = 'Step 1 Click on Tell me how it works';
+          await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+          await controller.trigger(['sender_action_typing'], bot, {
+            options: { recipient: message.sender },
+          });
+        } else {
+          await convo.repeat();
+        }
       }
     });
 
@@ -50,17 +55,21 @@ module.exports = async (controller) => {
         payload: 'Yes! How to start?',
       }],
     }, async (response, convo, bot, message) => {
-      Object.assign(convo.vars, message);
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'Yes! How to start?'/* && !regexp.test(response)*/) {
-        message.value = 'Step 2 Click on How to start';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-      } else if (response === 'getstarted_payload') {
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+        Object.assign(convo.vars, message);
         await convo.stop();
       } else {
-        await convo.repeat();
+        if (message.quick_reply.payload === 'Yes! How to start?' /* && !regexp.test(response)*/) {
+          message.value = 'Step 2 Click on How to start';
+          await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+          await controller.trigger(['sender_action_typing'], bot, {
+            options: { recipient: message.sender },
+          });
+        } else {
+          await convo.repeat();
+        }
       }
     });
 
@@ -71,20 +80,23 @@ module.exports = async (controller) => {
         payload: 'Let’s do it! 👍',
       }],
     }, async (response, convo, bot, message) => {
-      Object.assign(convo.vars, message);
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'Let’s do it! 👍'/* && !regexp.test(response)*/) {
-        message.value = 'Step 3 Click on Lets do it';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        await convo.stop();
-      } else if (response === 'getstarted_payload') {
-        await convo.stop();
-      } else if (response === 'getstarted_payload') {
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+        Object.assign(convo.vars, message);
         await convo.stop();
       } else {
-        await convo.repeat();
+        if (message.quick_reply.payload === 'Let’s do it! 👍' /* && !regexp.test(response)*/) {
+          message.value = 'Step 3 Click on Lets do it';
+          await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+          await controller.trigger(['sender_action_typing'], bot, {
+            options: { recipient: message.sender },
+          });
+          Object.assign(convo.vars, message);
+          await convo.stop();
+        } else {
+          await convo.repeat();
+        }
       }
     });
 

@@ -53,7 +53,7 @@ module.exports = async (controller) => {
               console.log(`start a dialogue with user: ${answerText}`);
               await convo.stop();
             } catch(error) {
-              console.error(error);
+              console.error('[start2.js:56 ERROR]', error);
               await convo.stop();
             }
           },
@@ -188,12 +188,12 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error(error);
+                  console.error('[start2.js:191 ERROR]', error);
                   await convo.stop();
                 }
               // }, { key: 'confirmation' });
             } catch(error) {
-              console.error(error);
+              console.error('[start2.js:196 ERROR]', error);
               await convo.stop();
             }
           },
@@ -283,7 +283,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error(`[ERROR]: ${error}`);
+      console.error('[start2.js:286 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });
