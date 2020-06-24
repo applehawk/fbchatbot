@@ -58,9 +58,16 @@ module.exports = async (controller) => {
           attachment: {
             type: 'template',
             payload: {
+              image_aspect_ratio: 'square', // <square | horizontal>
               template_type: 'generic',
               elements: [{
-                image_url: profilePic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+                default_action: {
+                  type: 'web_url',
+                  url: profilePic, // <DEFAULT_URL_TO_OPEN>
+                  // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+                  webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+                },
+                image_url: profilePic,
                 title: `${username} [id: ${userId}]`,
                 subtitle: `
 🗺 ${location}

@@ -19,7 +19,13 @@ module.exports = async (controller) => {
     } = user.state;
 
     return {
-      image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+      default_action: {
+        type: 'web_url',
+        url: profile_pic, // <DEFAULT_URL_TO_OPEN>
+        // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+        webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+      },
+      image_url: profile_pic,
       title: `${username}`,
       subtitle: `
 🗺 ${location}
@@ -40,11 +46,12 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
     });
 
     const options = { // [OK]
-      recipient: payload.message.recipient,
+      recipient: payload.message.sender,
       message: {
         attachment: {
           type: 'template',
           payload: {
+            image_aspect_ratio: 'square', // <square | horizontal>
             template_type: 'generic',
             elements,
           }
@@ -60,35 +67,40 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
   };
 
   controller.hears(new RegExp(/^(find)(\s+?(\d+?))?$/i), ['message'], async (bot, message) => {
-    const id = message.matches[3];
-    if (!!id) {
-      const users = await controller.storage.Collection.findOne({ _id: `facebook/users/${id}/` }); // [OK]
-      if (!!users) {
-        await botSay({ bot, message, items: [users].map(user => user) });
-      } else {
-        await bot.say('Sorry, but user not found.');
+    try {
+      const id = message.matches[3];
+      if (!!id) {
+        const users = await controller.storage.Collection.findOne({ _id: `facebook/users/${id}/` }); // [OK]
+        if (!!users) {
+          await botSay({ bot, message, items: [users].map(user => user) });
+        } else {
+          await bot.say('Sorry, but user not found.');
+        }
+      // } else {
+      //   const users = await controller.storage.Collection.find(); // [OK]
+      //   const items = await users.toArray();
+      //   return;
+
+        // const locations = items.map(user => user.state.location).sort();
+        // const communities = items.map(user => communityDict[user.state.community]).sort();
+        // const levels = items.map(user => englishLevelDict[user.state.english_level]).sort();
+
+        // const stats = ['locations', 'communities', 'levels'];
+
+        // items.forEach((user, i) => {
+        //   !stats['locations'][user.state.location] ? stats['locations'][user.state.location] = 1 : stats['locations'][user.state.location]++;
+        //   !stats['communities'][communityDict[user.state.community]] ? stats['communities'][communityDict[user.state.community]] = 1 : stats['communities'][communityDict[user.state.community]]++;
+        //   !stats['levels'][englishLevelDict[user.state.english_level]] ? stats['levels'][englishLevelDict[user.state.english_level]] = 1 : stats['levels'][englishLevelDict[user.state.english_level]]++;
+        // });
+
+        // console.log(locations, communities, levels, stats, items.length);
+        // if (!!users) {
+        //   await botSay({ bot, message, items: [users].map(user => user) });
+        // }
       }
-    // } else {
-    //   const users = await controller.storage.Collection.find(); // [OK]
-    //   const items = await users.toArray();
-    //   return;
 
-      // const locations = items.map(user => user.state.location).sort();
-      // const communities = items.map(user => communityDict[user.state.community]).sort();
-      // const levels = items.map(user => englishLevelDict[user.state.english_level]).sort();
-
-      // const stats = ['locations', 'communities', 'levels'];
-
-      // items.forEach((user, i) => {
-      //   !stats['locations'][user.state.location] ? stats['locations'][user.state.location] = 1 : stats['locations'][user.state.location]++;
-      //   !stats['communities'][communityDict[user.state.community]] ? stats['communities'][communityDict[user.state.community]] = 1 : stats['communities'][communityDict[user.state.community]]++;
-      //   !stats['levels'][englishLevelDict[user.state.english_level]] ? stats['levels'][englishLevelDict[user.state.english_level]] = 1 : stats['levels'][englishLevelDict[user.state.english_level]]++;
-      // });
-
-      // console.log(locations, communities, levels, stats, items.length);
-      // if (!!users) {
-      //   await botSay({ bot, message, items: [users].map(user => user) });
-      // }
+    } catch(error) {
+      console.error('[find.js:96 ERROR]:', error);
     }
   });
 };

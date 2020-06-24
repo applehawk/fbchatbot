@@ -8,6 +8,8 @@ const { communityDict, englishLevelDict, INVITATION_MESSAGE } = require('../cons
 module.exports = async (controller) => {
   controller.hears(new RegExp(/^(start2)\s+?(\d+)$/i), ['message', 'direct_message', 'facebook_postback', 'messaging_postback'], async (bot, message) => {
   // controller.on([new RegExp(/^(start2)\s+?(\d+)$/i), 'message', 'direct_message', 'facebook_postback'], async (bot, message) => {
+    // [TODO] Add check user exists
+    const recipient = { id: message.matches[2] };
 
     // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
     // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
@@ -25,8 +27,6 @@ module.exports = async (controller) => {
     }
 
     try {
-      const recipient = { id: message.matches[2] };
-
       // #BEGIN Bot typing
       await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
@@ -53,7 +53,7 @@ module.exports = async (controller) => {
               console.log(`start a dialogue with user: ${answerText}`);
               await convo.stop();
             } catch(error) {
-              console.error(error);
+              console.error('[start2.js:56 ERROR]', error);
               await convo.stop();
             }
           },
@@ -85,13 +85,14 @@ module.exports = async (controller) => {
 
                   const dialogBot = await controller.spawn(message.sender.id);
                   await dialogBot.changeContext(message.reference);
-                  await dialogBot.startConversationWithUser(recipient.id/*3006475179445768*/);
+                  await dialogBot.startConversationWithUser(recipient.id);
 
                   const text = `Hello!\n\nMy name is Dmitry and I'm a web developer.\nI would like to chat with you. Can we start a conversation?`;
                   // const { text } = message;
 
                   if (!!text) {
                     // #BEGIN Bot typing
+                    // await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                     await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
                     // const options = {
@@ -101,7 +102,7 @@ module.exports = async (controller) => {
                     //       type: 'template',
                     //       payload: {
                     //         template_type: 'one_time_notif_req',
-                    //         title: '<TITLE_TEXT>',
+                    //         title: message.sender.id,
                     //         payload: text,
                     //       },
                     //     },
@@ -187,12 +188,12 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error(error);
+                  console.error('[start2.js:191 ERROR]', error);
                   await convo.stop();
                 }
               // }, { key: 'confirmation' });
             } catch(error) {
-              console.error(error);
+              console.error('[start2.js:196 ERROR]', error);
               await convo.stop();
             }
           },
@@ -201,7 +202,7 @@ module.exports = async (controller) => {
 
       await controller.addDialog(dialog);
 
-      await bot.beginDialog(recipient.id);
+      await bot.replaceDialog(recipient.id);
 
       // const { storage } = controller;
       // const context = bot.getConfig('context');
@@ -282,7 +283,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error(`[ERROR]: ${error}`);
+      console.error('[start2.js:286 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });
