@@ -86,9 +86,7 @@ Location: {{{vars.location}}}
 English Level: {{{vars.english_level}}}
 Community: {{{vars.community}}}
 Work: {{{vars.profession}}}
-I have interested in: {{{vars.about_yourself}}}
-
-I can introduce to: {{{vars.who_introducein}}}`,
+I have interested in: {{{vars.about_yourself}}}`,
 
     ONBOARDING_8: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.',
     GIF_GREETING: 'https://media.giphy.com/media/kaHP7Ci7xVFzN8JJbk/giphy.gif',
