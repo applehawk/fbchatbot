@@ -9,7 +9,8 @@ module.exports = async (controller) => {
        */
       // await bot.changeContext(message.reference);
 
-      console.log(!!message.value ? message.value : message.type);
+      console.log('[ANALYTICS_EVENT]:', !!message.value ? message.value : message.type);
+      return;
       const options = {
         event: 'CUSTOM_APP_EVENTS',
         custom_events: JSON.stringify([{

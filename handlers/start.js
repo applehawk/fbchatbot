@@ -5,16 +5,18 @@
  * Licensed under the MIT License.
  */
 
-const { GIF_GREETING } = require('../constants.js');
-
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
 
     controller.on(['start'], async (bot, message) => {
-        await bot.cancelAllDialogs();
-
+        bot.cancelAllDialogs();
         const refer = message.recipient.user_ref !== undefined ? 'chat_plugin' : 'messenger';
         console.log('[GET STARTED]:', message, '[refer]:', refer, message.recipient.user_ref);
+        /**
+         * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+         * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+         */
+        // await bot.changeContext(message.reference);
 
         const userId = `facebook/conversations/${message.user}-${message.user}/`;
         await bot.controller.storage.delete([userId]);
@@ -25,10 +27,10 @@ module.exports = async (controller) => {
             ( (message.type === 'legacy_reply_to_message_action' && message.message === 'Get Started') ||
                 (message.recipient.user_ref !== undefined && message.message === 'Get Started')) ||
                     message.text === 'getstarted_payload' ) {
-
-            message.value = 'Get Started';
-            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             try {
+                message.value = 'Get Started';
+                await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+
                 const recipient = {
                     id: message.sender.id,
                 };
@@ -40,14 +42,20 @@ module.exports = async (controller) => {
                     params: ['persistent_menu'],
                 });
 
-                // #BEGIN Bot typing
+                /**
+                 * #BEGIN Bot typing
+                 */
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
                 // Get user's FB Profile Info
                 const url = `/${message.sender.id}`;
                 const response = await bot.api.callAPI(url, 'GET');
 
-                const username = `${response.first_name !== '' ? response.first_name : ''}${response.last_name !== '' ? ' ' + response.last_name : ''}`;
+                const username = `${
+                response.first_name !== '' ? response.first_name : ''
+                }${
+                response.last_name !== '' ? ' ' + response.last_name : ''
+                }`;
                 const profilePic = response.profile_pic;
 
                 const options = {
@@ -70,7 +78,7 @@ module.exports = async (controller) => {
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                 await bot.beginDialog(GREETING_ID, { username, profilePic });
             } catch(error) {
-                console.error(error);
+                console.error('[start.js:79 ERROR]:', error);
             }
         } else {
             // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
