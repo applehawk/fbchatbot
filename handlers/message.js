@@ -8,8 +8,10 @@ module.exports = async (controller) => {
   let sessionTimerId = 0;
 
   const getUsersConvoWithProperties = async (bot, message) => { // [OK]
-    // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-    // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+    /**
+     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+     */
     await bot.changeContext(message.reference);
 
     const userState = new UserState(controller.storage);
@@ -48,28 +50,44 @@ module.exports = async (controller) => {
     await expiredAtProperty.set(context, 0);
     await readyToConversationProperty.set(context, 'ready');
 
-    // Save userState changes to storage
+    /**
+     * Save userState changes to storage
+     */
     const result = await userState.saveChanges(context);
-    await controller.trigger(['start_match'], bot, message);
+    console.log('session cleared');
+
+    if (process.env.NODE_ENV !== 'production') {
+      // await controller.trigger(['start_match'], bot, message);
+    }
     return result;
   };
 
-  controller.on(['message', 'facebook_postback', 'direct_message', 'messaging_postback'], async (bot, message) => {
+  controller.on([
+    'direct_message',
+    'facebook_postback',
+    'legacy_reply_to_message_action',
+    'message',
+    'messaging_postback'
+  ], async (bot, message) => {
     const recipient = {
       id: message.sender.id,
     };
 
-    console.log(`[${message.type}]:`, message);
+    /**
+     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+     */
+    // await bot.changeContext(message.reference);
 
-    // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-    // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-    await bot.changeContext(message.reference);
+    await controller.trigger(['mark_seen'], bot, message);
+
+    if (message.text === 'getstarted_payload') {
+      await controller.trigger(['start'], bot, message);
+      return;
+    }
+    console.log(`[message.js:88 ${message.type}]:`, message);
+
     await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-
-    await bot.api.callAPI('/me/messages', 'POST', {
-      recipient,
-      sender_action: 'mark_seen',
-    });
 
     let {
       context,
@@ -83,7 +101,7 @@ module.exports = async (controller) => {
     } = await getUsersConvoWithProperties(bot, message);
 
     if (readyToConversation === 'ready' && message.sender.id !== message.user) { // [OK][?]
-    // if (message.sender.id !== message.reference.bot) { // [OK][SELF]
+    // if (message.sender.id === message.reference.user.id) { // [OK][SELF]
       await readyToConversationProperty.set(context, 'busy');
       await conversationWithProperty.set(context, message.sender.id);
       await expiredAtProperty.set(context, message.timestamp + ((Date.now() + 300000) - message.timestamp)); // ~5 min
@@ -92,65 +110,87 @@ module.exports = async (controller) => {
       expiredAt = await expiredAtProperty.get(context);
       readyToConversation = await readyToConversationProperty.get(context);
 
-      console.log('[message.js:94 expiredAt]:', new Date(expiredAt).toLocaleString());
+      console.log('[message.js:115 expiredAt]:', new Date(expiredAt).toLocaleString());
 
-      // Save userState changes to storage
+      /**
+       * Save userState changes to storage
+       */
       await userState.saveChanges(context);
     }
 
     if (readyToConversation === 'busy' && conversationWith === message.sender.id && message.timestamp < expiredAt/* && bot.hasActiveDialog()*/) { // [OK]
-      clearTimeout(message.value);
-      message.value = null;
+      try {
+        clearTimeout(message.value);
+        message.value = null;
 
-      const bot = await controller.spawn(message.sender.id); // [OK]
-      await bot.changeContext(message.reference);
-      await bot.startConversationWithUser(recipient.id/*3006475179445768*/);
+        const dialogBot = await controller.spawn(message.sender.id); // [OK]
+        await dialogBot.changeContext(message.reference);
+        await dialogBot.startConversationWithUser(recipient.id);
 
-      // #BEGIN Bot typing
-      await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
-      await bot.say({ // [OK]
-        channel: message.channel,
-        text: `${message.text}\n\n[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
-      });
+        /**
+         * #BEGIN Bot typing
+         */
+        await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
-      const end = expiredAt - Date.now();
+        await bot.say({ // [OK]
+          // channel: message.channel,
+          recipient,
+          text: `${message.text}\n\n[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
+          sender: message.user,
+        });
 
-      const sessionTimerFunc = async () => { // [OK]
-        clearTimeout(sessionTimerId);
-        sessionTimerId = null;
-        if (readyToConversation === 'busy' && expiredAt > Date.now()) {
-          console.log('session started');
+        const end = expiredAt - Date.now();
 
-          // Clear matching timer
-          clearTimeout(message.value);
-          message.value = null;
-
-          sessionTimerId = setTimeout(async () => { // [OK][?]
-            // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-            // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-            await bot.changeContext(message.reference);
-
-            clearTimeout(sessionTimerId);
-            sessionTimerId = null;
-
-            // [TODO] Refactoring
-            // #BEGIN Bot typing
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
-            await bot.say(USER_DIALOG_SESSION_EXPIRED);
-
-            // Reset conversation status
-            await resetUsersConvoWithProperties(bot, message);
-          }, end);
-        } else {
-          console.log('session cleared');
+        /**
+         * @TODO Rewrite to async version with timers queue
+         */
+        const sessionTimerFunc = async () => { // [OK]
           clearTimeout(sessionTimerId);
-          sessionTimerId = null;
-          await resetUsersConvoWithProperties(bot, message);
-        }
-      };
+          // sessionTimerId = null;
+          if (readyToConversation === 'busy' && expiredAt > Date.now()) {
+            console.log('session started');
 
-      if (sessionTimerId === 0) {
-        sessionTimerFunc();
+            /**
+             * Clear matching timer
+             */
+            clearTimeout(message.value);
+            // message.value = null;
+
+            sessionTimerId = setTimeout(async () => { // [OK][?]
+              /**
+               * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+               * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+               */
+              await bot.changeContext(message.reference);
+
+              clearTimeout(sessionTimerId);
+              // sessionTimerId = null;
+
+              // [TODO] #BEGIN Refactoring
+              /**
+               * #BEGIN Bot typing
+               */
+              await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+              await bot.say(USER_DIALOG_SESSION_EXPIRED);
+
+              /**
+               * Reset conversation status
+               */
+              await resetUsersConvoWithProperties(bot, message);
+            }, end);
+          } else {
+            console.log('session cleared');
+            clearTimeout(sessionTimerId);
+            // sessionTimerId = null;
+            await resetUsersConvoWithProperties(bot, message);
+          }
+        };
+
+        if (sessionTimerId === 0) {
+          sessionTimerFunc();
+        }
+      } catch(error) {
+        console.error('[message.js:194 ERROR]:', error);
       }
     } else {
       if (readyToConversation === 'busy' && expiredAt < Date.now()) { // [OK]
@@ -158,13 +198,15 @@ module.exports = async (controller) => {
         // Reset conversation status
         await resetUsersConvoWithProperties(bot, message);
 
-        // [TODO] Refactoring
-        // #BEGIN Bot typing
+        // [TODO] #END Refactoring
+        /**
+         * #BEGIN Bot typing
+         */
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
         await bot.say(USER_DIALOG_SESSION_EXPIRED);
       }
       if (process.env.NODE_ENV !== 'production') {
-          await controller.trigger(['start_match'], bot, message);
+          // await controller.trigger(['start_match'], bot, message);
       }
     }
   });

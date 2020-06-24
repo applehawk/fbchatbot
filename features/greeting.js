@@ -14,66 +14,122 @@ module.exports = async (controller) => {
 
   const greeting = controller.dialogSet.dialogs[GREETING_ID];
 
+  // greeting.before('getstarted_payload', async (bot, message) => {
+  //   console.log('before:', message);
+  //   // const userId = `facebook/conversations/${message.user}-${message.user}/`;
+  //   // await bot.controller.storage.delete([userId]);
+  // });
+
   try {
     // send a greeting
     await greeting.ask({
       text: GREETING_1,
       quick_replies: [{
-        title: 'Tell me more 🤔',
-        payload: 'Tell me more 🤔',
+        title: 'Yes! How it works? 🤔',
+        payload: 'Yes! How it works?',
       }],
     }, async (response, convo, bot, message) => {
+      // console.log(message);
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'Tell me more 🤔'/* && !regexp.test(response)*/) {
-        message.value = 'Step 1 Click on Tell me more';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        await bot.say(GREETING_2);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+          Object.assign(convo.vars, message);
+          await convo.stop();
       } else {
-        await convo.repeat();
+        if (message.quick_reply.payload === 'Yes! How it works?' /* && !regexp.test(response)*/) {
+          message.value = 'Step 1 Click on Tell me how it works';
+          await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+          await controller.trigger(['sender_action_typing'], bot, {
+            options: { recipient: message.sender },
+          });
+        } else {
+          await convo.repeat();
+        }
+      }
+    });
+
+    await greeting.ask({
+      text: GREETING_2,
+      quick_replies: [{
+        title: 'Cool! I am ready!',
+        payload: 'GREETING_2',
+      }],
+    }, async (response, convo, bot, message) => {
+      await controller.trigger(['mark_seen'], bot, message);
+      // const regexp = new RegExp(/(\s|\d)+?/gius);
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+        Object.assign(convo.vars, message);
+        await convo.stop();
+      } else {
+        if (message.quick_reply.payload === 'GREETING_2' /* && !regexp.test(response)*/) {
+          message.value = 'Step 2 Click on How to start';
+          await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+          await controller.trigger(['sender_action_typing'], bot, {
+            options: { recipient: message.sender },
+          });
+        } else {
+          await convo.repeat();
+        }
       }
     });
 
     await greeting.ask({
       text: GREETING_3,
       quick_replies: [{
-        title: 'I got it 👍',
-        payload: 'I got it 👍',
+        title: 'Let’s do it! 👍',
+        payload: 'Let’s do it! 👍',
       }],
     }, async (response, convo, bot, message) => {
+      await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'I got it 👍'/* && !regexp.test(response)*/) {
-        message.value = 'Step 2 Click on I got it';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        await bot.say(GREETING_4);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-      } else {
-        await convo.repeat();
-      }
-    });
-
-    await greeting.ask({
-      text: GREETING_5,
-      quick_replies: [{
-        title: 'Go 🚀',
-        payload: 'Go 🚀',
-      }],
-    }, async (response, convo, bot, message) => {
-      // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'Go 🚀'/* && !regexp.test(response)*/) {
-        message.value = 'Step 3 Click on Go';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+        Object.assign(convo.vars, message);
         await convo.stop();
       } else {
-        await convo.repeat();
+        if (message.quick_reply.payload === 'Let’s do it! 👍' /* && !regexp.test(response)*/) {
+          message.value = 'Step 3 Click on Lets do it';
+          await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+          await controller.trigger(['sender_action_typing'], bot, {
+            options: { recipient: message.sender },
+          });
+          Object.assign(convo.vars, message);
+          await convo.stop();
+        } else {
+          await convo.repeat();
+        }
       }
     });
 
+    // await greeting.ask({
+    //   text: GREETING_5,
+    //   quick_replies: [{
+    //     title: 'Go 🚀',
+    //     payload: 'Go 🚀',
+    //   }],
+    // }, async (response, convo, bot, message) => {
+    //   // const regexp = new RegExp(/(\s|\d)+?/gius);
+    //   if (response === 'Go 🚀'/* && !regexp.test(response)*/) {
+    //     message.value = 'Step 4 Click on Go';
+    //     await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+    //     await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+    //     await convo.stop();
+    //   } else {
+    //     await convo.repeat();
+    //   }
+    // });
+
     await greeting.after(async (results, bot) => {
-      await bot.beginDialog(ONBOARDING_ID, { username: results.username, profilePic: results.profilePic });
+      await controller.trigger(['mark_seen'], bot, results);
+      if (results.text === 'getstarted_payload') {
+        await controller.trigger(['start'], bot, results);
+        return;
+      }
+      const context = bot.getConfig('context');
+      const activity = context._activity;
+      const _userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+      const userId = `facebook/conversations/${_userId}-${_userId}/`;
+      await bot.controller.storage.delete([userId]);
+      await bot.replaceDialog(ONBOARDING_ID, { username: results.username, profilePic: results.profilePic });
     });
   } catch(error) {
     console.error(error);

@@ -37,6 +37,12 @@ module.exports = async (controller) => {
         } = user.state;
 
         return {
+            default_action: {
+                type: 'web_url',
+                url: profile_pic, // <DEFAULT_URL_TO_OPEN>
+                // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+                webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+            },
             image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
             title: `${username}`,
             subtitle: `\n🗺 ${location}\n💬 ${englishLevelDict[english_level]}\n👔 ${communityDict[community]}\n🛠 ${profession}`,
@@ -57,6 +63,7 @@ module.exports = async (controller) => {
                 attachment: {
                     type: 'template',
                     payload: {
+                        image_aspect_ratio: 'square', // <square | horizontal>
                         template_type: 'generic',
                         elements,
                     },
@@ -196,9 +203,9 @@ module.exports = async (controller) => {
                 clearTimeout(message.value);
                 message.value = null;
 
-                // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-                // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-                // await bot.changeContext(message.reference);
+                // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+                // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+                await bot.changeContext(message.reference);
 
                 // #BEGIN Bot typing
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
@@ -206,7 +213,7 @@ module.exports = async (controller) => {
                 await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
             }
         } catch (error) {
-            console.error('[match.js:211 ERROR]:', error);
+            console.error('[match.js:209 ERROR]:', error);
         }
     });
 };
