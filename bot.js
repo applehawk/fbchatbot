@@ -162,7 +162,7 @@ controller.ready(async () => {
         'features'
     ];
 
-    for (let i = 0; i < modules.length - 1; i++) {
+    for (let i = 0; i < modules.length; i++) {
         controller.loadModules(`${__dirname}/${modules[i]}`, '.js');
         console.log(`[MODULES]: ${__dirname}/${modules[i]}`);
     }
@@ -175,7 +175,7 @@ controller.ready(async () => {
         await controller.loadModules(__dirname + '/hears_test', '.js');
     }
 
-    console.log(`${process.env}\n\n${__dirname}\n\nready`);
+    console.log('${controller}\n\n[READY]');
 });
 
 
