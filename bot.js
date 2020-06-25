@@ -174,7 +174,7 @@ controller.ready(async () => {
         await controller.loadModules(__dirname + '/hears_test', '.js');
     }
 
-    console.log('ready');
+    console.log(process.env, 'ready');
 });
 
 
