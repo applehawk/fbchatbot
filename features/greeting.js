@@ -4,8 +4,8 @@ const {
   GREETING_1,
   GREETING_2,
   GREETING_3,
-  GREETING_4,
-  GREETING_5,
+  // GREETING_4,
+  // GREETING_5,
 } = require('../constants.js');
 
 module.exports = async (controller) => {
@@ -32,7 +32,7 @@ module.exports = async (controller) => {
       // console.log(message);
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload' || response === 'Get Started') {
           Object.assign(convo.vars, message);
           await convo.stop();
       } else {
@@ -57,7 +57,7 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload' || response === 'Get Started') {
         Object.assign(convo.vars, message);
         await convo.stop();
       } else {
@@ -82,7 +82,7 @@ module.exports = async (controller) => {
     }, async (response, convo, bot, message) => {
       await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
-      if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+      if (response === 'getstarted_payload' || message.text === 'getstarted_payload' || response === 'Get Started') {
         Object.assign(convo.vars, message);
         await convo.stop();
       } else {
@@ -120,7 +120,7 @@ module.exports = async (controller) => {
 
     await greeting.after(async (results, bot) => {
       await controller.trigger(['mark_seen'], bot, results);
-      if (results.text === 'getstarted_payload') {
+      if (results.text === 'getstarted_payload' || results === 'getstarted_payload' || results === 'Get Started') {
         await controller.trigger(['start'], bot, results);
         return;
       }
