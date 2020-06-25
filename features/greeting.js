@@ -36,7 +36,7 @@ module.exports = async (controller) => {
           Object.assign(convo.vars, message);
           await convo.stop();
       } else {
-        if (response === 'Yes! How it works?' /* && !regexp.test(response)*/) {
+        if (response === 'Yes! How it works? 🤔' /* && !regexp.test(response)*/) {
           message.value = 'Step 1 Click on Tell me how it works';
           await controller.trigger(['ANALYTICS_EVENT'], bot, message);
           await controller.trigger(['sender_action_typing'], bot, {
