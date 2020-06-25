@@ -23,10 +23,11 @@ module.exports = async (controller) => {
         // if (message.recipient.user_ref !== undefined) {
 
         // }
-        if (message.postback.title === 'Get Started' ||
-            ( (message.type === 'legacy_reply_to_message_action' && message.message === 'Get Started') ||
-                (message.recipient.user_ref !== undefined && message.message === 'Get Started')) ||
-                    message.text === 'getstarted_payload' ) {
+        // if (message.postback.title === 'Get Started' ||
+        //     ( (message.type === 'legacy_reply_to_message_action' && message.message === 'Get Started') ||
+        //         (message.recipient.user_ref !== undefined && message.message === 'Get Started')) ||
+        //             message.text === 'getstarted_payload' ) {
+        if (message.text === 'getstarted_payload' || message.text === 'Get Started') {
             try {
                 message.value = 'Get Started';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
