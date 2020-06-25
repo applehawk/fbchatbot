@@ -173,13 +173,14 @@ controller.ready(async () => {
         await controller.loadModules(__dirname + '/hears_test', '.js');
     }
 
-    console.log(
-      `\n\n[CONFIG]:\n${controller._config.storage.config.database}\n${
-        controller._config.storage.config.collection
-      }\n\n[EVENTS]:\n${Object.keys(
-        controller._events
-      )}\n\n[TRIGGERS]:\n${Object.keys(controller._triggers)}\n\n[READY]`
-    );
+    // console.log(
+    //   `\n\n[CONFIG]:\n${controller._config.storage.config.database}\n${
+    //     controller._config.storage.config.collection
+    //   }\n\n[EVENTS]:\n${Object.keys(
+    //     controller._events
+    //   )}\n\n[TRIGGERS]:\n${Object.keys(controller._triggers)}`
+    // );
+    console.log('[READY]');
 });
 
 
