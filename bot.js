@@ -20,11 +20,13 @@ const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 /**
  * Load process.env values from .env file
  */
-require('dotenv').config(
-    process.env.NODE_ENV === 'development' ||
-    process.env.NODE_ENV === undefined ?
-    { path: `${__dirname}/.dev.env` } : {}
-);
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config(
+        process.env.NODE_ENV === 'development' ||
+            process.env.NODE_ENV === undefined ?
+            { path: `${__dirname}/.dev.env` } : {}
+    );
+}
 
 const isDev = process.env.NODE_ENV !== 'production';
 console.log('[DEBUG]:', isDev);
