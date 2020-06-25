@@ -42,15 +42,15 @@ const {
 
 let storage = null;
 
-// // if (!isDev) {
-//     storage = new MongoDbStorage({
-//         collection: DATABASE_COLLECTION,
-//         database: DATABASE_NAME,
-//         url: MONGO_URI,
-//         useNewUrlParser: true,
-//         useUnifiedTopology: true,
-//     });
-// // }
+// if (!isDev) {
+    storage = new MongoDbStorage({
+        collection: DATABASE_COLLECTION,
+        database: DATABASE_NAME,
+        url: MONGO_URI,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    });
+// }
 
 const adapter = new FacebookAdapter({
     access_token: FACEBOOK_ACCESS_TOKEN,
