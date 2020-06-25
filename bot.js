@@ -162,7 +162,7 @@ controller.ready(async () => {
         'features'
     ];
 
-    for (let i = 0; i < modules.length; i++) {
+    for (let i = 0; i < modules.length - 1; i++) {
         controller.loadModules(`${__dirname}/${modules[i]}`, '.js');
         console.log(`[MODULES]: ${__dirname}/${modules[i]}`);
     }
