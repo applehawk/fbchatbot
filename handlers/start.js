@@ -29,6 +29,7 @@ module.exports = async (controller) => {
         //             message.text === 'getstarted_payload' ) {
         if (message.text === 'getstarted_payload' || message.text === 'Get Started') {
             try {
+                console.log('Get Started was triggered');
                 message.value = 'Get Started';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
