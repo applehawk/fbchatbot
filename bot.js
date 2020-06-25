@@ -152,13 +152,11 @@ controller.ready(async () => {
     /**
      * load traditional developer-created local custom feature modules
      */
+    /**
+     * @Tip Features folder must be loaded finally after all behind
+     */
     const modules = [
         'handlers',
-        // 'hears',
-
-        /**
-         * @Tip Features folder must be loaded finally after all behind
-         */
         'features'
     ];
 
@@ -175,7 +173,7 @@ controller.ready(async () => {
         await controller.loadModules(__dirname + '/hears_test', '.js');
     }
 
-    console.log('${controller}\n\n[READY]');
+    console.log(`${controller}\n\n[READY]`);
 });
 
 
