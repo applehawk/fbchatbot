@@ -8,11 +8,15 @@ const { communityDict, englishLevelDict, INVITATION_MESSAGE } = require('../cons
 module.exports = async (controller) => {
   controller.hears(new RegExp(/^(start2)\s+?(\d+)$/i), ['message', 'direct_message', 'facebook_postback', 'messaging_postback'], async (bot, message) => {
   // controller.on([new RegExp(/^(start2)\s+?(\d+)$/i), 'message', 'direct_message', 'facebook_postback'], async (bot, message) => {
-    // [TODO] Add check user exists
+    /**
+     * @TODO Add check user exists
+     */
     const recipient = { id: message.matches[2] };
 
-    // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-    // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+    /**
+     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+     */
     await bot.changeContext(message.reference);
 
     const userState = new UserState(controller.storage);
@@ -27,12 +31,13 @@ module.exports = async (controller) => {
     }
 
     try {
-      // #BEGIN Bot typing
-      await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+      /**
+       * #BEGIN Bot typing
+       */
+      await controller.trigger(['sender_action_typing'], bot, { options: { recipient: { id: message.sender.id } } });
 
       const dialog = new BotkitConversation(recipient.id, controller);
 
-      // [*][?]
       await dialog.addQuestion({ // [OK]
         text: 'Do you want to start a dialogue with user?',
         quick_replies: [{
@@ -53,7 +58,7 @@ module.exports = async (controller) => {
               console.log(`start a dialogue with user: ${answerText}`);
               await convo.stop();
             } catch(error) {
-              console.error('[start2.js:56 ERROR]', error);
+              console.error('[start2.js:61 ERROR]', error);
               await convo.stop();
             }
           },
@@ -64,8 +69,10 @@ module.exports = async (controller) => {
             try {
               clearTimeout(message.value);
               message.value = null;
-              // #BEGIN Bot typing
-              await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+              /**
+               * #BEGIN Bot typing
+               */
+              // await controller.trigger(['sender_action_typing'], bot, { options: { recipient: { id: message.sender.id } } });
 
               console.log(`start a dialogue with user: ${answerText}`);
 
@@ -91,38 +98,17 @@ module.exports = async (controller) => {
                   // const { text } = message;
 
                   if (!!text) {
-                    // #BEGIN Bot typing
-                    // await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+                    /**
+                     * #BEGIN Bot typing
+                     */
                     await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
-
-                    // const options = {
-                    //   recipient,
-                    //   message: {
-                    //     attachment: {
-                    //       type: 'template',
-                    //       payload: {
-                    //         template_type: 'one_time_notif_req',
-                    //         title: message.sender.id,
-                    //         payload: text,
-                    //       },
-                    //     },
-                    //   },
-                    //   sender: message.sender,
-                    // };
-
-                    // // [Tip][!] You need one time notification permission for this message.
-                    // // [Tip][!] To get that go to Advanced Messaging under your Page Settings to request the permission.
-                    // // [Tip] https://developers.facebook.com/docs/messenger-platform/send-messages/one-time-notification
-                    // const notify = await dialogBot.api.callAPI('/me/messages', 'POST', options);
 
                     await dialogBot.say({
                       recipient,
                       text,
                       sender: message.sender,
                     });
-
                   }
-                  convo.stop();
 
                   // const context = dialogBot.getConfig('context');
                   // const userState = new UserState(controller.storage);
@@ -188,17 +174,21 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error('[start2.js:191 ERROR]', error);
+                  console.error('[start2.js:177 ERROR]', error);
                   await convo.stop();
                 }
               // }, { key: 'confirmation' });
             } catch(error) {
-              console.error('[start2.js:196 ERROR]', error);
+              console.error('[start2.js:182 ERROR]', error);
               await convo.stop();
             }
           },
         }
       ], { key: 'message' });
+
+      await dialog.after(async (results, bot) => {
+        console.log('dialog after:', results);
+      });
 
       await controller.addDialog(dialog);
 
@@ -283,7 +273,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error('[start2.js:286 ERROR]', error);
+      console.error('[start2.js:276 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });
