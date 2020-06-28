@@ -90,7 +90,7 @@ I have interested in: {{{vars.about_yourself}}}`,
 
     ONBOARDING_8: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.',
     GIF_GREETING: 'https://media.giphy.com/media/kaHP7Ci7xVFzN8JJbk/giphy.gif',
-    GIF_ONBOARDING: 'https://media.giphy.com/media/StXP3dSGStWDBvsCjF/giphy.gif',
+    GIF_ONBOARDING: 'https://media.giphy.com/media/STZxU3AXEdwW4caLwS/giphy.gif',
     // GIF_GREETING: `${__dirname}/assets/start.gif`,
     // GIF_ONBOARDING: `${__dirname}/assets/finish.gif`,
 
