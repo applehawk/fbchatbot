@@ -5,6 +5,8 @@
  * Licensed under the MIT License.
  */
 
+const { GIF_GREETING } = require('../constants.js');
+
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
 
