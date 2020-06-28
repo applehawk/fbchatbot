@@ -5,6 +5,8 @@
  * Licensed under the MIT License.
  */
 
+// const { GIF_GREETING } = require('../constants.js');
+
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
 
@@ -53,9 +55,9 @@ module.exports = async (controller) => {
                 const response = await bot.api.callAPI(url, 'GET');
 
                 const username = `${
-                response.first_name !== '' ? response.first_name : ''
+                    response.first_name !== '' ? response.first_name : ''
                 }${
-                response.last_name !== '' ? ' ' + response.last_name : ''
+                    response.last_name !== '' ? ' ' + response.last_name : ''
                 }`;
                 const profilePic = response.profile_pic;
 
@@ -77,19 +79,21 @@ module.exports = async (controller) => {
                 // #BEGIN Bot typing
                 // [Tip] It will be automatically deleted at the beginning of the next dialog.
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
-                await bot.beginDialog(GREETING_ID, { username, profilePic });
+                await bot.replaceDialog(GREETING_ID, { username, profilePic });
             } catch(error) {
-                console.error('[start.js:79 ERROR]:', error);
+                console.error('[start.js:82 ERROR]:', error);
             }
         } else {
-            // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-            // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-            await bot.changeContext(message.reference);
+            /**
+             * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+             * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+             */
+            // await bot.changeContext(message.reference);
 
-            if (message.text) {
-                console.log('[postback]:', message.postback.payload);
-                controller.trigger([message.postback.payload], bot, message);
-            }
+            // if (message.text) {
+            //     console.log('[postback]:', message.postback.payload);
+            //     controller.trigger([message.postback.payload], bot, message);
+            // }
         }
     });
 };

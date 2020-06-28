@@ -73,19 +73,11 @@ module.exports = async (controller) => {
       id: message.sender.id,
     };
 
-    /**
-     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-     */
-    // await bot.changeContext(message.reference);
-
-    await controller.trigger(['mark_seen'], bot, message);
-
     if (message.text === 'getstarted_payload') {
       await controller.trigger(['start'], bot, message);
       return;
     }
-    console.log(`[message.js:88 ${message.type}]:`, message);
+    // console.log(`[message.js:80 ${message.type}]:`, message);
 
     await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
@@ -101,7 +93,6 @@ module.exports = async (controller) => {
     } = await getUsersConvoWithProperties(bot, message);
 
     if (readyToConversation === 'ready' && message.sender.id !== message.user) { // [OK][?]
-    // if (message.sender.id === message.reference.user.id) { // [OK][SELF]
       await readyToConversationProperty.set(context, 'busy');
       await conversationWithProperty.set(context, message.sender.id);
       await expiredAtProperty.set(context, message.timestamp + ((Date.now() + 300000) - message.timestamp)); // ~5 min
@@ -110,7 +101,7 @@ module.exports = async (controller) => {
       expiredAt = await expiredAtProperty.get(context);
       readyToConversation = await readyToConversationProperty.get(context);
 
-      console.log('[message.js:115 expiredAt]:', new Date(expiredAt).toLocaleString());
+      console.log('[message.js:104 expiredAt]:', new Date(expiredAt).toLocaleString());
 
       /**
        * Save userState changes to storage
@@ -123,21 +114,22 @@ module.exports = async (controller) => {
         clearTimeout(message.value);
         message.value = null;
 
-        const dialogBot = await controller.spawn(message.sender.id); // [OK]
-        await dialogBot.changeContext(message.reference);
-        await dialogBot.startConversationWithUser(recipient.id);
+        // #BEGIN [-] Moved to bot.js
+        // const dialogBot = await controller.spawn(message.sender.id); // [OK]
+        // await dialogBot.changeContext(message.reference);
+        // await dialogBot.startConversationWithUser(recipient.id);
 
-        /**
-         * #BEGIN Bot typing
-         */
-        await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+        // /**
+        //  * #BEGIN Bot typing
+        //  */
+        // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
-        await bot.say({ // [OK]
-          // channel: message.channel,
-          recipient,
-          text: `${message.text}\n\n[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
-          sender: message.user,
-        });
+        // await dialogBot.say({ // [OK]
+        //   recipient,
+        //   sender: message.user,
+        //   text: `${message.text}\n\n[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
+        // });
+        // #END [-] Moved to bot.js
 
         const end = expiredAt - Date.now();
 
@@ -146,7 +138,6 @@ module.exports = async (controller) => {
          */
         const sessionTimerFunc = async () => { // [OK]
           clearTimeout(sessionTimerId);
-          // sessionTimerId = null;
           if (readyToConversation === 'busy' && expiredAt > Date.now()) {
             console.log('session started');
 
@@ -154,7 +145,6 @@ module.exports = async (controller) => {
              * Clear matching timer
              */
             clearTimeout(message.value);
-            // message.value = null;
 
             sessionTimerId = setTimeout(async () => { // [OK][?]
               /**
@@ -164,7 +154,6 @@ module.exports = async (controller) => {
               await bot.changeContext(message.reference);
 
               clearTimeout(sessionTimerId);
-              // sessionTimerId = null;
 
               // [TODO] #BEGIN Refactoring
               /**
@@ -181,7 +170,6 @@ module.exports = async (controller) => {
           } else {
             console.log('session cleared');
             clearTimeout(sessionTimerId);
-            // sessionTimerId = null;
             await resetUsersConvoWithProperties(bot, message);
           }
         };
@@ -190,12 +178,14 @@ module.exports = async (controller) => {
           sessionTimerFunc();
         }
       } catch(error) {
-        console.error('[message.js:194 ERROR]:', error);
+        console.error('[message.js:184 ERROR]:', error);
       }
     } else {
       if (readyToConversation === 'busy' && expiredAt < Date.now()) { // [OK]
         console.log('session cleared');
-        // Reset conversation status
+        /**
+         * Reset conversation status
+         */
         await resetUsersConvoWithProperties(bot, message);
 
         // [TODO] #END Refactoring

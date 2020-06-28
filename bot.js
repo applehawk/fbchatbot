@@ -42,7 +42,7 @@ const {
 
 let storage = null;
 
-// if (!isDev) {
+if (!isDev) {
     storage = new MongoDbStorage({
         collection: DATABASE_COLLECTION,
         database: DATABASE_NAME,
@@ -50,7 +50,7 @@ let storage = null;
         useNewUrlParser: true,
         useUnifiedTopology: true,
     });
-// }
+}
 
 const adapter = new FacebookAdapter({
     access_token: FACEBOOK_ACCESS_TOKEN,
@@ -105,6 +105,11 @@ controller.webserver.get('/', async (req, res) => {
  */
 
 /**
+ * @TODO Conversations list
+ */
+const conversations = [];
+
+/**
  * #BEGIN Configure middlewares
  *
  * @ingest occurs immediately after the message has been received, before any other processing
@@ -114,28 +119,102 @@ controller.webserver.get('/', async (req, res) => {
  * @url https://botkit.ai/docs/v4/core.html#botkit-middleware
  */
 const middlewares = {
-    spawn: async (bot, /* message,  */next) => {
-        console.log('[spawn]');
+    spawn: async (bot, next) => {
+        console.log('[spawn]:', bot);
+
         // call next, or else the message will be intercepted
         next();
     },
+
     ingest: async (bot, message, next) => {
         console.log('[ingest]:', message);
+
+        await controller.trigger(['mark_seen'], bot, message);
+
+        let target = 0;
+
+        if (Object.keys(conversations).includes(message.sender.id)) { // [OK]
+            target = conversations[message.sender.id];
+        } else if (Object.values(conversations).includes(message.sender.id)) {
+            target = Object.keys(conversations)[Object.values(conversations).indexOf(message.sender.id)];
+        }
+
+        if (target) { // [OK]
+
+            /**
+             * @TODO Create conversation with user here
+             */
+
+            const dialogBot = await controller.spawn(message.sender.id);
+            await dialogBot.changeContext(message.reference);
+            await dialogBot.startConversationWithUser(target);
+
+            try {
+                /**
+                 * #BEGIN Bot typing
+                 */
+                await controller.trigger(['sender_action_typing'], dialogBot, {
+                    options: { recipient: { id: target } },
+                });
+
+                /**
+                 * Send message to conversation
+                 */
+                await dialogBot.say({ // [OK]
+                    // textHighlights: 'text highlights',
+                    recipient: { id: target },
+                    sender: { id: message.sender.id },
+                    text: message.text,
+                });
+
+                /**
+                 * #BEGIN Bot typing
+                 */
+                // await controller.trigger(['sender_action_typing'], bot, {
+                //     options: { recipient: message.sender },
+                // });
+
+                /**
+                 * @TODO
+                 */
+                // await bot.say({ // [OK]
+                //     recipient: message.sender,
+                //     text: `[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
+                // });
+            } catch(error) {
+                console.error('[bot.js:185 ERROR]:', error);
+            }
+        }
+
         // call next, or else the message will be intercepted
         next();
     },
-    send: async (bot, message, next) => {
+
+    send: async (bot, message, next) => { // [OK]
         console.log('[send]:', message);
+
+        if (message.channelData.sender !== undefined &&
+            conversations[message.recipient.id] === undefined &&
+            conversations[message.channelData.sender.id] === undefined) {
+
+            conversations[message.recipient.id] = message.channelData.sender.id;
+            console.log('conversations:', conversations);
+        }
+
         // call next, or else the message will be intercepted
         next();
     },
+
     receive: async (bot, message, next) => {
         console.log('[receive]:', message);
+
         // call next, or else the message will be intercepted
         next();
     },
+
     interpret: async (bot, message, next) => {
         console.log('[interpret]:', message);
+
         // call next, or else the message will be intercepted
         next();
     },
@@ -151,8 +230,6 @@ Object.keys(middlewares).forEach(func => {
 controller.ready(async () => {
     /**
      * load traditional developer-created local custom feature modules
-     */
-    /**
      * @Tip Features folder must be loaded finally after all behind
      */
     const modules = [
@@ -173,14 +250,15 @@ controller.ready(async () => {
         await controller.loadModules(__dirname + '/hears_test', '.js');
     }
 
-    // console.log(
-    //   `\n\n[CONFIG]:\n${controller._config.storage.config.database}\n${
-    //     controller._config.storage.config.collection
-    //   }\n\n[EVENTS]:\n${Object.keys(
-    //     controller._events
-    //   )}\n\n[TRIGGERS]:\n${Object.keys(controller._triggers)}`
-    // );
-    console.log('[READY]');
+    console.log(
+        `\n[EVENTS]:\n${
+            Object.keys(controller._events).join('\n')
+        }\n\n[TRIGGERS]:\n${
+            Object.keys(controller._triggers).join('\n')
+        }\n\n[INTERRUPTS]:\n${
+            Object.keys(controller._interrupts).join('\n')
+        }\n[READY]\n`
+    );
 });
 
 
