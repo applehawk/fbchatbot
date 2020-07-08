@@ -5,7 +5,7 @@
  * Licensed under the MIT License.
  */
 
-// const { GIF_GREETING } = require('../constants.js');
+const { GIF_GREETING } = require('../constants.js');
 
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
@@ -67,8 +67,8 @@ module.exports = async (controller) => {
                         attachment: {
                             type: 'image',
                             payload: {
-                                attachment_id: process.env.GIF_START,
-                                // url: GIF_GREETING,
+                                // attachment_id: process.env.GIF_START,
+                                url: GIF_GREETING,
                                 // is_reusable: true,
                             },
                         },

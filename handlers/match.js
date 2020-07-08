@@ -13,20 +13,20 @@ module.exports = async (controller) => {
     // Prepare for cache
     // const cachedUsers = {};
 
-    const getButtons = (id) => { // [OK]
-        return [{
-            type: 'postback',
-            title: `Start`,
-            payload: `start2 ${id.match(/(\d+)\/$/)[1]}`,
-        }, {
-            type: 'postback',
-            title: `Next`,
-            payload: `match`,
-        }];
-    };
+    // const getButtons = (id) => { // [OK]
+    //     return [{
+    //         type: 'postback',
+    //         title: `Start`,
+    //         payload: `start_dialog ${id.match(/(\d+)\/$/)[1]}`,
+    //     }, {
+    //         type: 'postback',
+    //         title: `Next`,
+    //         payload: `match`,
+    //     }];
+    // };
 
     const formatUserInfo = (user, i = 0) => { // [OK]
-        const buttons = [ ...getButtons(user._id) ];
+        // const buttons = [ ...getButtons(user._id) ];
         const {
             community,
             english_level,
@@ -46,7 +46,7 @@ module.exports = async (controller) => {
             image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
             title: `${username}`,
             subtitle: `\n🗺 ${location}\n💬 ${englishLevelDict[english_level]}\n👔 ${communityDict[community]}\n🛠 ${profession}`,
-            buttons: [ ...buttons ],
+            // buttons: [ ...buttons ],
         };
     };
 
@@ -74,7 +74,7 @@ module.exports = async (controller) => {
         try {
             await payload.bot.api.callAPI('/me/messages', 'POST', options);
         } catch(error) {
-            console.error(error);
+            console.error('[match.js:77 ERROR]:', error);
         }
     };
 
@@ -130,10 +130,10 @@ module.exports = async (controller) => {
     };
 
     // controller.hears(new RegExp(/^match$/i), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
-    controller.on(['match'/*, 'message', 'direct_message', 'facebook_postback', 'messaging_postback'*/], async (bot, message) => {
+    controller.on(['match'], async (bot, message) => {
         try {
-            // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-            // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+            // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+            // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
             await bot.changeContext(message.reference);
 
             const userState = new UserState(controller.storage);
@@ -178,10 +178,12 @@ module.exports = async (controller) => {
             const users = await chooseWithLevel(payload) || [];
 
             if (Object.keys(users).length) {
-                // Send reply with users info
-                botSay({ bot, message, users: [users].map(user => user) });
+                console.log('[match.js:181 users]:', users);
 
-                console.log('[match.js:177 users]:', users);
+                // Send reply with users info
+                await botSay({ bot, message, users: [users].map(user => user) });
+                message.recipient.id = users['_id'].match(/(\d+)\/$/)[1];
+                await controller.trigger(['start_dialog'], bot, message);
 
                 // Set User State Properties
                 const values = Object.values(users);
@@ -213,7 +215,7 @@ module.exports = async (controller) => {
                 await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
             }
         } catch (error) {
-            console.error('[match.js:209 ERROR]:', error);
+            console.error('[match.js:218 ERROR]:', error);
         }
     });
 };

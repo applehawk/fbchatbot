@@ -5,8 +5,11 @@ module.exports = async (controller) => {
   let timersQueue = [];
 
   const setTimer = async (bot, message) => { // [OK]
-    clearTimeout(timersQueue[message.user]);
-    timersQueue[message.user] = null;
+    const user = message.user || message.channelData.sender.id;
+    console.log(user);
+    await bot.changeContext(message.reference);
+    clearTimeout(timersQueue[user]);
+    timersQueue[user] = null;
     /**
      * Running a timer if the user doesn't have an active dialog and message.value is empty
      */
@@ -24,7 +27,7 @@ module.exports = async (controller) => {
         setTimeout(async () => { // [OK]
           await bot.changeContext(reference);
           clearTimeout(message.value);
-          if (Object.keys(timersQueue).includes(message.user)) {
+          if (Object.keys(timersQueue).includes(user)) {
             delay += 10000;
           } else {
             delay = 10000;
@@ -32,11 +35,12 @@ module.exports = async (controller) => {
           }
         }, 5000);
       }, delay);
-      timersQueue[message.user] = message.value;
+      timersQueue[user] = message.value;
     }
   };
 
   controller.on(['start_match'], async (bot, message) => {
+    // await bot.changeContext(message.reference);
     if (!bot.hasActiveDialog() && message.value === undefined) {
       await setTimer(bot, message);
     }

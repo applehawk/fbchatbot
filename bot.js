@@ -11,6 +11,9 @@ const { Botkit, BotkitConversation } = require('botkit');
 // Import a platform-specific adapter for facebook.
 const { FacebookAdapter, FacebookEventTypeMiddleware } = require('botbuilder-adapter-facebook');
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
+const { UserState } = require('botbuilder');
+
+const { USER_DIALOG_SESSION_EXPIRED } = require('./constants.js');
 
 /*process.on('unhandledRejection', (reason, p) => {
     console.error('Unhandled Rejection at:', p, 'reason:', reason)
@@ -21,45 +24,45 @@ const { MongoDbStorage } = require('botbuilder-storage-mongodb');
  * Load process.env values from .env file
  */
 if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config(
-        process.env.NODE_ENV === 'development' ||
-            process.env.NODE_ENV === undefined ?
-            { path: `${__dirname}/.dev.env` } : {}
-    );
+  require('dotenv').config(
+    process.env.NODE_ENV === 'development' ||
+      process.env.NODE_ENV === undefined ?
+      { path: `${__dirname}/.dev.env` } : {}
+  );
 }
 
 const isDev = process.env.NODE_ENV !== 'production';
 console.log('[DEBUG]:', isDev);
 
 const {
-    MONGO_URI,
-    DATABASE_COLLECTION,
-    DATABASE_NAME,
-    FACEBOOK_VERIFY_TOKEN,
-    FACEBOOK_ACCESS_TOKEN,
-    FACEBOOK_APP_SECRET,
+  MONGO_URI,
+  DATABASE_COLLECTION,
+  DATABASE_NAME,
+  FACEBOOK_VERIFY_TOKEN,
+  FACEBOOK_ACCESS_TOKEN,
+  FACEBOOK_APP_SECRET,
 } = process.env;
 
 let storage = null;
 
-if (!isDev) {
-    storage = new MongoDbStorage({
-        collection: DATABASE_COLLECTION,
-        database: DATABASE_NAME,
-        url: MONGO_URI,
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    });
-}
+// if (!isDev) {
+  storage = new MongoDbStorage({
+    collection: DATABASE_COLLECTION,
+    database: DATABASE_NAME,
+    url: MONGO_URI,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+// }
 
 const adapter = new FacebookAdapter({
-    access_token: FACEBOOK_ACCESS_TOKEN,
-    api_version: 'v7.0',
-    app_secret: FACEBOOK_APP_SECRET,
-    debug: true, // [*]
-    // receive_via_postback: true, // [*]
-    require_delivery: !isDev,
-    verify_token: FACEBOOK_VERIFY_TOKEN,
+  access_token: FACEBOOK_ACCESS_TOKEN,
+  api_version: 'v7.0',
+  app_secret: FACEBOOK_APP_SECRET,
+  debug: true, // [*]
+  // receive_via_postback: true, // [*]
+  require_delivery: !isDev,
+  verify_token: FACEBOOK_VERIFY_TOKEN,
 });
 
 /**
@@ -68,30 +71,30 @@ const adapter = new FacebookAdapter({
 adapter.use(new FacebookEventTypeMiddleware());
 
 const controller = new Botkit({
-    // scheduler_uri: '/api/scheduler',
-    adapter,
-    storage,
-    webhook_uri: '/api/messages',
+  // scheduler_uri: '/api/scheduler',
+  adapter,
+  storage,
+  webhook_uri: '/api/messages',
 });
 
 // console.log(JSON.stringify(controller._config.scheduler_url)); // [OK][Tip] bot.getConfig('sheduler_uri')
 
 // if (!isDev) {
-    const GREETING_ID = 'GREETING_ID';
-    const ONBOARDING_ID = 'ONBOARDING_ID';
+  const GREETING_ID = 'GREETING_ID';
+  const ONBOARDING_ID = 'ONBOARDING_ID';
 
-    const greeting = new BotkitConversation(GREETING_ID, controller);
-    const onboarding = new BotkitConversation(ONBOARDING_ID, controller);
+  const greeting = new BotkitConversation(GREETING_ID, controller);
+  const onboarding = new BotkitConversation(ONBOARDING_ID, controller);
 
-    controller.addDialog(greeting);
-    controller.addDialog(onboarding);
+  controller.addDialog(greeting);
+  controller.addDialog(onboarding);
 // }
 
 /**
  * #BEGIN Configure routers
  */
 controller.webserver.get('/', async (req, res) => {
-    await res.send(`This app is running Botkit ${ controller.version }.`);
+  await res.send(`This app is running Botkit ${ controller.version }.`);
 });
 
 // // make content of the local public folder available at http://MYBOTURL/path/to/folder
@@ -118,147 +121,317 @@ const conversations = [];
  *
  * @url https://botkit.ai/docs/v4/core.html#botkit-middleware
  */
+
+/**
+ * #BEGIN Conversation Helpers
+ */
+const getUsersConvoWithProperties = async (bot, message) => { // [OK]
+  const userState = new UserState(controller.storage);
+  let context = bot.getConfig('context');
+
+  const conversationWithProperty = await userState.createProperty('conversation_with');
+  const expiredAtProperty = await userState.createProperty('expired_at');
+  const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
+
+  const conversationWith = await conversationWithProperty.get(context);
+  const expiredAt = await expiredAtProperty.get(context);
+  const readyToConversation = await readyToConversationProperty.get(context);
+
+  return {
+    context,
+    conversationWith,
+    conversationWithProperty,
+    expiredAt,
+    expiredAtProperty,
+    readyToConversation,
+    readyToConversationProperty,
+    userState,
+  };
+};
+
+const sessionTimerStart = async () => {
+  console.log('sessionTimerStart()');
+// /**
+//  * @TODO Rewrite to async version with timers queue
+//  */
+//   clearTimeout(sessionTimerId);
+//   if (readyToConversation === 'busy' && expiredAt > Date.now()) {
+//     console.log('session started');
+
+//     /**
+//      * Clear matching timer
+//      */
+//     clearTimeout(message.value);
+
+//     sessionTimerId = setTimeout(async () => { // [OK][?]
+//       /**
+//        * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+//        * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+//        */
+//       await bot.changeContext(message.reference);
+
+//       clearTimeout(sessionTimerId);
+
+//       // [TODO] #BEGIN Refactoring
+//       /**
+//        * #BEGIN Bot typing
+//        */
+//       await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+//       await bot.say(USER_DIALOG_SESSION_EXPIRED);
+
+//       /**
+//        * Reset conversation status
+//        */
+//       await resetUsersConvoWithProperties(bot, message);
+//     }, end);
+//   } else {
+//     console.log('session cleared');
+//     clearTimeout(sessionTimerId);
+//     await resetUsersConvoWithProperties(bot, message);
+//   }
+  return true;
+};
+
+const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
+  let {
+    context,
+    conversationWith,
+    conversationWithProperty,
+    expiredAtProperty,
+    readyToConversationProperty,
+    userState,
+  } = await getUsersConvoWithProperties(bot, message);
+
+  // const reference = message.reference;
+
+  conversations[conversationWith] = null;
+
+  await conversationWithProperty.set(context, 0);
+  await expiredAtProperty.set(context, 0);
+  await readyToConversationProperty.set(context, 'ready');
+
+  /**
+   * Save userState changes to storage
+   */
+  const result = await userState.saveChanges(context);
+  console.log('session cleared');
+
+  message.text = USER_DIALOG_SESSION_EXPIRED;
+
+  /**
+   * #BEGIN Bot typing
+   */
+  await controller.trigger(['sender_action_typing'], bot, {
+    options: { recipient: message.sender },
+  });
+
+  /**
+   * @TEMP
+   */
+  await bot.say({ // [OK]
+    recipient: message.sender,
+    text: message.text,
+  });
+
+  await bot.changeContext(message.reference);
+  await bot.cancelAllDialogs();
+  message.value = undefined;
+
+  // if (process.env.NODE_ENV === 'production') {
+    await controller.trigger(['start_match'], bot, message);
+  // }
+
+  return result;
+};
+
+/**
+ * #END Conversation Helpers
+ */
+
 const middlewares = {
-    spawn: async (bot, next) => {
-        console.log('[spawn]:', bot);
+  spawn: async (bot, next) => {
+    console.log('[spawn]:'/*, bot*/);
 
-        // call next, or else the message will be intercepted
-        next();
-    },
+    // call next, or else the message will be intercepted
+    next();
+  },
 
-    ingest: async (bot, message, next) => {
-        console.log('[ingest]:', message);
+  ingest: async (bot, message, next) => {
+    // await resetUsersConvoWithProperties(bot, message);
+    console.log('[ingest]:'/*, message*/);
 
-        await controller.trigger(['mark_seen'], bot, message);
+    await controller.trigger(['mark_seen'], bot, message);
 
-        let target = 0;
+    let target = 0;
 
-        if (Object.keys(conversations).includes(message.sender.id)) { // [OK]
-            target = conversations[message.sender.id];
-        } else if (Object.values(conversations).includes(message.sender.id)) {
-            target = Object.keys(conversations)[Object.values(conversations).indexOf(message.sender.id)];
+    if (Object.keys(conversations).includes(message.sender.id)) { // [OK]
+      target = conversations[message.sender.id];
+    } else if (Object.values(conversations).includes(message.sender.id)) {
+      target = Object.keys(conversations)[Object.values(conversations).indexOf(message.sender.id)];
+    }
+
+    console.log('target:', target);
+
+    if (target) { // [OK]
+      /**
+       * Clear matching timer
+       */
+      clearTimeout(message.value);
+      message.value = null;
+
+      /**
+       * #BEGIN Conversation with user
+       */
+      try {
+        let from = await getUsersConvoWithProperties(bot, message);
+
+        // #BEGIN Set conversation's properties
+        if (from.conversationWith === undefined) {
+          await from.readyToConversationProperty.set(from.context, 'busy');
+          await from.conversationWithProperty.set(from.context, target);
+          await from.expiredAtProperty.set(from.context, Date.now() + 86400000); // 1 day
+        }
+        // #END Set conversation's properties
+        from = await getUsersConvoWithProperties(bot, message);
+
+        const dialogBot = await controller.spawn(message.sender.id);
+        await dialogBot.changeContext(message.reference);
+        await dialogBot.startConversationWithUser(target);
+
+        const to = await getUsersConvoWithProperties(dialogBot, message);
+
+        // #BEGIN Sync session expiration time
+        await from.expiredAtProperty.set(from.context, to.expiredAt);
+        await from.userState.saveChanges(from.context);
+
+        await to.expiredAtProperty.set(to.context, to.expiredAt);
+        await to.userState.saveChanges(to.context);
+        // #END Sync session expiration time
+
+        /**
+         * Start session timer
+         */
+        if (from.conversationWith === undefined) {
+          sessionTimerStart();
         }
 
-        if (target) { // [OK]
+        // if (Date.now() < to.expiredAt) { // [OK]
+          /**
+           * #BEGIN Bot typing
+           */
+          await controller.trigger(['sender_action_typing'], dialogBot, {
+            options: { recipient: { id: target } },
+          });
+          // message.text += `\n\n[Session expired at: ${new Date(to.expiredAt).toLocaleString()}]`;
 
-            /**
-             * @TODO Create conversation with user here
-             */
+          /**
+           * Send message to conversation
+           */
+          await dialogBot.say({ // [OK]
+            // textHighlights: 'text highlights',
+            recipient: { id: target },
+            sender: { id: message.sender.id },
+            text: message.text,
+          });
+        // } else if (Date.now() > to.expiredAt) {
+        //   await resetUsersConvoWithProperties(dialogBot, message);
+        //   await resetUsersConvoWithProperties(bot, message);
+        // }
 
-            const dialogBot = await controller.spawn(message.sender.id);
-            await dialogBot.changeContext(message.reference);
-            await dialogBot.startConversationWithUser(target);
+      } catch(error) {
+        console.error('[bot.js:339 ERROR]:', error);
+      }
+      /**
+       * #END Conversation with user
+       */
+    }
 
-            try {
-                /**
-                 * #BEGIN Bot typing
-                 */
-                await controller.trigger(['sender_action_typing'], dialogBot, {
-                    options: { recipient: { id: target } },
-                });
+    // call next, or else the message will be intercepted
+    next();
+  },
 
-                /**
-                 * Send message to conversation
-                 */
-                await dialogBot.say({ // [OK]
-                    // textHighlights: 'text highlights',
-                    recipient: { id: target },
-                    sender: { id: message.sender.id },
-                    text: message.text,
-                });
+  send: async (bot, message, next) => { // [OK]
+    console.log('[send]:'/*, message*/);
 
-                /**
-                 * #BEGIN Bot typing
-                 */
-                // await controller.trigger(['sender_action_typing'], bot, {
-                //     options: { recipient: message.sender },
-                // });
+    // v1
+    if (message.channelData.sender !== undefined &&
+      conversations[message.recipient.id] === undefined &&
+      conversations[message.channelData.sender.id] === undefined) {
 
-                /**
-                 * @TODO
-                 */
-                // await bot.say({ // [OK]
-                //     recipient: message.sender,
-                //     text: `[Session end at: ${new Date(expiredAt).toLocaleString()}]`,
-                // });
-            } catch(error) {
-                console.error('[bot.js:185 ERROR]:', error);
-            }
-        }
+      conversations[message.recipient.id] = message.channelData.sender.id;
+    }
+    console.log(conversations);
 
-        // call next, or else the message will be intercepted
-        next();
-    },
+    // // v2
+    // const from = await getUsersConvoWithProperties(bot, message);
+    // console.log('from:', from.conversationWith);
+    // if (message.channelData.sender !== undefined &&
+    //   from.conversationWith === message.recipient.id &&
+    //   conversations[message.channelData.sender.id] === undefined) {
 
-    send: async (bot, message, next) => { // [OK]
-        console.log('[send]:', message);
+    //   conversations[message.recipient.id] = message.channelData.sender.id;
+    // } else {
+    //   console.log(conversations);
+    // }
 
-        if (message.channelData.sender !== undefined &&
-            conversations[message.recipient.id] === undefined &&
-            conversations[message.channelData.sender.id] === undefined) {
+    // call next, or else the message will be intercepted
+    next();
+  },
 
-            conversations[message.recipient.id] = message.channelData.sender.id;
-            console.log('conversations:', conversations);
-        }
+  receive: async (bot, message, next) => {
+    console.log('[receive]:'/*, message*/);
 
-        // call next, or else the message will be intercepted
-        next();
-    },
+    // call next, or else the message will be intercepted
+    next();
+  },
 
-    receive: async (bot, message, next) => {
-        console.log('[receive]:', message);
+  interpret: async (bot, message, next) => {
+    console.log('[interpret]:'/*, message*/);
 
-        // call next, or else the message will be intercepted
-        next();
-    },
-
-    interpret: async (bot, message, next) => {
-        console.log('[interpret]:', message);
-
-        // call next, or else the message will be intercepted
-        next();
-    },
+    // call next, or else the message will be intercepted
+    next();
+  },
 };
 
 Object.keys(middlewares).forEach(func => {
-    controller.middleware[func].use(middlewares[func]);
+  controller.middleware[func].use(middlewares[func]);
 });
 /**
  * #END Configure middlewares
  */
 
 controller.ready(async () => {
-    /**
-     * load traditional developer-created local custom feature modules
-     * @Tip Features folder must be loaded finally after all behind
-     */
-    const modules = [
-        'handlers',
-        'features'
-    ];
+  /**
+   * load traditional developer-created local custom feature modules
+   * @Tip Features folder must be loaded finally after all behind
+   */
+  const modules = [
+    'handlers',
+    'features'
+  ];
 
-    for (let i = 0; i < modules.length; i++) {
-        controller.loadModules(`${__dirname}/${modules[i]}`, '.js');
-        console.log(`[MODULES]: ${__dirname}/${modules[i]}`);
-    }
+  for (let i = 0; i < modules.length; i++) {
+    controller.loadModules(`${__dirname}/${modules[i]}`, '.js');
+    console.log(`[MODULES]: ${__dirname}/${modules[i]}`);
+  }
 
-    /**
-     * load test feature modules
-     */
-    if (isDev) {
-        await controller.loadModules(__dirname + '/handlers_test', '.js');
-        await controller.loadModules(__dirname + '/hears_test', '.js');
-    }
+  /**
+   * load test feature modules
+   */
+  if (isDev) {
+    await controller.loadModules(__dirname + '/handlers_test', '.js');
+    await controller.loadModules(__dirname + '/hears_test', '.js');
+  }
 
-    console.log(
-        `\n[EVENTS]:\n${
-            Object.keys(controller._events).join('\n')
-        }\n\n[TRIGGERS]:\n${
-            Object.keys(controller._triggers).join('\n')
-        }\n\n[INTERRUPTS]:\n${
-            Object.keys(controller._interrupts).join('\n')
-        }\n[READY]\n`
-    );
+  console.log(
+    `\n[EVENTS]:\n${
+        Object.keys(controller._events).join('\n')
+    }\n\n[TRIGGERS]:\n${
+        Object.keys(controller._triggers).join('\n')
+    }\n\n[INTERRUPTS]:\n${
+        Object.keys(controller._interrupts).join('\n')
+    }\n[READY]\n`
+  );
 });
 
 
