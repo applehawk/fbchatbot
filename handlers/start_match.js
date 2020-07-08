@@ -6,8 +6,6 @@ module.exports = async (controller) => {
 
   const setTimer = async (bot, message) => { // [OK]
     const user = message.user || message.channelData.sender.id;
-    console.log(user);
-    await bot.changeContext(message.reference);
     clearTimeout(timersQueue[user]);
     timersQueue[user] = null;
     /**
@@ -40,7 +38,6 @@ module.exports = async (controller) => {
   };
 
   controller.on(['start_match'], async (bot, message) => {
-    // await bot.changeContext(message.reference);
     if (!bot.hasActiveDialog() && message.value === undefined) {
       await setTimer(bot, message);
     }
