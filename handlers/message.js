@@ -77,6 +77,7 @@ module.exports = async (controller) => {
       await controller.trigger(['start'], bot, message);
       return;
     }
+
     // console.log(`[message.js:80 ${message.type}]:`, message);
 
     await controller.trigger(['ANALYTICS_EVENT'], bot, message);
