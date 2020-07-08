@@ -6,18 +6,17 @@ const { UserState } = require('botbuilder');
 const { communityDict, englishLevelDict, INVITATION_MESSAGE } = require('../constants.js');
 
 module.exports = async (controller) => {
-  controller.hears(new RegExp(/^(start2)\s+?(\d+)$/i), ['message', 'direct_message', 'facebook_postback', 'messaging_postback'], async (bot, message) => {
-  // controller.on([new RegExp(/^(start2)\s+?(\d+)$/i), 'message', 'direct_message', 'facebook_postback'], async (bot, message) => {
+  controller.on(['start_dialog'], async (bot, message) => {
     /**
      * @TODO Add check user exists
      */
-    const recipient = { id: message.matches[2] };
+    const recipient = message.recipient;
 
     /**
      * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
      * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
      */
-    await bot.changeContext(message.reference);
+    // await bot.changeContext(message.reference);
 
     const userState = new UserState(controller.storage);
 
@@ -26,9 +25,9 @@ module.exports = async (controller) => {
     const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
     const readyToConversation = await readyToConversationProperty.get(context);
 
-    if (bot.hasActiveDialog() || readyToConversation === 'busy') {
-      return;
-    }
+    // if (bot.hasActiveDialog() || readyToConversation === 'busy') {
+    //   return;
+    // }
 
     try {
       /**
@@ -38,77 +37,103 @@ module.exports = async (controller) => {
 
       const dialog = new BotkitConversation(recipient.id, controller);
 
-      await dialog.addQuestion({ // [OK]
-        text: 'Do you want to start a dialogue with user?',
-        quick_replies: [{
-          // content_type: 'text',
-          title: 'No',
-          payload: 'no',
-        }, {
-          // content_type: 'text',
-          title: 'Yes',
-          payload: 'yes',
-        }],
-      }, [
-        {
-          default: true,
-          pattern: 'no',
-          handler: async (answerText, convo, bot, message) => {
-            try {
-              console.log(`start a dialogue with user: ${answerText}`);
-              await convo.stop();
-            } catch(error) {
-              console.error('[start2.js:61 ERROR]', error);
-              await convo.stop();
-            }
-          },
-        },
-        {
-          pattern: 'yes',
-          handler: async (answerText, convo, bot, message) => { // [OK]
-            try {
-              clearTimeout(message.value);
-              message.value = null;
-              /**
-               * #BEGIN Bot typing
-               */
-              // await controller.trigger(['sender_action_typing'], bot, { options: { recipient: { id: message.sender.id } } });
+      // await dialog.addQuestion({ // [OK]
+      //   text: 'Do you want to start a dialogue with user?',
+      //   quick_replies: [{
+      //   //   // content_type: 'text',
+      //   //   title: 'No',
+      //   //   payload: 'no',
+      //   // }, {
+      //     // content_type: 'text',
+      //     title: 'Write to partner',
+      //     payload: 'yes',
+      //   }],
+      // }, [
+      //   {
+      //     default: true,
+      //     // pattern: 'no',
+      //     handler: async (answerText, convo, bot, message) => {
+      //       try {
+      //         console.log(`start a dialogue with user: ${answerText}`);
+      //         await convo.stop();
+      //       } catch(error) {
+      //         console.error('[start_dialog.js:63 ERROR]', error);
+      //         await convo.stop();
+      //       }
+      //     },
+      //   },
+      //   {
+      //     pattern: 'yes',
+      //     handler: async (answerText, convo, bot, message) => { // [OK]
+      //       try {
+      //         clearTimeout(message.value);
+      //         message.value = null;
+      //         /**
+      //          * #BEGIN Bot typing
+      //          */
+      //         // await controller.trigger(['sender_action_typing'], bot, { options: { recipient: { id: message.sender.id } } });
 
-              console.log(`start a dialogue with user: ${answerText}`);
+              // console.log(`start a dialogue with user: ${answerText}`);
 
-              // await dialog.ask({ // [OK]
-              //   text: INVITATION_MESSAGE,
-              // }, async (answerText, convo, bot, message) => {
+              await dialog.ask({ // [OK]
+                text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
+                quick_replies: [{
+                  title: 'Write to partner',
+                  payload: 'yes',
+                }],
+              }, async (answerText, convo, bot, message) => {
                 try {
-                  const conversationWithProperty = await userState.createProperty('conversation_with');
-                  const expiredAtProperty = await userState.createProperty('expired_at');
+                  // let { text } = message;
 
-                  await readyToConversationProperty.set(context, 'busy');
-                  await conversationWithProperty.set(context, recipient.id);
-                  await expiredAtProperty.set(context, Date.now() + 300000); // 5 min
+                  if (message.text === 'Write to partner') {
+                    /**
+                     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+                     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+                     */
+                    await bot.changeContext(message.reference);
 
-                  // Save userState changes to storage
-                  await userState.saveChanges(context);
+                    const conversationWithProperty = await userState.createProperty('conversation_with');
+                    const expiredAtProperty = await userState.createProperty('expired_at');
 
-                  const dialogBot = await controller.spawn(message.sender.id);
-                  await dialogBot.changeContext(message.reference);
-                  await dialogBot.startConversationWithUser(recipient.id);
+                    await readyToConversationProperty.set(context, 'busy');
+                    await conversationWithProperty.set(context, recipient.id);
+                    await expiredAtProperty.set(context, Date.now() + 86400000); // 1 day
 
-                  const text = `Hello!\n\nMy name is Dmitry and I'm a web developer.\nI would like to chat with you. Can we start a conversation?`;
-                  // const { text } = message;
+                    // Save userState changes to storage
+                    await userState.saveChanges(context);
 
-                  if (!!text) {
+                    const dialogBot = await controller.spawn(message.sender.id);
+                    await dialogBot.changeContext(message.reference);
+                    await dialogBot.startConversationWithUser(recipient.id);
+
+                    /**
+                     * #BEGIN Bot typing
+                     */
+                    // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+
+                    /**
+                     * Sending information about yourself to parnter
+                     */
+                    message.recipient = recipient;
+                    await controller.trigger(['get_info'], bot, message);
+
                     /**
                      * #BEGIN Bot typing
                      */
                     await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
+                    message.text = 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)';
+
                     await dialogBot.say({
                       recipient,
-                      text,
+                      text: message.text,
                       sender: message.sender,
                     });
+
+                    await convo.stop();
                   }
+
+                  // await bot.cancelAllDialogs();
 
                   // const context = dialogBot.getConfig('context');
                   // const userState = new UserState(controller.storage);
@@ -174,17 +199,17 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error('[start2.js:177 ERROR]', error);
+                  console.error('[start_dialog.js:198 ERROR]', error);
                   await convo.stop();
                 }
-              // }, { key: 'confirmation' });
-            } catch(error) {
-              console.error('[start2.js:182 ERROR]', error);
-              await convo.stop();
-            }
-          },
-        }
-      ], { key: 'message' });
+              }, { key: 'confirmation' });
+      //       } catch(error) {
+      //         console.error('[start_dialog.js:203 ERROR]', error);
+      //         await convo.stop();
+      //       }
+      //     },
+      //   }
+      // ], { key: 'message' });
 
       await dialog.after(async (results, bot) => {
         console.log('dialog after:', results);
@@ -273,7 +298,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error('[start2.js:276 ERROR]', error);
+      console.error('[start_dialog.js:297 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });
