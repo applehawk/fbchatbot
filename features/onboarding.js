@@ -393,6 +393,12 @@ module.exports = async (controller) => {
             };
             await bot.api.callAPI('/me/messages', 'POST', options);
 
+            /**
+             * Start matching
+             */
+            results.value = undefined;
+            await controller.trigger(['start_match'], bot, results);
+
             if (process.env.NODE_ENV !== 'production') {
                 /**
                  * Creating user's menu
@@ -428,7 +434,7 @@ module.exports = async (controller) => {
                 await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
             }
         } catch(error) {
-            console.error(error);
+            console.error('[onboarding.js:437 ERROR]:', error);
         };
     });
 };
