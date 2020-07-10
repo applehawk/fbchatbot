@@ -38,7 +38,9 @@ module.exports = async (controller) => {
                     id: message.sender.id,
                 };
 
-                // [Tip] Deleting menu
+                /**
+                 * @Tip Deleting menu
+                 */
                 await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
                     recipient,
                     psid: message.sender.id,

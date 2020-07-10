@@ -102,14 +102,46 @@ module.exports = async (controller) => {
                     // Save userState changes to storage
                     await userState.saveChanges(context);
 
+                    /**
+                     * @Tip Deleting menu
+                     */
+                    await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
+                      recipient: message.sender,
+                      psid: message.sender.id,
+                      params: ['persistent_menu'],
+                    });
+
+                    const menu = {
+                      recipient: message.sender,
+                      psid: message.sender.id,
+                      persistent_menu: [{
+                        locale: 'default',
+                        composer_input_disabled: false,
+                        call_to_actions: [
+                          {
+                            type: 'postback',
+                            title: '❌ End a conversation',
+                            payload: `reset ${recipient.id}`,
+                          }
+                          // {
+                          //   type: 'postback',
+                          //   title: '👤 Profile',
+                          //   payload: 'me',
+                          // },
+                          // {
+                          //   type: 'postback',
+                          //   title: '❔ Help',
+                          //   payload: 'help',
+                          // }
+                        ],
+                      }],
+                    };
+
+                    await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+
                     const dialogBot = await controller.spawn(message.sender.id);
                     await dialogBot.changeContext(message.reference);
                     await dialogBot.startConversationWithUser(recipient.id);
-
-                    /**
-                     * #BEGIN Bot typing
-                     */
-                    // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
                     /**
                      * Sending information about yourself to parnter
@@ -199,7 +231,7 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error('[start_dialog.js:198 ERROR]', error);
+                  console.error('[start_dialog.js:234 ERROR]', error);
                   await convo.stop();
                 }
               }, { key: 'confirmation' });
@@ -298,7 +330,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error('[start_dialog.js:297 ERROR]', error);
+      console.error('[start_dialog.js:333 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });

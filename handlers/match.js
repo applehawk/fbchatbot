@@ -134,7 +134,7 @@ module.exports = async (controller) => {
         try {
             // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
             // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-            await bot.changeContext(message.reference);
+            // await bot.changeContext(message.reference);
 
             const userState = new UserState(controller.storage);
 
