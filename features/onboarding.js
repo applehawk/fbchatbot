@@ -393,46 +393,39 @@ module.exports = async (controller) => {
             };
             await bot.api.callAPI('/me/messages', 'POST', options);
 
+            if (process.env.NODE_ENV !== 'production') {
+                /**
+                 * Creating user's menu
+                 */
+                let payload = {
+                    recipient: results.sender,
+                    call_to_actions: [
+                        {
+                            type: 'postback',
+                            title: '🗣 Match',
+                            payload: 'match',
+                        },
+                        {
+                            type: 'postback',
+                            title: '👤 Profile',
+                            payload: 'me',
+                        },
+                        {
+                            type: 'postback',
+                            title: '❔ Help',
+                            payload: 'help',
+                        },
+                    ],
+                };
+
+                await controller.trigger(['create_menu'], bot, payload);
+            }
+
             /**
              * Start matching
              */
             results.value = undefined;
             await controller.trigger(['start_match'], bot, results);
-
-            if (process.env.NODE_ENV !== 'production') {
-                /**
-                 * Creating user's menu
-                 */
-                const menu = {
-                    recipient,
-                    psid: results.sender.id,
-                    persistent_menu: [
-                        {
-                            locale: 'default',
-                            composer_input_disabled: false,
-                            call_to_actions: [
-                                {
-                                    type: 'postback',
-                                    title: '🗣 Match',
-                                    payload: 'match',
-                                },
-                                {
-                                    type: 'postback',
-                                    title: '👤 Profile',
-                                    payload: 'me',
-                                },
-                                {
-                                    type: 'postback',
-                                    title: '❔ Help',
-                                    payload: 'help',
-                                },
-                            ],
-                        }
-                    ],
-                };
-
-                await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
-            }
         } catch(error) {
             console.error('[onboarding.js:437 ERROR]:', error);
         };

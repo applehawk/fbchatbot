@@ -125,7 +125,7 @@ const conversations = [];
 /**
  * #BEGIN Conversation Helpers
  */
-const getUsersConvoWithProperties = async (bot, message) => { // [OK]
+const getUserContextProperties = async (bot, message) => { // [OK]
   const userState = new UserState(controller.storage);
   let context = bot.getConfig('context');
 
@@ -200,18 +200,11 @@ const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
     expiredAtProperty,
     readyToConversationProperty,
     userState,
-  } = await getUsersConvoWithProperties(bot, message);
+  } = await getUserContextProperties(bot, message);
 
   delete conversations[conversationWith];
 
-  /**
-   * @Tip Deleting menu
-   */
-  await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
-    recipient: { id: message.sender.id },
-    psid: message.sender.id,
-    params: ['persistent_menu'],
-  });
+  await controller.trigger(['delete_menu'], bot, message.sender);
 
   await conversationWithProperty.set(context, 0);
   await expiredAtProperty.set(context, 0);
@@ -230,15 +223,11 @@ const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
     options: { recipient: { id: message.sender.id } },
   });
 
-  /**
-   * @TEMP
-   */
   await bot.say({ // [OK]
     recipient: { id: message.sender.id },
     text: USER_DIALOG_SESSION_EXPIRED,
   });
 
-  // await bot.changeContext(message.reference);
   await bot.cancelAllDialogs();
   message.value = undefined;
 
@@ -287,7 +276,7 @@ const middlewares = {
          * #BEGIN Conversation with user
          */
         try {
-          let from = await getUsersConvoWithProperties(bot, message);
+          let from = await getUserContextProperties(bot, message);
 
           // #BEGIN Set conversation's properties
           if (from.conversationWith === undefined) {
@@ -296,12 +285,12 @@ const middlewares = {
             await from.expiredAtProperty.set(from.context, Date.now() + 86400000); // 1 day
           }
           // #END Set conversation's properties
-          from = await getUsersConvoWithProperties(bot, message);
+          from = await getUserContextProperties(bot, message);
 
           const dialogBot = await controller.spawn(message.sender.id);
           await dialogBot.startConversationWithUser(target);
 
-          const to = await getUsersConvoWithProperties(dialogBot, message);
+          const to = await getUserContextProperties(dialogBot, message);
 
           // #BEGIN Sync session expiration time
           await from.expiredAtProperty.set(from.context, to.expiredAt);
@@ -402,7 +391,7 @@ const middlewares = {
     console.log('[bot.js:368 conversations]:', conversations);
 
     // // v2
-    // const from = await getUsersConvoWithProperties(bot, message);
+    // const from = await getUserContextProperties(bot, message);
     // console.log('from:', from.conversationWith);
     // if (message.channelData.sender !== undefined &&
     //   from.conversationWith === message.recipient.id &&

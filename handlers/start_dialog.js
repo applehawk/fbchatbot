@@ -83,8 +83,7 @@ module.exports = async (controller) => {
                 }],
               }, async (answerText, convo, bot, message) => {
                 try {
-                  // let { text } = message;
-
+                  Object.assign(convo.vars, message);
                   if (message.text === 'Write to partner') {
                     /**
                      * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
@@ -102,46 +101,80 @@ module.exports = async (controller) => {
                     // Save userState changes to storage
                     await userState.saveChanges(context);
 
-                    /**
-                     * @Tip Deleting menu
-                     */
-                    await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
-                      recipient: message.sender,
-                      psid: message.sender.id,
-                      params: ['persistent_menu'],
-                    });
+                    // /**
+                    //  * @Tip Deleting menu
+                    //  */
+                    // await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
+                    //   recipient: message.sender,
+                    //   psid: message.sender.id,
+                    //   params: ['persistent_menu'],
+                    // });
 
-                    const menu = {
+                    // const menu = {
+                    //   recipient: message.sender,
+                    //   psid: message.sender.id,
+                    //   persistent_menu: [{
+                    //     locale: 'default',
+                    //     composer_input_disabled: false,
+                    //     call_to_actions: [
+                    //       {
+                    //         type: 'postback',
+                    //         title: '❌ End a conversation',
+                    //         payload: `reset ${recipient.id}`,
+                    //       }
+                    //       // {
+                    //       //   type: 'postback',
+                    //       //   title: '👤 Profile',
+                    //       //   payload: 'me',
+                    //       // },
+                    //       // {
+                    //       //   type: 'postback',
+                    //       //   title: '❔ Help',
+                    //       //   payload: 'help',
+                    //       // }
+                    //     ],
+                    //   }],
+                    // };
+
+                    // await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+
+                    /**
+                     * Creat menu for sender
+                     */
+                    let payload = {
                       recipient: message.sender,
-                      psid: message.sender.id,
-                      persistent_menu: [{
-                        locale: 'default',
-                        composer_input_disabled: false,
-                        call_to_actions: [
-                          {
-                            type: 'postback',
-                            title: '❌ End a conversation',
-                            payload: `reset ${recipient.id}`,
-                          }
-                          // {
-                          //   type: 'postback',
-                          //   title: '👤 Profile',
-                          //   payload: 'me',
-                          // },
-                          // {
-                          //   type: 'postback',
-                          //   title: '❔ Help',
-                          //   payload: 'help',
-                          // }
-                        ],
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset ${recipient.id}`,
                       }],
                     };
 
-                    await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+                    await controller.trigger(['create_menu'], bot, payload);
 
                     const dialogBot = await controller.spawn(message.sender.id);
-                    await dialogBot.changeContext(message.reference);
+                    // await dialogBot.changeContext(message.reference);
                     await dialogBot.startConversationWithUser(recipient.id);
+
+                    /**
+                     * Create menu for recipient
+                     */
+                    payload = {
+                      recipient: recipient,
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset ${message.sender.id}`,
+                      }],
+                    };
+
+                    await controller.trigger(['create_menu'], bot, payload);
+                    payload = null;
+
+                    /**
+                     * #BEGIN Bot typing
+                     */
+                    await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
                     /**
                      * Sending information about yourself to parnter
@@ -231,7 +264,7 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error('[start_dialog.js:234 ERROR]', error);
+                  console.error('[start_dialog.js:268 ERROR]', error);
                   await convo.stop();
                 }
               }, { key: 'confirmation' });
@@ -245,6 +278,11 @@ module.exports = async (controller) => {
 
       await dialog.after(async (results, bot) => {
         console.log('dialog after:', results);
+        /**
+         * Start matching
+         */
+        results.value = undefined;
+        await controller.trigger(['start_match'], bot, results);
       });
 
       await controller.addDialog(dialog);
@@ -330,7 +368,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error('[start_dialog.js:333 ERROR]', error);
+      console.error('[start_dialog.js:368 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });

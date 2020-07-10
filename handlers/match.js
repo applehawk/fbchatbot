@@ -129,48 +129,59 @@ module.exports = async (controller) => {
         return docs;
     };
 
+    const getUserContextProperties = async (bot, message) => { // [OK]
+        let userState = new UserState(controller.storage);
+        let context = bot.getConfig('context');
+        let communityProperty = await userState.createProperty('community');
+        let community = await communityProperty.get(context);
+        let englishLevelProperty = await userState.createProperty('english_level');
+        let englishLevel = await englishLevelProperty.get(context);
+        let locationProperty = await userState.createProperty('location');
+        let location = await locationProperty.get(context);
+        let professionProperty = await userState.createProperty('profession');
+        let profession = await professionProperty.get(context);
+        let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
+        let readyToConversation = await readyToConversationProperty.get(context);
+        let recentUsersProperty = await userState.createProperty('recent_users');
+        let recentUsers = await recentUsersProperty.get(context, []);
+
+        return {
+            userState,
+            context,
+            communityProperty,
+            community,
+            englishLevelProperty,
+            englishLevel,
+            locationProperty,
+            location,
+            professionProperty,
+            profession,
+            readyToConversationProperty,
+            readyToConversation,
+            recentUsersProperty,
+            recentUsers,
+        };
+    };
+
     // controller.hears(new RegExp(/^match$/i), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
     controller.on(['match'], async (bot, message) => {
         try {
-            // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-            // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-            // await bot.changeContext(message.reference);
-
-            const userState = new UserState(controller.storage);
-
-            const context = bot.getConfig('context');
-
             const userId = message.sender.id;
             const recipient = { id: userId };
 
-            // #BEGIN Bot typing
+            /**
+             * #BEGIN Bot typing
+             */
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
-            // Get User State Properties
             const { channelId } = message.incoming_message;
-            const communityProperty = await userState.createProperty('community');
-            const community = await communityProperty.get(context);
-            const englishLevelProperty = await userState.createProperty('english_level');
-            const englishLevel = await englishLevelProperty.get(context);
-            const locationProperty = await userState.createProperty('location');
-            const location = await locationProperty.get(context);
-            const professionProperty = await userState.createProperty('profession');
-            const profession = await professionProperty.get(context);
-            const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-            const readyToConversation = await readyToConversationProperty.get(context);
-            const recentUsersProperty = await userState.createProperty('recent_users');
 
-            let recentUsers = await recentUsersProperty.get(context, []);
+            // Get User State Properties
+            const senderProperties = await getUserContextProperties(bot, message);
 
             const payload = {
+                ...senderProperties,
                 channelId,
-                community,
-                englishLevel,
-                location,
-                profession,
-                readyToConversation,
-                recentUsers,
-                // storage,
                 userId,
             };
 
@@ -178,44 +189,80 @@ module.exports = async (controller) => {
             const users = await chooseWithLevel(payload) || [];
 
             if (Object.keys(users).length) {
-                console.log('[match.js:181 users]:', users);
+                console.log('[match.js:192 users]:', users);
 
-                // Send reply with users info
-                await botSay({ bot, message, users: [users].map(user => user) });
-                message.recipient.id = users['_id'].match(/(\d+)\/$/)[1];
-                await controller.trigger(['start_dialog'], bot, message);
-
-                // Set User State Properties
+                /**
+                 * Add recipient to sender recent users list
+                 */
                 const values = Object.values(users);
                 if (values.length > 1) {
-                    // recentUsers = [ ...recentUsers, ...[users].map(user => user._id.match(/(\d+)\/$/)[1]) ];
-                    recentUsers = [ ...recentUsers, ...[users].map(user => user._id) ];
+                    // senderProperties.recentUsers = [ ...senderProperties.recentUsers, ...[users].map(user => user._id.match(/(\d+)\/$/)[1]) ];
+                    senderProperties.recentUsers = [ ...senderProperties.recentUsers, ...[users].map(user => user._id) ];
                 } else {
                     if (!values.includes(users[0]._id)) {
-                        recentUsers = [ ...recentUsers, users[0]._id ];
+                        senderProperties.recentUsers = [ ...senderProperties.recentUsers, users[0]._id ];
                     }
                 }
 
-                // Save recent users to state
-                await recentUsersProperty.set(context, recentUsers);
+                /**
+                 * Save recent users to state
+                 */
+                await senderProperties.recentUsersProperty.set(senderProperties.context, senderProperties.recentUsers);
 
-                // Save userState changes to storage
-                await userState.saveChanges(context);
+                /**
+                 * Save senderProperties changes to storage
+                 */
+                await senderProperties.userState.saveChanges(senderProperties.context);
+
+                /**
+                 * Send reply with users info
+                 */
+                await botSay({ bot, message, users: [users].map(user => user) });
+
+                /**
+                 * Add sender to recipient's recent users list
+                 */
+                const id = users['_id'];
+                message.recipient.id = id.match(/(\d+)\/$/)[1];
+
+                const dialogBot = await controller.spawn(message.recipient.id);
+                await dialogBot.startConversationWithUser(message.recipient.id);
+                const recipientProperties = await getUserContextProperties(dialogBot, message);
+
+                /**
+                 * Add sender to recipient recent users list
+                 */
+                recipientProperties.recentUsers.push(id.replace(message.recipient.id, message.sender.id));
+                /**
+                 * Save recent users to state
+                 */
+                await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
+
+                /**
+                 * Save recipientProperties changes to storage
+                 */
+                await recipientProperties.userState.saveChanges(recipientProperties.context);
+
+                await controller.trigger(['start_dialog'], bot, message);
             } else {
                 clearTimeout(message.value);
                 message.value = null;
 
-                // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-                // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+                /**
+                 * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+                 * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+                 */
                 await bot.changeContext(message.reference);
 
-                // #BEGIN Bot typing
+                /**
+                 * #BEGIN Bot typing
+                 */
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
                 await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
             }
         } catch (error) {
-            console.error('[match.js:218 ERROR]:', error);
+            console.error('[match.js:265 ERROR]:', error);
         }
     });
 };
