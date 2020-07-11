@@ -134,8 +134,12 @@ module.exports = async (controller) => {
         let context = bot.getConfig('context');
         let communityProperty = await userState.createProperty('community');
         let community = await communityProperty.get(context);
+        let conversationWithProperty = await userState.createProperty('conversation_with');
+        let conversationWith = await conversationWithProperty.get(context);
         let englishLevelProperty = await userState.createProperty('english_level');
         let englishLevel = await englishLevelProperty.get(context);
+        let expiredAtProperty = await userState.createProperty('expired_at');
+        let expiredAt = await expiredAtProperty.get(context);
         let locationProperty = await userState.createProperty('location');
         let location = await locationProperty.get(context);
         let professionProperty = await userState.createProperty('profession');
@@ -150,6 +154,10 @@ module.exports = async (controller) => {
             context,
             communityProperty,
             community,
+            conversationWithProperty,
+            conversationWith,
+            expiredAtProperty,
+            expiredAt,
             englishLevelProperty,
             englishLevel,
             locationProperty,
@@ -230,12 +238,9 @@ module.exports = async (controller) => {
                 const recipientProperties = await getUserContextProperties(dialogBot, message);
 
                 /**
-                 * Add sender to recipient recent users list
+                 * Set recipient properties
                  */
                 recipientProperties.recentUsers.push(id.replace(message.recipient.id, message.sender.id));
-                /**
-                 * Save recent users to state
-                 */
                 await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
 
                 /**

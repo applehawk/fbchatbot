@@ -6,24 +6,55 @@ const { UserState } = require('botbuilder');
 const { communityDict, englishLevelDict, INVITATION_MESSAGE } = require('../constants.js');
 
 module.exports = async (controller) => {
+  const getUserContextProperties = async (bot, message) => { // [OK]
+    let userState = new UserState(controller.storage);
+    let context = bot.getConfig('context');
+    let communityProperty = await userState.createProperty('community');
+    let community = await communityProperty.get(context);
+    let conversationWithProperty = await userState.createProperty('conversation_with');
+    let conversationWith = await conversationWithProperty.get(context);
+    let englishLevelProperty = await userState.createProperty('english_level');
+    let englishLevel = await englishLevelProperty.get(context);
+    let expiredAtProperty = await userState.createProperty('expired_at');
+    let expiredAt = await expiredAtProperty.get(context);
+    let locationProperty = await userState.createProperty('location');
+    let location = await locationProperty.get(context);
+    let professionProperty = await userState.createProperty('profession');
+    let profession = await professionProperty.get(context);
+    let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
+    let readyToConversation = await readyToConversationProperty.get(context);
+    let recentUsersProperty = await userState.createProperty('recent_users');
+    let recentUsers = await recentUsersProperty.get(context, []);
+
+    return {
+      userState,
+      context,
+      communityProperty,
+      community,
+      conversationWithProperty,
+      conversationWith,
+      expiredAtProperty,
+      expiredAt,
+      englishLevelProperty,
+      englishLevel,
+      locationProperty,
+      location,
+      professionProperty,
+      profession,
+      readyToConversationProperty,
+      readyToConversation,
+      recentUsersProperty,
+      recentUsers,
+    };
+  };
+
   controller.on(['start_dialog'], async (bot, message) => {
     /**
      * @TODO Add check user exists
      */
     const recipient = message.recipient;
 
-    /**
-     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-     */
-    // await bot.changeContext(message.reference);
-
-    const userState = new UserState(controller.storage);
-
-    let context = bot.getConfig('context');
-
-    const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-    const readyToConversation = await readyToConversationProperty.get(context);
+    const senderProperties = await getUserContextProperties(bot, message);
 
     // if (bot.hasActiveDialog() || readyToConversation === 'busy') {
     //   return;
@@ -91,52 +122,17 @@ module.exports = async (controller) => {
                      */
                     await bot.changeContext(message.reference);
 
-                    const conversationWithProperty = await userState.createProperty('conversation_with');
-                    const expiredAtProperty = await userState.createProperty('expired_at');
+                    /**
+                     * Set sender properties
+                     */
+                    await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
+                    await senderProperties.conversationWithProperty.set(senderProperties.context, recipient.id);
+                    await senderProperties.expiredAtProperty.set(senderProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
 
-                    await readyToConversationProperty.set(context, 'busy');
-                    await conversationWithProperty.set(context, recipient.id);
-                    await expiredAtProperty.set(context, Date.now() + 86400000); // 1 day
-
-                    // Save userState changes to storage
-                    await userState.saveChanges(context);
-
-                    // /**
-                    //  * @Tip Deleting menu
-                    //  */
-                    // await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
-                    //   recipient: message.sender,
-                    //   psid: message.sender.id,
-                    //   params: ['persistent_menu'],
-                    // });
-
-                    // const menu = {
-                    //   recipient: message.sender,
-                    //   psid: message.sender.id,
-                    //   persistent_menu: [{
-                    //     locale: 'default',
-                    //     composer_input_disabled: false,
-                    //     call_to_actions: [
-                    //       {
-                    //         type: 'postback',
-                    //         title: '❌ End a conversation',
-                    //         payload: `reset ${recipient.id}`,
-                    //       }
-                    //       // {
-                    //       //   type: 'postback',
-                    //       //   title: '👤 Profile',
-                    //       //   payload: 'me',
-                    //       // },
-                    //       // {
-                    //       //   type: 'postback',
-                    //       //   title: '❔ Help',
-                    //       //   payload: 'help',
-                    //       // }
-                    //     ],
-                    //   }],
-                    // };
-
-                    // await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+                    /**
+                     * Save recipientProperties changes to storage
+                     */
+                    await senderProperties.userState.saveChanges(senderProperties.context);
 
                     /**
                      * Creat menu for sender
@@ -153,8 +149,20 @@ module.exports = async (controller) => {
                     await controller.trigger(['create_menu'], bot, payload);
 
                     const dialogBot = await controller.spawn(message.sender.id);
-                    // await dialogBot.changeContext(message.reference);
                     await dialogBot.startConversationWithUser(recipient.id);
+
+                    /**
+                     * Set recipient properties
+                     */
+                    const recipientProperties = await getUserContextProperties(dialogBot, message);
+
+                    await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
+                    await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
+
+                    /**
+                     * Save recipientProperties changes to storage
+                     */
+                    await recipientProperties.userState.saveChanges(recipientProperties.context);
 
                     /**
                      * Create menu for recipient
@@ -264,7 +272,7 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error('[start_dialog.js:268 ERROR]', error);
+                  console.error('[start_dialog.js:275 ERROR]', error);
                   await convo.stop();
                 }
               }, { key: 'confirmation' });
@@ -281,8 +289,12 @@ module.exports = async (controller) => {
         /**
          * Start matching
          */
-        results.value = undefined;
-        await controller.trigger(['start_match'], bot, results);
+        const senderProperties = await getUserContextProperties(bot, results);
+
+        if (senderProperties.readyToConversation === 'ready') {
+          results.value = undefined;
+          await controller.trigger(['start_match'], bot, results);
+        }
       });
 
       await controller.addDialog(dialog);
@@ -368,7 +380,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error('[start_dialog.js:368 ERROR]', error);
+      console.error('[start_dialog.js:383 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });

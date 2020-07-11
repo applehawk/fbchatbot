@@ -126,26 +126,44 @@ const conversations = [];
  * #BEGIN Conversation Helpers
  */
 const getUserContextProperties = async (bot, message) => { // [OK]
-  const userState = new UserState(controller.storage);
+  let userState = new UserState(controller.storage);
   let context = bot.getConfig('context');
-
-  const conversationWithProperty = await userState.createProperty('conversation_with');
-  const expiredAtProperty = await userState.createProperty('expired_at');
-  const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-
-  const conversationWith = await conversationWithProperty.get(context);
-  const expiredAt = await expiredAtProperty.get(context);
-  const readyToConversation = await readyToConversationProperty.get(context);
+  let communityProperty = await userState.createProperty('community');
+  let community = await communityProperty.get(context);
+  let conversationWithProperty = await userState.createProperty('conversation_with');
+  let conversationWith = await conversationWithProperty.get(context);
+  let englishLevelProperty = await userState.createProperty('english_level');
+  let englishLevel = await englishLevelProperty.get(context);
+  let expiredAtProperty = await userState.createProperty('expired_at');
+  let expiredAt = await expiredAtProperty.get(context);
+  let locationProperty = await userState.createProperty('location');
+  let location = await locationProperty.get(context);
+  let professionProperty = await userState.createProperty('profession');
+  let profession = await professionProperty.get(context);
+  let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
+  let readyToConversation = await readyToConversationProperty.get(context);
+  let recentUsersProperty = await userState.createProperty('recent_users');
+  let recentUsers = await recentUsersProperty.get(context, []);
 
   return {
-    context,
-    conversationWith,
-    conversationWithProperty,
-    expiredAt,
-    expiredAtProperty,
-    readyToConversation,
-    readyToConversationProperty,
     userState,
+    context,
+    communityProperty,
+    community,
+    conversationWithProperty,
+    conversationWith,
+    expiredAtProperty,
+    expiredAt,
+    englishLevelProperty,
+    englishLevel,
+    locationProperty,
+    location,
+    professionProperty,
+    profession,
+    readyToConversationProperty,
+    readyToConversation,
+    recentUsersProperty,
+    recentUsers,
   };
 };
 
@@ -242,7 +260,7 @@ const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
 
 const middlewares = {
   spawn: async (bot, next) => {
-    console.log('[spawn]:'/*, bot*/);
+    console.log('[spawn]:', bot);
 
     // call next, or else the message will be intercepted
     next();
@@ -250,7 +268,7 @@ const middlewares = {
 
   ingest: async (bot, message, next) => {
     // await resetUsersConvoWithProperties(bot, message);
-    console.log('[ingest]:'/* , message */);
+    console.log('[ingest]:' , message );
 
     await controller.trigger(['mark_seen'], bot, message);
 
@@ -276,48 +294,43 @@ const middlewares = {
          * #BEGIN Conversation with user
          */
         try {
-          let from = await getUserContextProperties(bot, message);
+          let senderProperties = await getUserContextProperties(bot, message);
 
-          // #BEGIN Set conversation's properties
-          if (from.conversationWith === undefined) {
-            await from.readyToConversationProperty.set(from.context, 'busy');
-            await from.conversationWithProperty.set(from.context, target);
-            await from.expiredAtProperty.set(from.context, Date.now() + 86400000); // 1 day
-          }
-          // #END Set conversation's properties
-          from = await getUserContextProperties(bot, message);
-
+          // Update sender properties info
+          senderProperties = await getUserContextProperties(bot, message);
           const dialogBot = await controller.spawn(message.sender.id);
           await dialogBot.startConversationWithUser(target);
 
-          const to = await getUserContextProperties(dialogBot, message);
+          let recipientProperties = await getUserContextProperties(dialogBot, message);
 
           // #BEGIN Sync session expiration time
-          await from.expiredAtProperty.set(from.context, to.expiredAt);
-          await from.userState.saveChanges(from.context);
+          const sessionExpiredAt = senderProperties.expiredAt < recipientProperties.expiredAt ? !recipientProperties.expiredAt ? recipientProperties.expiredAt : (Date.now() + (1000 * 60 * 60 * 24 * 2)) : senderProperties.expiredAt;
 
-          await to.expiredAtProperty.set(to.context, to.expiredAt);
-          await to.userState.saveChanges(to.context);
+          await senderProperties.expiredAtProperty.set(senderProperties.context, sessionExpiredAt);
+          await senderProperties.userState.saveChanges(senderProperties.context);
+
+          await recipientProperties.expiredAtProperty.set(recipientProperties.context, sessionExpiredAt);
+          await recipientProperties.userState.saveChanges(recipientProperties.context);
           // #END Sync session expiration time
 
           /**
-           * Start session timer
+           * @TODO Start session timer
            */
-          if (from.conversationWith === undefined) {
-            sessionTimerStart();
-          }
+          // if (senderProperties.conversationWith === undefined) {
+          //   sessionTimerStart();
+          // }
 
-          // if (Date.now() < to.expiredAt) { // [OK]
+          if (Date.now() < recipientProperties.expiredAt) { // [OK]
             /**
              * #BEGIN Bot typing
              */
             await controller.trigger(['sender_action_typing'], dialogBot, {
               options: { recipient: { id: target } },
             });
-            // message.text += `\n\n[Session expired at: ${new Date(to.expiredAt).toLocaleString()}]`;
+            // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expiredAt).toLocaleString()}]`;
 
             /**
-             * Send message to conversation
+             * Send message recipientProperties conversation
              */
             await dialogBot.say({ // [OK]
               // textHighlights: 'text highlights',
@@ -325,10 +338,10 @@ const middlewares = {
               sender: { id: message.sender.id },
               text: message.text,
             });
-          // } else if (Date.now() > to.expiredAt) {
-          //   await resetUsersConvoWithProperties(dialogBot, message);
-          //   await resetUsersConvoWithProperties(bot, message);
-          // }
+          } else if (Date.now() > recipientProperties.expiredAt) {
+            await resetUsersConvoWithProperties(dialogBot, message);
+            await resetUsersConvoWithProperties(bot, message);
+          }
 
         } catch(error) {
           console.error('[bot.js:347 ERROR]:', error);
@@ -368,7 +381,6 @@ const middlewares = {
             },
           },
         };
-        // await dialogBot.changeContext(message.reference);
         await dialogBot.startConversationWithUser(target);
         await resetUsersConvoWithProperties(dialogBot, messageRef);
       }
@@ -379,7 +391,7 @@ const middlewares = {
   },
 
   send: async (bot, message, next) => { // [OK]
-    console.log('[send]:'/*, message*/);
+    console.log('[send]:', message);
 
     // v1
     if (message.channelData.sender !== undefined &&
@@ -407,14 +419,14 @@ const middlewares = {
   },
 
   receive: async (bot, message, next) => {
-    console.log('[receive]:'/*, message*/);
+    console.log('[receive]:', message);
 
     // call next, or else the message will be intercepted
     next();
   },
 
   interpret: async (bot, message, next) => {
-    console.log('[interpret]:'/*, message*/);
+    console.log('[interpret]:', message);
 
     // call next, or else the message will be intercepted
     next();

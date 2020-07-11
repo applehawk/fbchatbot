@@ -91,7 +91,7 @@ module.exports = async (controller) => {
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                 await bot.replaceDialog(GREETING_ID, { username, profilePic });
             } catch(error) {
-                console.error('[start.js:87 ERROR]:', error);
+                console.error('[start.js:94 ERROR]:', error);
             }
         // } else {
             /**

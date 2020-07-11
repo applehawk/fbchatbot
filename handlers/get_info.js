@@ -70,7 +70,7 @@ module.exports = async (controller) => {
     try {
       await payload.bot.api.callAPI('/me/messages', 'POST', options);
     } catch(error) {
-      console.error('[get_info.js:63 ERROR]', error);
+      console.error('[get_info.js:73 ERROR]', error);
     }
   };
 
