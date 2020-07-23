@@ -9,41 +9,49 @@ module.exports = async (controller) => {
   const getUserContextProperties = async (bot, message) => { // [OK]
     let userState = new UserState(controller.storage);
     let context = bot.getConfig('context');
+
     let communityProperty = await userState.createProperty('community');
-    let community = await communityProperty.get(context);
     let conversationWithProperty = await userState.createProperty('conversation_with');
-    let conversationWith = await conversationWithProperty.get(context);
     let englishLevelProperty = await userState.createProperty('english_level');
-    let englishLevel = await englishLevelProperty.get(context);
     let expiredAtProperty = await userState.createProperty('expired_at');
-    let expiredAt = await expiredAtProperty.get(context);
+    let facebookURLProperty = await userState.createProperty('facebook_url');
     let locationProperty = await userState.createProperty('location');
-    let location = await locationProperty.get(context);
     let professionProperty = await userState.createProperty('profession');
-    let profession = await professionProperty.get(context);
     let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-    let readyToConversation = await readyToConversationProperty.get(context);
     let recentUsersProperty = await userState.createProperty('recent_users');
+
+    let community = await communityProperty.get(context);
+    let conversationWith = await conversationWithProperty.get(context);
+    let englishLevel = await englishLevelProperty.get(context);
+    let expiredAt = await expiredAtProperty.get(context);
+    let facebookURL = await facebookURLProperty.get(context);
+    let location = await locationProperty.get(context);
+    let profession = await professionProperty.get(context);
+    let readyToConversation = await readyToConversationProperty.get(context);
     let recentUsers = await recentUsersProperty.get(context, []);
 
     return {
-      userState,
       context,
+      userState,
+
       communityProperty,
-      community,
       conversationWithProperty,
-      conversationWith,
-      expiredAtProperty,
-      expiredAt,
       englishLevelProperty,
-      englishLevel,
+      expiredAtProperty,
+      facebookURLProperty,
       locationProperty,
-      location,
       professionProperty,
-      profession,
       readyToConversationProperty,
-      readyToConversation,
       recentUsersProperty,
+
+      community,
+      conversationWith,
+      englishLevel,
+      expiredAt,
+      facebookURL,
+      location,
+      profession,
+      readyToConversation,
       recentUsers,
     };
   };
@@ -88,7 +96,7 @@ module.exports = async (controller) => {
       //         console.log(`start a dialogue with user: ${answerText}`);
       //         await convo.stop();
       //       } catch(error) {
-      //         console.error('[start_dialog.js:63 ERROR]', error);
+      //         console.error('[start_dialog.js:99 ERROR]', error);
       //         await convo.stop();
       //       }
       //     },
@@ -272,7 +280,7 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error('[start_dialog.js:275 ERROR]', error);
+                  console.error('[start_dialog.js:283 ERROR]', error);
                   await convo.stop();
                 }
               }, { key: 'confirmation' });
@@ -286,15 +294,20 @@ module.exports = async (controller) => {
 
       await dialog.after(async (results, bot) => {
         console.log('dialog after:', results);
+        if (results.text === 'getstarted_payload') {
+          await controller.trigger(['start'], bot, results);
+          return;
+        }
+
         /**
          * Start matching
          */
-        const senderProperties = await getUserContextProperties(bot, results);
+        // const senderProperties = await getUserContextProperties(bot, results);
 
-        if (senderProperties.readyToConversation === 'ready') {
-          results.value = undefined;
-          await controller.trigger(['start_match'], bot, results);
-        }
+        // if (senderProperties.readyToConversation === 'ready') {
+        //   results.value = undefined;
+        //   await controller.trigger(['start_match'], bot, results);
+        // }
       });
 
       await controller.addDialog(dialog);
@@ -380,7 +393,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error('[start_dialog.js:383 ERROR]', error);
+      console.error('[start_dialog.js:396 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });

@@ -3,20 +3,21 @@
 const { UserState } = require('botbuilder');
 
 const {
-    ONBOARDING_1,
-    ONBOARDING_2_1,
-    ONBOARDING_2_2,
-    ONBOARDING_2_3,
-    ONBOARDING_3,
-    ONBOARDING_4_1,
-    ONBOARDING_4_2,
-    ONBOARDING_5,
-    ONBOARDING_6_1,
-    ONBOARDING_6_2,
-    ONBOARDING_6_3,
-    ONBOARDING_6_4,
-    ONBOARDING_7,
-    ONBOARDING_8,
+    ONBOARDING_LOCATION,
+    ONBOARDING_PROFESSION_1,
+    ONBOARDING_PROFESSION_2,
+    ONBOARDING_PROFESSION_3,
+    ONBOARDING_ENGLISH_LEVEL,
+    ONBOARDING_ABOUT_YOURSELF_1,
+    ONBOARDING_ABOUT_YOURSELF_2,
+    ONBOARDING_COMMUNITY,
+    ONBOARDING_WHO_INTRODUCE_IN_1,
+    ONBOARDING_WHO_INTRODUCE_IN_2,
+    ONBOARDING_WHO_INTRODUCE_IN_3,
+    ONBOARDING_WHO_INTRODUCE_IN_4,
+    ONBOARDING_RESULTS,
+    ONBOARDING_THANKS,
+    ONBOARDING_FB_URL,
 
     communityDict,
     englishLevelDict,
@@ -71,36 +72,9 @@ module.exports = async (controller) => {
         return items;
     };
 
-    // // #BEGIN User Name
-    // // ask a question, store the responses
-    // onboarding.ask({
-    //     text: askUsernameStr,
-    // }, async (response, convo, bot, message) => {
-    //     try {
-    //         data = { ...convo.vars };
-    //         console.log(`User has name: ${response}`);
-    //     } catch(error) {
-    //         console.error(error);
-    //     }
-    // }, { key: 'username' });
-    // // #END User Name
-
-    // // [?][?][?]
-    // // #BEGIN Facebook URL
-    // await onboarding.ask({
-    //     text: askFacebookUrlStr,
-    // }, async (response, convo, bot, message) => {
-    //     try {
-    //         console.log(`Facebook url: ${response}`);
-    //     } catch(error) {
-    //         console.error(error);
-    //     }
-    // }, { key: 'facebook_url' });
-    // // #END Facebook URL
-
     // #BEGIN Location
     await onboarding.ask({
-        text: ONBOARDING_1,
+        text: ONBOARDING_LOCATION,
     }, async (response, convo, bot, message) => {
         await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
@@ -112,11 +86,6 @@ module.exports = async (controller) => {
             console.log(`User has location: ${response}`);
             message.value = 'Step 4 City question';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-            // #BEGIN Profession
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-            await bot.say(ONBOARDING_2_1);
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-            await bot.say(ONBOARDING_2_2);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         // } else {
         //     await convo.repeat();
@@ -125,9 +94,36 @@ module.exports = async (controller) => {
     }, { key: 'location' });
     // #END Location
 
+    // #BEGIN Facebook URL
+    await onboarding.ask({
+        text: ONBOARDING_FB_URL,
+    }, async (response, convo, bot, message) => {
+        await controller.trigger(['mark_seen'], bot, message);
+        if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+            Object.assign(convo.vars, message);
+            await convo.stop();
+        } else {
+            const regexp = new RegExp(/^(https?):\/\/(www\.)?(facebook\.com)?([^\s\/?\.#-]+\.?)+(\/[^\s]*)?$/i);
+            if (!!response.match(regexp)) {
+                console.log(`User Facebook profile link: ${response}`);
+                message.value = 'Step 5 Facebook Propfile';
+                await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+                // #BEGIN Profession
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                await bot.say(ONBOARDING_PROFESSION_1);
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                await bot.say(ONBOARDING_PROFESSION_2);
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            } else {
+                await convo.repeat();
+            }
+        }
+    }, { key: 'facebook_url' });
+    // #END Facebook URL
+
     // #BEGIN Profession
     await onboarding.ask({
-        text: ONBOARDING_2_3,
+        text: ONBOARDING_PROFESSION_3,
     }, async (response, convo, bot, message) => {
         await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
@@ -136,8 +132,7 @@ module.exports = async (controller) => {
         } else {
         // const regexp = new RegExp(/(\s|\d)+?/gius);
         // if (!regexp.test(response)) {
-            console.log('response:', response, bot, message);
-            message.value = 'Step 5 Professional activities';
+            message.value = 'Step 6 Professional activities';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             console.log(`User has Profession: ${response}`);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -150,7 +145,7 @@ module.exports = async (controller) => {
 
     // #BEGIN English Level
     await onboarding.ask({
-        text: ONBOARDING_3,
+        text: ONBOARDING_ENGLISH_LEVEL,
         quick_replies: [ ...getDictItems(englishLevelDict) ],
     }, async (response, convo, bot, message) => {
         await controller.trigger(['mark_seen'], bot, message);
@@ -159,12 +154,12 @@ module.exports = async (controller) => {
             await convo.stop();
         } else {
             if (englishLevelDict.includes(response)) {
-                message.value = 'Step 6 English level';
+                message.value = 'Step 7 English level';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                 console.log(`User has EnglishLevel: ${response}`);
                 // #BEGIN About Yourself
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                await bot.say(ONBOARDING_4_1);
+                await bot.say(ONBOARDING_ABOUT_YOURSELF_1);
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             } else {
                 await convo.repeat();
@@ -175,7 +170,7 @@ module.exports = async (controller) => {
 
     // #BEGIN About Yourself
     await onboarding.ask({
-        text: ONBOARDING_4_2,
+        text: ONBOARDING_ABOUT_YOURSELF_2,
     }, async (response, convo, bot, message) => {
         await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
@@ -183,7 +178,7 @@ module.exports = async (controller) => {
             await convo.stop();
         } else {
             console.log(`User about yourself: ${response}`);
-            message.value = 'Step 7 Passion';
+            message.value = 'Step 8 Passion';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         }
@@ -205,7 +200,7 @@ module.exports = async (controller) => {
     // #BEGIN Community
 /*  // [OK][-]
     await onboarding.addQuestion({
-        text: ONBOARDING_5,
+        text: ONBOARDING_COMMUNITY,
         quick_replies: [ ...getDictItems(communityDict) ],
     }, [
         {
@@ -231,7 +226,7 @@ module.exports = async (controller) => {
     ], { key: 'community' });
 */
     await onboarding.ask({
-        text: ONBOARDING_5,
+        text: ONBOARDING_COMMUNITY,
         quick_replies: [ ...getDictItems(communityDict) ],
     }, async (response, convo, bot, message) => {
         await controller.trigger(['mark_seen'], bot, message);
@@ -241,16 +236,16 @@ module.exports = async (controller) => {
         } else {
             if (communityDict.includes(response)) {
                 console.log(`User has Community: ${response}`);
-                message.value = 'Step 8 Community';
+                message.value = 'Step 9 Community';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                 // #BEGIN About ExpertIn
 
                 //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                //await bot.say(ONBOARDING_6_1);
+                //await bot.say(ONBOARDING_WHO_INTRODUCE_IN_1);
                 //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                //await bot.say(ONBOARDING_6_2);
+                //await bot.say(ONBOARDING_WHO_INTRODUCE_IN_2);
                 //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                //await bot.say(ONBOARDING_6_3);
+                //await bot.say(ONBOARDING_WHO_INTRODUCE_IN_3);
                 //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             } else {
                 await convo.repeat();
@@ -262,7 +257,7 @@ module.exports = async (controller) => {
     // #BEGIN About ExpertIn
     /*
     await onboarding.ask({
-        text: ONBOARDING_6_4,
+        text: ONBOARDING_WHO_INTRODUCE_IN_4,
     }, async (response, convo, bot, message) => {
         await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
@@ -281,7 +276,7 @@ module.exports = async (controller) => {
      * Inform to the user about self
      */
     await onboarding.ask({ // [OK]
-        text: ONBOARDING_7,
+        text: ONBOARDING_RESULTS,
         quick_replies: [{
             title: 'All right. Let’s go!',
             payload: 'All right. Let’s go!',
@@ -296,9 +291,6 @@ module.exports = async (controller) => {
                 message.value = 'Finish Onboarding';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                if (process.env.NODE_ENV !== 'production') {
-                    // await controller.trigger(['start_match'], bot, message);
-                }
                 Object.assign(convo.vars, message);
                 await convo.stop();
             } else {
@@ -321,45 +313,43 @@ module.exports = async (controller) => {
 
             const context = bot.getConfig('context');
 
-            const usernameProperty = userState.createProperty('username');
-            const profilePicProperty = userState.createProperty('profile_pic');
-            // const facebookURLProperty = userState.createProperty('facebook_url');
-            const communityProperty = userState.createProperty('community');
-            const englishLevelProperty = userState.createProperty('english_level');
-            const locationProperty = userState.createProperty('location');
-            const professionProperty = userState.createProperty('profession');
-            const aboutYouselfProperty = userState.createProperty('about_yourself');
             // const aboutExpertInProperty = userState.createProperty('about_expertin');
             const aboutWhoIntroduceIn = userState.createProperty('who_introducein');
+            const aboutYouselfProperty = userState.createProperty('about_yourself');
+            const communityProperty = userState.createProperty('community');
+            const conversationWithProperty = userState.createProperty('conversation_with');
+            const englishLevelProperty = userState.createProperty('english_level');
+            const facebookURLProperty = userState.createProperty('facebook_url');
+            const locationProperty = userState.createProperty('location');
+            const professionProperty = userState.createProperty('profession');
+            const profilePicProperty = userState.createProperty('profile_pic');
             const readyToConversationProperty = userState.createProperty('ready_to_conversation');
             const recentUsersProperty = userState.createProperty('recent_users');
+            const usernameProperty = userState.createProperty('username');
 
+            // await aboutExpertInProperty.set(context, results.about_expertin);
+            await aboutWhoIntroduceIn.set(context, results.who_introducein);
+            await aboutYouselfProperty.set(context, results.about_yourself);
             await communityProperty.set(context, communityDict.indexOf(results.community));
-            await locationProperty.set(context, results.location);
+            await conversationWithProperty.set(context, 0);
             await englishLevelProperty.set(
                 context,
                 englishLevelDict.indexOf(results.english_level)
             );
-            // await facebookURLProperty.set(context, results.facebook_url);
-            await usernameProperty.set(context, results.username);
-            await profilePicProperty.set(context, results.profilePic);
+            await facebookURLProperty.set(context, results.facebook_url);
+            await locationProperty.set(context, results.location);
             await professionProperty.set(context, results.profession);
-            await aboutYouselfProperty.set(context, results.about_yourself);
-            // await aboutExpertInProperty.set(context, results.about_expertin);
-            await aboutWhoIntroduceIn.set(context, results.who_introducein);
+            await profilePicProperty.set(context, results.profilePic);
             await readyToConversationProperty.set(context, 'ready'); // results.ready_to_conversation
             await recentUsersProperty.set(context, []);
+            await usernameProperty.set(context, results.username);
 
             /**
              * Save User's Info
              */
             await userState.saveChanges(context);
 
-            // const activity = context._activity;
-            // const userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
-
             const recipient = {
-                // id: userId,
                 id: results.sender.id,
             };
 
@@ -368,7 +358,7 @@ module.exports = async (controller) => {
              */
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
-            await bot.say(ONBOARDING_8);
+            await bot.say(ONBOARDING_THANKS);
 
             /**
              * #BEGIN Bot typing
@@ -425,9 +415,9 @@ module.exports = async (controller) => {
              * Start matching
              */
             results.value = undefined;
-            await controller.trigger(['start_match'], bot, results);
+            // await controller.trigger(['start_match'], bot, results);
         } catch(error) {
-            console.error('[onboarding.js:437 ERROR]:', error);
+            console.error('[onboarding.js:420 ERROR]:', error);
         };
     });
 };

@@ -13,6 +13,8 @@ const { FacebookAdapter, FacebookEventTypeMiddleware } = require('botbuilder-ada
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
 
+const CronJob = require('cron').CronJob;
+
 const { USER_DIALOG_SESSION_EXPIRED } = require('./constants.js');
 
 /*process.on('unhandledRejection', (reason, p) => {
@@ -128,41 +130,49 @@ const conversations = [];
 const getUserContextProperties = async (bot, message) => { // [OK]
   let userState = new UserState(controller.storage);
   let context = bot.getConfig('context');
+
   let communityProperty = await userState.createProperty('community');
-  let community = await communityProperty.get(context);
   let conversationWithProperty = await userState.createProperty('conversation_with');
-  let conversationWith = await conversationWithProperty.get(context);
   let englishLevelProperty = await userState.createProperty('english_level');
-  let englishLevel = await englishLevelProperty.get(context);
   let expiredAtProperty = await userState.createProperty('expired_at');
-  let expiredAt = await expiredAtProperty.get(context);
+  let facebookURLProperty = await userState.createProperty('facebook_url');
   let locationProperty = await userState.createProperty('location');
-  let location = await locationProperty.get(context);
   let professionProperty = await userState.createProperty('profession');
-  let profession = await professionProperty.get(context);
   let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-  let readyToConversation = await readyToConversationProperty.get(context);
   let recentUsersProperty = await userState.createProperty('recent_users');
+
+  let community = await communityProperty.get(context);
+  let conversationWith = await conversationWithProperty.get(context);
+  let englishLevel = await englishLevelProperty.get(context);
+  let expiredAt = await expiredAtProperty.get(context);
+  let facebookURL = await facebookURLProperty.get(context);
+  let location = await locationProperty.get(context);
+  let profession = await professionProperty.get(context);
+  let readyToConversation = await readyToConversationProperty.get(context);
   let recentUsers = await recentUsersProperty.get(context, []);
 
   return {
-    userState,
     context,
+    userState,
+
     communityProperty,
-    community,
     conversationWithProperty,
-    conversationWith,
-    expiredAtProperty,
-    expiredAt,
     englishLevelProperty,
-    englishLevel,
+    expiredAtProperty,
+    facebookURLProperty,
     locationProperty,
-    location,
     professionProperty,
-    profession,
     readyToConversationProperty,
-    readyToConversation,
     recentUsersProperty,
+
+    community,
+    conversationWith,
+    englishLevel,
+    expiredAt,
+    facebookURL,
+    location,
+    profession,
+    readyToConversation,
     recentUsers,
   };
 };
@@ -213,11 +223,13 @@ const sessionTimerStart = async () => {
 const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
   const {
     context,
-    conversationWith,
+    userState,
+
     conversationWithProperty,
     expiredAtProperty,
     readyToConversationProperty,
-    userState,
+
+    conversationWith,
   } = await getUserContextProperties(bot, message);
 
   delete conversations[conversationWith];
@@ -249,7 +261,7 @@ const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
   await bot.cancelAllDialogs();
   message.value = undefined;
 
-  await controller.trigger(['start_match'], bot, message);
+  // await controller.trigger(['start_match'], bot, message);
 
   return result;
 };
@@ -260,7 +272,7 @@ const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
 
 const middlewares = {
   spawn: async (bot, next) => {
-    console.log('[spawn]:', bot);
+    console.log('[spawn]:'/*, bot*/);
 
     // call next, or else the message will be intercepted
     next();
@@ -268,7 +280,7 @@ const middlewares = {
 
   ingest: async (bot, message, next) => {
     // await resetUsersConvoWithProperties(bot, message);
-    console.log('[ingest]:' , message );
+    console.log('[ingest]:'/*, message*/);
 
     await controller.trigger(['mark_seen'], bot, message);
 
@@ -391,7 +403,7 @@ const middlewares = {
   },
 
   send: async (bot, message, next) => { // [OK]
-    console.log('[send]:', message);
+    console.log('[send]:'/*, message*/);
 
     // v1
     if (message.channelData.sender !== undefined &&
@@ -400,7 +412,7 @@ const middlewares = {
 
       conversations[message.recipient.id] = message.channelData.sender.id;
     }
-    console.log('[bot.js:368 conversations]:', conversations);
+    // console.log('[bot.js:413 conversations]:', conversations);
 
     // // v2
     // const from = await getUserContextProperties(bot, message);
@@ -419,14 +431,14 @@ const middlewares = {
   },
 
   receive: async (bot, message, next) => {
-    console.log('[receive]:', message);
+    console.log('[receive]:'/*, message*/);
 
     // call next, or else the message will be intercepted
     next();
   },
 
   interpret: async (bot, message, next) => {
-    console.log('[interpret]:', message);
+    console.log('[interpret]:'/*, message*/);
 
     // call next, or else the message will be intercepted
     next();
@@ -472,4 +484,82 @@ controller.ready(async () => {
         Object.keys(controller._interrupts).join('\n')
     }\n[READY]\n`
   );
+
+  /**
+   * #BEGIN Sheduling Automation
+   */
+  const bot = await controller.spawn();
+  const { id: botId } = await bot.api.callAPI('/me', 'GET');
+
+  await storage.connect();
+
+  const docs = await storage.Collection.find();
+  const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
+    if (_id.match('facebook/users') && state.ready_to_conversation === 'ready') {
+      const id = _id.match(/\/(\d+)\/$/)[1];
+      if (!!id) {
+        accum[_id] = { id, state };
+      }
+    }
+    return accum;
+  }, {});
+
+  if (Object.keys(users).length) {
+    const job = new CronJob(
+      // Seconds: 0-59
+      // Minutes: 0-59
+      // Hours: 0-23
+      // Day of Month: 1-31
+      // Months: 0-11 (Jan-Dec)
+      // Day of Week: 0-6 (Sun-Sat)
+      '00 00 12 * * *',
+      function() {
+        Object.values(users).forEach(({ id, state }, i) => {
+          const messageRef = {
+            recipient: { id },
+            sender: { id },
+            user: id,
+            channel: id,
+            value: undefined,
+            message: { text: '' },
+            text: '',
+            reference: {
+              // ...message.reference,
+              activityId: undefined,
+              user: { id, name: id },
+              bot: { id: botId },
+              conversation: { id },
+            },
+            incoming_message: {
+              // ...message.incoming_message,
+              channelId: 'facebook',
+              conversation: { id },
+              from: { id, name: id },
+              recipient: { id, name: id },
+              channelData: {
+                // ...message.incoming_message.channelData,
+                sender: { id },
+              },
+            },
+          };
+
+          const task = setTimeout(async () => {
+            const dialogBot = await controller.spawn(botId);
+            await dialogBot.startConversationWithUser(id);
+            await controller.trigger(['match'], dialogBot, messageRef);
+          }, 200 * i);
+        });
+      },
+      null,
+      false,
+      'Europe/Moscow'
+    );
+    // Use this if the 4th param is default value(false)
+    job.start();
+
+  }
+  /**
+   * #END Sheduling Automation
+   */
 });
+
