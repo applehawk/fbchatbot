@@ -82,8 +82,8 @@ module.exports = async (controller) => {
 
       await bot.api.callAPI('/me/messages', 'POST', options);
 
+      const rUsers = [];
       if (recentUsers.length) {
-        const rUsers = [];
         recentUsers.forEach(user => {
           rUsers.push(user.match(/(\d+)\/$/)[1]);
         });

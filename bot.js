@@ -280,7 +280,7 @@ const middlewares = {
 
   ingest: async (bot, message, next) => {
     // await resetUsersConvoWithProperties(bot, message);
-    console.log('[ingest]:'/*, message*/);
+    console.log('[ingest]:', message);
 
     await controller.trigger(['mark_seen'], bot, message);
 
@@ -299,8 +299,8 @@ const middlewares = {
         /**
          * Clear matching timer
          */
-        clearTimeout(message.value);
-        message.value = null;
+        // clearTimeout(message.value);
+        // message.value = null;
 
         /**
          * #BEGIN Conversation with user
@@ -356,7 +356,7 @@ const middlewares = {
           }
 
         } catch(error) {
-          console.error('[bot.js:347 ERROR]:', error);
+          console.error('[bot.js:357 ERROR]:', error);
         }
         /**
          * #END Conversation with user
@@ -412,7 +412,7 @@ const middlewares = {
 
       conversations[message.recipient.id] = message.channelData.sender.id;
     }
-    // console.log('[bot.js:413 conversations]:', conversations);
+    console.log('[bot.js:415 conversations]:', conversations);
 
     // // v2
     // const from = await getUserContextProperties(bot, message);
@@ -512,42 +512,45 @@ controller.ready(async () => {
       // Day of Month: 1-31
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
-      '00 00 12 * * *',
+      // '00 00 12 * * *',
+      '00 05 22 * * *',
       function() {
         Object.values(users).forEach(({ id, state }, i) => {
-          const messageRef = {
-            recipient: { id },
-            sender: { id },
-            user: id,
-            channel: id,
-            value: undefined,
-            message: { text: '' },
-            text: '',
-            reference: {
-              // ...message.reference,
-              activityId: undefined,
-              user: { id, name: id },
-              bot: { id: botId },
-              conversation: { id },
-            },
-            incoming_message: {
-              // ...message.incoming_message,
-              channelId: 'facebook',
-              conversation: { id },
-              from: { id, name: id },
-              recipient: { id, name: id },
-              channelData: {
-                // ...message.incoming_message.channelData,
-                sender: { id },
+          // if (i === 0) {
+            const messageRef = {
+              recipient: { id },
+              sender: { id },
+              user: id,
+              channel: id,
+              value: undefined,
+              message: { text: '' },
+              text: '',
+              reference: {
+                // ...message.reference,
+                activityId: undefined,
+                user: { id, name: id },
+                bot: { id: botId },
+                conversation: { id },
               },
-            },
-          };
+              incoming_message: {
+                // ...message.incoming_message,
+                channelId: 'facebook',
+                conversation: { id },
+                from: { id, name: id },
+                recipient: { id, name: id },
+                channelData: {
+                  // ...message.incoming_message.channelData,
+                  sender: { id },
+                },
+              },
+            };
 
-          const task = setTimeout(async () => {
-            const dialogBot = await controller.spawn(botId);
-            await dialogBot.startConversationWithUser(id);
-            await controller.trigger(['match'], dialogBot, messageRef);
-          }, 200 * i);
+            const task = setTimeout(async () => {
+              const dialogBot = await controller.spawn(botId);
+              await dialogBot.startConversationWithUser(id);
+              await controller.trigger(['match'], dialogBot, messageRef);
+            }, 200 * i);
+          // }
         });
       },
       null,
@@ -556,6 +559,7 @@ controller.ready(async () => {
     );
     // Use this if the 4th param is default value(false)
     job.start();
+    console.log(job);
 
   }
   /**

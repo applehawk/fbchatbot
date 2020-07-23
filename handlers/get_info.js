@@ -8,32 +8,32 @@ const {
 module.exports = async (controller) => {
   const formatUserInfo = (user) => { // [OK]
     // if (process.env.NODE_ENV === 'production') {
-      const {
-        community,
-        english_level,
-        location,
-        profession,
-        profile_pic,
-        ready_to_conversation,
-        recent_users,
-        username,
-      } = user.state;
+  const {
+    // community,
+    // english_level,
+    facebook_url,
+    // location,
+    // profession,
+    profile_pic,
+    username,
+  } = user.state;
 
-      return {
-        default_action: {
-          type: 'web_url',
-          url: profile_pic, // <DEFAULT_URL_TO_OPEN>
-          // messenger_extensions: 'FALSE', // <TRUE | FALSE>
-          webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
-        },
-        image_url: profile_pic,
-        title: `${username}`,
-        subtitle: `
-🗺 ${location}
-💬 ${englishLevelDict[english_level]}
-👔 ${communityDict[community]}
-🛠 ${profession}`,
-      };
+  return {
+    default_action: {
+      type: 'web_url',
+      url: facebook_url, // <DEFAULT_URL_TO_OPEN>
+      // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+      webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+    },
+    image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+    title: `${username}`,
+    // subtitle: `🔗 ${!!facebook_url ? facebook_url : 'no link'}`,
+// 🗺 ${location}
+// 💬 ${englishLevelDict[english_level]}
+// 👔 ${communityDict[community]}
+// 🛠 ${profession}`,
+    // buttons: [ ...buttons ],
+  };
 //     } else {
 //       return {
 //         title: `username`,

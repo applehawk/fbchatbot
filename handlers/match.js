@@ -25,14 +25,64 @@ module.exports = async (controller) => {
     //     }];
     // };
 
+    const getUserContextProperties = async (bot, message) => { // [OK]
+        let userState = new UserState(controller.storage);
+        let context = bot.getConfig('context');
+
+        let communityProperty = await userState.createProperty('community');
+        let conversationWithProperty = await userState.createProperty('conversation_with');
+        let englishLevelProperty = await userState.createProperty('english_level');
+        let expiredAtProperty = await userState.createProperty('expired_at');
+        let facebookURLProperty = await userState.createProperty('facebook_url');
+        let locationProperty = await userState.createProperty('location');
+        let professionProperty = await userState.createProperty('profession');
+        let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
+        let recentUsersProperty = await userState.createProperty('recent_users');
+
+        let community = await communityProperty.get(context);
+        let conversationWith = await conversationWithProperty.get(context);
+        let englishLevel = await englishLevelProperty.get(context);
+        let expiredAt = await expiredAtProperty.get(context);
+        let facebookURL = await facebookURLProperty.get(context);
+        let location = await locationProperty.get(context);
+        let profession = await professionProperty.get(context);
+        let readyToConversation = await readyToConversationProperty.get(context);
+        let recentUsers = await recentUsersProperty.get(context, []);
+
+        return {
+          context,
+          userState,
+
+          communityProperty,
+          conversationWithProperty,
+          englishLevelProperty,
+          expiredAtProperty,
+          facebookURLProperty,
+          locationProperty,
+          professionProperty,
+          readyToConversationProperty,
+          recentUsersProperty,
+
+          community,
+          conversationWith,
+          englishLevel,
+          expiredAt,
+          facebookURL,
+          location,
+          profession,
+          readyToConversation,
+          recentUsers,
+        };
+    };
+
     const formatUserInfo = (user, i = 0) => { // [OK]
         // const buttons = [ ...getButtons(user._id) ];
         const {
-            community,
-            english_level,
+            // community,
+            // english_level,
             facebook_url,
-            location,
-            profession,
+            // location,
+            // profession,
             profile_pic,
             username,
         } = user.state;
@@ -40,17 +90,17 @@ module.exports = async (controller) => {
         return {
             default_action: {
                 type: 'web_url',
-                url: profile_pic, // <DEFAULT_URL_TO_OPEN>
+                url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
                 // messenger_extensions: 'FALSE', // <TRUE | FALSE>
                 webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
             },
             image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
             title: `${username}`,
-            subtitle: `🔗 ${!!facebook_url ? facebook_url : 'no link'}
-🗺 ${location}
-💬 ${englishLevelDict[english_level]}
-👔 ${communityDict[community]}
-🛠 ${profession}`,
+            // subtitle: `🔗 ${!!facebook_url ? facebook_url : 'no link'}`,
+// 🗺 ${location}
+// 💬 ${englishLevelDict[english_level]}
+// 👔 ${communityDict[community]}
+// 🛠 ${profession}`,
             // buttons: [ ...buttons ],
         };
     };
@@ -61,6 +111,8 @@ module.exports = async (controller) => {
         Object.values(payload.users).forEach((user, i = 0) => {
             elements.push({ ...formatUserInfo(payload.users[i], i) });
         });
+
+        console.log(payload.users[0]);
 
         const options = { // [OK]
             recipient: payload.message.recipient,
@@ -78,8 +130,22 @@ module.exports = async (controller) => {
 
         try {
             await payload.bot.api.callAPI('/me/messages', 'POST', options);
+
+            const properties = await getUserContextProperties(payload.bot, payload.message);
+
+            await payload.bot.api.callAPI('/me/messages', 'POST', {
+                recipient: payload.message.sender,
+                message: {
+                    // text: `🔗 ${!!properties.facebook_url ? properties.facebook_url : 'no link'}
+                    text: `
+🗺 ${properties.location}
+💬 ${englishLevelDict[properties.englishLevel]}
+👔 ${communityDict[properties.community]}
+🛠 ${properties.profession}`,
+                },
+            });
         } catch(error) {
-            console.error('[match.js:82 ERROR]:', error);
+            console.error('[match.js:147 ERROR]:', error);
         }
     };
 
@@ -134,56 +200,6 @@ module.exports = async (controller) => {
         return docs;
     };
 
-    const getUserContextProperties = async (bot, message) => { // [OK]
-        let userState = new UserState(controller.storage);
-        let context = bot.getConfig('context');
-
-        let communityProperty = await userState.createProperty('community');
-        let conversationWithProperty = await userState.createProperty('conversation_with');
-        let englishLevelProperty = await userState.createProperty('english_level');
-        let expiredAtProperty = await userState.createProperty('expired_at');
-        let facebookURLProperty = await userState.createProperty('facebook_url');
-        let locationProperty = await userState.createProperty('location');
-        let professionProperty = await userState.createProperty('profession');
-        let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-        let recentUsersProperty = await userState.createProperty('recent_users');
-
-        let community = await communityProperty.get(context);
-        let conversationWith = await conversationWithProperty.get(context);
-        let englishLevel = await englishLevelProperty.get(context);
-        let expiredAt = await expiredAtProperty.get(context);
-        let facebookURL = await facebookURLProperty.get(context);
-        let location = await locationProperty.get(context);
-        let profession = await professionProperty.get(context);
-        let readyToConversation = await readyToConversationProperty.get(context);
-        let recentUsers = await recentUsersProperty.get(context, []);
-
-        return {
-          context,
-          userState,
-
-          communityProperty,
-          conversationWithProperty,
-          englishLevelProperty,
-          expiredAtProperty,
-          facebookURLProperty,
-          locationProperty,
-          professionProperty,
-          readyToConversationProperty,
-          recentUsersProperty,
-
-          community,
-          conversationWith,
-          englishLevel,
-          expiredAt,
-          facebookURL,
-          location,
-          profession,
-          readyToConversation,
-          recentUsers,
-        };
-    };
-
     // controller.hears(new RegExp(/^match$/i), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
     controller.on(['match'], async (bot, message) => {
         try {
@@ -211,7 +227,7 @@ module.exports = async (controller) => {
             const users = await chooseWithLevel(payload) || [];
 
             if (Object.keys(users).length) {
-                console.log('[match.js:211 users]:', users);
+                // console.log('[match.js:229 users]:', users);
 
                 /**
                  * Add recipient to sender recent users list
@@ -281,7 +297,7 @@ module.exports = async (controller) => {
                 await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
             }
         } catch (error) {
-            console.error('[match.js:283 ERROR]:', error);
+            console.error('[match.js:299 ERROR]:', error);
         }
     });
 };

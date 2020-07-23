@@ -184,7 +184,8 @@ module.exports = async (controller) => {
                       }],
                     };
 
-                    await controller.trigger(['create_menu'], bot, payload);
+                    // await controller.trigger(['create_menu'], bot, payload);
+                    await controller.trigger(['create_menu'], dialogBot, payload);
                     payload = null;
 
                     /**
