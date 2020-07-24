@@ -65,16 +65,17 @@ module.exports = async (controller) => {
     let senderProperties = await getUserContextProperties(bot, message);
 
     // if (bot.hasActiveDialog() || senderProperties.readyToConversation === 'busy') {
-    //   controller.trigger(['match'], bot, message);
+    //   // controller.trigger(['match'], bot, message);
+    //   return;
     // }
 
-    try {
+    // try {
       /**
        * #BEGIN Bot typing
        */
       await controller.trigger(['sender_action_typing'], bot, { options: { recipient: { id: message.sender.id } } });
 
-      const dialog = new BotkitConversation(recipient.id, controller);
+      // const dialog = new BotkitConversation(recipient.id, controller);
 
       // await dialog.addQuestion({ // [OK]
       //   text: 'Do you want to start a dialogue with user?',
@@ -114,21 +115,21 @@ module.exports = async (controller) => {
 
               // console.log(`start a dialogue with user: ${answerText}`);
 
-              await dialog.ask({ // [OK]
-                text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
-                quick_replies: [{
-                  title: 'Write to partner',
-                  payload: 'yes',
-                }],
-              }, async (answerText, convo, bot, message) => {
+              // await dialog.ask({ // [OK]
+              //   text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
+              //   quick_replies: [{
+              //     title: 'Write to partner',
+              //     payload: 'yes',
+              //   }],
+              // }, async (answerText, convo, bot, message) => {
                 try {
-                  Object.assign(convo.vars, message);
-                  if (message.text === 'Write to partner') {
+                  // Object.assign(convo.vars, message);
+                  // if (message.text === 'Write to partner') {
                     /**
                      * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
                      * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
                      */
-                    await bot.changeContext(message.reference);
+                    // await bot.changeContext(message.reference);
 
                     /**
                      * Set sender properties
@@ -157,7 +158,7 @@ module.exports = async (controller) => {
 
                     await controller.trigger(['create_menu'], bot, payload);
 
-                    const dialogBot = await controller.spawn(recipient.id);
+                    const dialogBot = await controller.spawn(message.sender.id);
                     await dialogBot.startConversationWithUser(recipient.id);
 
                     /**
@@ -209,12 +210,12 @@ module.exports = async (controller) => {
 
                     await dialogBot.say({
                       recipient,
-                      text: message.text,
                       sender: message.sender,
+                      text: message.text,
                     });
 
-                    await convo.stop();
-                  }
+                  //   await convo.stop();
+                  // }
 
                   // await bot.cancelAllDialogs();
 
@@ -280,12 +281,12 @@ module.exports = async (controller) => {
                   //         },
                   //     });
 
-                  await convo.stop();
+                  // await convo.stop();
                 } catch(error) {
                   console.error('[start_dialog.js:285 ERROR]', error);
-                  await convo.stop();
+                  // await convo.stop();
                 }
-              }, { key: 'confirmation' });
+              // }, { key: 'confirmation' });
       //       } catch(error) {
       //         console.error('[start_dialog.js:203 ERROR]', error);
       //         await convo.stop();
@@ -294,27 +295,27 @@ module.exports = async (controller) => {
       //   }
       // ], { key: 'message' });
 
-      await dialog.after(async (results, bot) => {
-        console.log('dialog after:', results);
-        if (results.text === 'getstarted_payload') {
-          await controller.trigger(['start'], bot, results);
-          return;
-        }
+      // await dialog.after(async (results, bot) => {
+      //   console.log('dialog after:', results);
+      //   if (results.text === 'getstarted_payload') {
+      //     await controller.trigger(['start'], bot, results);
+      //     return;
+      //   }
 
-        /**
-         * Start matching
-         */
-        // const senderProperties = await getUserContextProperties(bot, results);
+      //   /**
+      //    * Start matching
+      //    */
+      //   // const senderProperties = await getUserContextProperties(bot, results);
 
-        // if (senderProperties.readyToConversation === 'ready') {
-        //   results.value = undefined;
-        //   await controller.trigger(['start_match'], bot, results);
-        // }
-      });
+      //   // if (senderProperties.readyToConversation === 'ready') {
+      //   //   results.value = undefined;
+      //   //   await controller.trigger(['start_match'], bot, results);
+      //   // }
+      // });
 
-      await controller.addDialog(dialog);
+      // await controller.addDialog(dialog);
 
-      await bot.replaceDialog(recipient.id);
+      // await bot.replaceDialog(recipient.id);
 
       // const { storage } = controller;
       // const context = bot.getConfig('context');
@@ -394,9 +395,9 @@ module.exports = async (controller) => {
       //     // #END Bot typing
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
-    } catch(error) {
-      console.error('[start_dialog.js:398 ERROR]', error);
-      await bot.cancelAllDialogs();
-    }
+    // } catch(error) {
+      // console.error('[start_dialog.js:398 ERROR]', error);
+      // await bot.cancelAllDialogs();
+    // }
   });
 };

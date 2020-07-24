@@ -300,7 +300,6 @@ const middlewares = {
          * #BEGIN Conversation with user
          */
         try {
-
           const dialogBot = await controller.spawn(message.sender.id);
           await dialogBot.startConversationWithUser(target);
 
@@ -328,23 +327,23 @@ const middlewares = {
           // }
 
           if (Date.now() < recipientProperties.expiredAt) { // [OK]
-            /**
-             * #BEGIN Bot typing
-             */
-            await controller.trigger(['sender_action_typing'], dialogBot, {
-              options: { recipient: { id: target } },
-            });
-            // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expiredAt).toLocaleString()}]`;
+            // /**
+            //  * #BEGIN Bot typing
+            //  */
+            // await controller.trigger(['sender_action_typing'], dialogBot, {
+            //   options: { recipient: { id: target } },
+            // });
+            // // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expiredAt).toLocaleString()}]`;
 
-            /**
-             * Send message recipientProperties conversation
-             */
-            await dialogBot.say({ // [OK]
-              // textHighlights: 'text highlights',
-              recipient: { id: target },
-              sender: { id: message.sender.id },
-              text: message.text,
-            });
+            // /**
+            //  * Send message recipientProperties conversation
+            //  */
+            // await dialogBot.say({ // [OK]
+            //   // textHighlights: 'text highlights',
+            //   recipient: { id: target },
+            //   sender: { id: message.sender.id },
+            //   text: message.text,
+            // });
           } else if (Date.now() > recipientProperties.expiredAt) {
             await resetUsersConvoWithProperties(dialogBot, message);
             await resetUsersConvoWithProperties(bot, message);
@@ -470,7 +469,7 @@ controller.ready(async () => {
     // Day of Month: 1-31
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
-    '00 00 12 * * *',
+    '00 00 12 * */1 1',
     // '0 */5 * * * *',
     async () => {
       const bot = await controller.spawn();
@@ -491,41 +490,43 @@ controller.ready(async () => {
 
       if (Object.keys(users).length) {
         Object.values(users).forEach(({ id, state }, i) => {
-          // if (i < 3) {
-            const messageRef = {
-              recipient: { id },
-              sender: { id },
-              user: id,
-              channel: id,
-              value: undefined,
-              message: { text: '' },
-              text: '',
-              reference: {
-                // ...message.reference,
-                activityId: undefined,
-                user: { id, name: id },
-                bot: { id: botId },
-                conversation: { id },
-              },
-              incoming_message: {
-                // ...message.incoming_message,
-                channelId: 'facebook',
-                conversation: { id },
-                from: { id, name: id },
-                recipient: { id, name: id },
-                channelData: {
-                  // ...message.incoming_message.channelData,
-                  sender: { id },
+          if (i < 3) {
+            // if (state.ready_to_conversation === 'ready') {
+              const messageRef = {
+                recipient: { id },
+                sender: { id },
+                user: id,
+                channel: id,
+                value: undefined,
+                message: { text: '' },
+                text: '',
+                reference: {
+                  // ...message.reference,
+                  activityId: undefined,
+                  user: { id, name: id },
+                  bot: { id: botId },
+                  conversation: { id },
                 },
-              },
-            };
+                incoming_message: {
+                  // ...message.incoming_message,
+                  channelId: 'facebook',
+                  conversation: { id },
+                  from: { id, name: id },
+                  recipient: { id, name: id },
+                  channelData: {
+                    // ...message.incoming_message.channelData,
+                    sender: { id },
+                  },
+                },
+              };
 
-            const task = setTimeout(async () => {
-              const dialogBot = await controller.spawn(id);
-              await dialogBot.startConversationWithUser(id);
-              await controller.trigger(['match'], dialogBot, messageRef);
-            }, 1000 * i);
-          // }
+              const task = setTimeout(async () => {
+                const dialogBot = await controller.spawn(id);
+                await dialogBot.startConversationWithUser(id);
+                await controller.trigger(['match'], dialogBot, messageRef);
+              }, 1000 * i);
+            // }
+          }
         });
       }
     },

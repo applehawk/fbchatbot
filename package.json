@@ -4,9 +4,9 @@
   "description": "",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
+    "start": "./patch.sh && node bot.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "heroku-postbuid": "./patch.sh && npm run start"
+    "heroku-postbuid": "npm run start"
   },
   "dependencies": {
     "botbuilder-adapter-facebook": "^1.0.10",

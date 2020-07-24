@@ -368,22 +368,22 @@ module.exports = async (controller) => {
             /**
              * Sending Gif
              */
-            const options = {
-                recipient,
-                message: {
-                    attachment: {
-                        type: 'image',
-                        payload: {
-                            // attachment_id: process.env.GIF_END,
-                            url: GIF_ONBOARDING,
-                            // is_reusable: true,
-                        },
-                    },
-                },
-            };
-            await bot.api.callAPI('/me/messages', 'POST', options);
+            // const options = {
+            //     recipient,
+            //     message: {
+            //         attachment: {
+            //             type: 'image',
+            //             payload: {
+            //                 // attachment_id: process.env.GIF_END,
+            //                 url: GIF_ONBOARDING,
+            //                 // is_reusable: true,
+            //             },
+            //         },
+            //     },
+            // };
+            // await bot.api.callAPI('/me/messages', 'POST', options);
 
-            if (process.env.NODE_ENV !== 'production') {
+            if (process.env.NODE_ENV !== 'production') { // [OK][*]
                 /**
                  * Creating user's menu
                  */

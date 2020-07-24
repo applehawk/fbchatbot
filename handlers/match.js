@@ -247,30 +247,113 @@ module.exports = async (controller) => {
                  */
                 await senderProperties.userState.saveChanges(senderProperties.context);
 
-                /**
-                 * Send reply with users info
-                 */
+                // /**
+                //  * Send reply with users info
+                //  */
                 await botSay({ bot, message, users: [users].map(user => user) });
+                    message.text = 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)';
+
+                    await bot.say({
+                      recipient: message.sender,
+                      sender: message.sender,
+                      text: message.text,
+                    });
+                    /**
+                     * Creat menu for sender
+                     */
+                    let payload = {
+                      recipient: message.sender,
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset`,
+                      }],
+                    };
+
+                    await controller.trigger(['create_menu'], bot, payload);
 
                 const id = users['_id'];
                 message.recipient.id = id.match(/(\d+)\/$/)[1];
 
+                    await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
+                    await senderProperties.conversationWithProperty.set(senderProperties.context, message.recipient.id);
+                    await senderProperties.expiredAtProperty.set(senderProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
+
                 const dialogBot = await controller.spawn(message.sender.id);
                 await dialogBot.startConversationWithUser(message.recipient.id);
-                const recipientProperties = await getUserContextProperties(dialogBot, message);
 
                 /**
                  * Set recipient properties
                  */
+                const recipientProperties = await getUserContextProperties(dialogBot, message);
+
+
                 recipientProperties.recentUsers.push(id.replace(message.recipient.id, message.sender.id));
                 await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
 
-                /**
-                 * Save recipientProperties changes to storage
-                 */
-                await recipientProperties.userState.saveChanges(recipientProperties.context);
+                // /**
+                //  * Save recipientProperties changes to storage
+                //  */
+                // await recipientProperties.userState.saveChanges(recipientProperties.context);
 
-                await controller.trigger(['start_dialog'], bot, message);
+                // // await controller.trigger(['start_dialog'], dialogBot, message);
+
+
+                    // const dialogBot = await controller.spawn(message.sender.id);
+                    // await dialogBot.startConversationWithUser(recipient.id);
+
+                    /**
+                     * Set recipient properties
+                     */
+                    // const recipientProperties = await getUserContextProperties(dialogBot, message);
+
+                    await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
+                    await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
+                    await recipientProperties.expiredAtProperty.set(recipientProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
+
+                    /**
+                     * Save recipientProperties changes to storage
+                     */
+                    await recipientProperties.userState.saveChanges(recipientProperties.context);
+
+                    /**
+                     * Create menu for recipient
+                     */
+                    payload = {
+                      recipient: message.recipient,
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset`,
+                      }],
+                    };
+
+                    // await controller.trigger(['create_menu'], bot, payload);
+                    await controller.trigger(['create_menu'], dialogBot, payload);
+                    payload = null;
+
+                    /**
+                     * #BEGIN Bot typing
+                     */
+                    // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+
+                    /**
+                     * Sending information about yourself to parnter
+                     */
+                    // message.recipient = recipient;
+                    // await controller.trigger(['get_info'], dialogBot, message);
+
+                    // /**
+                    //  * #BEGIN Bot typing
+                    //  */
+                    // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+
+
+                    // await dialogBot.say({
+                    //   recipient: message.recipient,
+                    //   sender: message.recipient,
+                    //   text: message.text,
+                    // });
             } else {
                 clearTimeout(message.value);
                 message.value = null;

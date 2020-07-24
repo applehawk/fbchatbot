@@ -1,7 +1,7 @@
 'use strict;'
 
 module.exports = async (controller) => {
-  await controller.on(['create_menu'], async (bot, payload) => {
+  controller.on(['create_menu'], async (bot, payload) => {
     await controller.trigger(['delete_menu'], bot,  payload.recipient);
 
     const menu = {
@@ -16,6 +16,11 @@ module.exports = async (controller) => {
       }],
     };
 
-    await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+    try {
+      await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
+    } catch(error) {
+      console.error('[create_menu.js:22 ERROR]:', payload, error);
+      return;
+    }
   });
 };
