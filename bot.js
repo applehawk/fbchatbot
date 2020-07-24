@@ -490,7 +490,7 @@ controller.ready(async () => {
 
       if (Object.keys(users).length) {
         Object.values(users).forEach(({ id, state }, i) => {
-          if (i < 3) {
+          // if (i < 3) {
             // if (state.ready_to_conversation === 'ready') {
               const messageRef = {
                 recipient: { id },
@@ -526,7 +526,7 @@ controller.ready(async () => {
                 await controller.trigger(['match'], dialogBot, messageRef);
               }, 1000 * i);
             // }
-          }
+          // }
         });
       }
     },
