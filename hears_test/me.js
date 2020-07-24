@@ -50,8 +50,6 @@ module.exports = async (controller) => {
         username,
       };
 
-      // console.log(message, JSON.stringify(payload, null, 2));
-
       const recipient = {
           id: userId,
       };
@@ -67,7 +65,7 @@ module.exports = async (controller) => {
               elements: [{
                 default_action: {
                   type: 'web_url',
-                  url: profilePic, // <DEFAULT_URL_TO_OPEN>
+                  url: !!facebookURL ? facebookURL : profilePic, // <DEFAULT_URL_TO_OPEN>
                   // messenger_extensions: 'FALSE', // <TRUE | FALSE>
                   webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
                 },
@@ -92,8 +90,8 @@ module.exports = async (controller) => {
       await bot.api.callAPI('/me/messages', 'POST', {
         recipient,
         message: {
+// 🔗 ${!!facebookURL ? facebookURL : 'no link'}
           text: `
-🔗 ${!!facebookURL ? facebookURL : 'no link'}
 🗺 ${location}
 💬 ${englishLevelDict[englishLevel]}
 👔 ${communityDict[community]}
@@ -103,7 +101,7 @@ ${recentUsers.length ? '⌛ ' + recentUsers.length + '\n\nRecent user' + (recent
         },
       });
     } catch (error) {
-      console.error(error);
+      console.error('[me.js:104 ERROR]:', error);
     }
   });
 };

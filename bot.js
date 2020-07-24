@@ -232,7 +232,7 @@ const resetUsersConvoWithProperties = async (bot, message) => { // [OK]
     conversationWith,
   } = await getUserContextProperties(bot, message);
 
-  delete conversations[conversationWith];
+  // delete conversations[conversationWith];
 
   await controller.trigger(['delete_menu'], bot, message.sender);
 
@@ -280,22 +280,16 @@ const middlewares = {
 
   ingest: async (bot, message, next) => {
     // await resetUsersConvoWithProperties(bot, message);
-    console.log('[ingest]:', message);
+    console.log('[ingest]:'/*, message*/);
 
     await controller.trigger(['mark_seen'], bot, message);
 
     if (message.type !== 'facebook_postback') {
-      let target = 0;
-
-      if (Object.keys(conversations).includes(message.sender.id)) { // [OK]
-        target = conversations[message.sender.id];
-      } else if (Object.values(conversations).includes(message.sender.id)) {
-        target = Object.keys(conversations)[Object.values(conversations).indexOf(message.sender.id)];
-      }
-
-      console.log('target:', target);
+      let senderProperties = await getUserContextProperties(bot, message);
+      const target = senderProperties.conversationWith;
 
       if (target) { // [OK]
+        console.log(`[bot.js:292 DIALOG]: ${message.sender.id} > ${target}`);
         /**
          * Clear matching timer
          */
@@ -306,10 +300,7 @@ const middlewares = {
          * #BEGIN Conversation with user
          */
         try {
-          let senderProperties = await getUserContextProperties(bot, message);
 
-          // Update sender properties info
-          senderProperties = await getUserContextProperties(bot, message);
           const dialogBot = await controller.spawn(message.sender.id);
           await dialogBot.startConversationWithUser(target);
 
@@ -324,6 +315,10 @@ const middlewares = {
           await recipientProperties.expiredAtProperty.set(recipientProperties.context, sessionExpiredAt);
           await recipientProperties.userState.saveChanges(recipientProperties.context);
           // #END Sync session expiration time
+
+          // Update properties info
+          senderProperties = await getUserContextProperties(bot, message);
+          recipientProperties = await getUserContextProperties(dialogBot, message);
 
           /**
            * @TODO Start session timer
@@ -356,7 +351,7 @@ const middlewares = {
           }
 
         } catch(error) {
-          console.error('[bot.js:357 ERROR]:', error);
+          console.error('[bot.js:354 ERROR]:', error);
         }
         /**
          * #END Conversation with user
@@ -364,36 +359,37 @@ const middlewares = {
       }
     } else {
       if (message.postback.payload.match('reset')) {
-        await resetUsersConvoWithProperties(bot, message);
+        const { conversationWith } = await getUserContextProperties(bot, message);
 
-        const target = message.postback.payload.match(/(\d+)$/)[0];
+        await resetUsersConvoWithProperties(bot, message);
 
         const dialogBot = await controller.spawn(message.sender.id);
 
         const messageRef = {
           ...message,
-          sender: { id: target },
-          user: target,
-          channel: target,
+          sender: { id: conversationWith },
+          user: conversationWith,
+          channel: conversationWith,
           value: undefined,
           reference: {
             ...message.reference,
             activityId: undefined,
-            user: { id: target, name: target },
-            conversation: { id: target },
+            user: { id: conversationWith, name: conversationWith },
+            conversation: { id: conversationWith },
           },
           incoming_message: {
             ...message.incoming_message,
-            conversation: { id: target },
-            from: { id: target, name: target },
+            conversation: { id: conversationWith },
+            from: { id: conversationWith, name: conversationWith },
             recipient: message.recipient,
             channelData: {
               ...message.incoming_message.channelData,
-              sender: { id: target },
+              sender: { id: conversationWith },
             },
           },
         };
-        await dialogBot.startConversationWithUser(target);
+
+        await dialogBot.startConversationWithUser(conversationWith);
         await resetUsersConvoWithProperties(dialogBot, messageRef);
       }
     }
@@ -404,27 +400,6 @@ const middlewares = {
 
   send: async (bot, message, next) => { // [OK]
     console.log('[send]:'/*, message*/);
-
-    // v1
-    if (message.channelData.sender !== undefined &&
-      conversations[message.recipient.id] === undefined &&
-      conversations[message.channelData.sender.id] === undefined) {
-
-      conversations[message.recipient.id] = message.channelData.sender.id;
-    }
-    console.log('[bot.js:415 conversations]:', conversations);
-
-    // // v2
-    // const from = await getUserContextProperties(bot, message);
-    // console.log('from:', from.conversationWith);
-    // if (message.channelData.sender !== undefined &&
-    //   from.conversationWith === message.recipient.id &&
-    //   conversations[message.channelData.sender.id] === undefined) {
-
-    //   conversations[message.recipient.id] = message.channelData.sender.id;
-    // } else {
-    //   console.log(conversations);
-    // }
 
     // call next, or else the message will be intercepted
     next();
@@ -477,46 +452,46 @@ controller.ready(async () => {
 
   console.log(
     `\n[EVENTS]:\n${
-        Object.keys(controller._events).join('\n')
+        Object.keys(controller._events).sort().join('\n')
     }\n\n[TRIGGERS]:\n${
-        Object.keys(controller._triggers).join('\n')
+        Object.keys(controller._triggers).sort().join('\n')
     }\n\n[INTERRUPTS]:\n${
-        Object.keys(controller._interrupts).join('\n')
+        Object.keys(controller._interrupts).sort().join('\n')
     }\n[READY]\n`
   );
 
   /**
    * #BEGIN Sheduling Automation
    */
-  const bot = await controller.spawn();
-  const { id: botId } = await bot.api.callAPI('/me', 'GET');
+  const job = new CronJob(
+    // Seconds: 0-59
+    // Minutes: 0-59
+    // Hours: 0-23
+    // Day of Month: 1-31
+    // Months: 0-11 (Jan-Dec)
+    // Day of Week: 0-6 (Sun-Sat)
+    '00 00 12 * * *',
+    // '0 */5 * * * *',
+    async () => {
+      const bot = await controller.spawn();
+      const { id: botId } = await bot.api.callAPI('/me', 'GET');
 
-  await storage.connect();
+      await storage.connect();
 
-  const docs = await storage.Collection.find();
-  const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
-    if (_id.match('facebook/users') && state.ready_to_conversation === 'ready') {
-      const id = _id.match(/\/(\d+)\/$/)[1];
-      if (!!id) {
-        accum[_id] = { id, state };
-      }
-    }
-    return accum;
-  }, {});
+      const docs = await storage.Collection.find();
+      const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
+        if (_id.match('facebook/users') && state.ready_to_conversation === 'ready') {
+          const id = _id.match(/\/(\d+)\/$/)[1];
+          if (!!id) {
+            accum[_id] = { id, state };
+          }
+        }
+        return accum;
+      }, {});
 
-  if (Object.keys(users).length) {
-    const job = new CronJob(
-      // Seconds: 0-59
-      // Minutes: 0-59
-      // Hours: 0-23
-      // Day of Month: 1-31
-      // Months: 0-11 (Jan-Dec)
-      // Day of Week: 0-6 (Sun-Sat)
-      // '00 00 12 * * *',
-      '00 05 22 * * *',
-      function() {
+      if (Object.keys(users).length) {
         Object.values(users).forEach(({ id, state }, i) => {
-          // if (i === 0) {
+          // if (i < 3) {
             const messageRef = {
               recipient: { id },
               sender: { id },
@@ -546,22 +521,21 @@ controller.ready(async () => {
             };
 
             const task = setTimeout(async () => {
-              const dialogBot = await controller.spawn(botId);
+              const dialogBot = await controller.spawn(id);
               await dialogBot.startConversationWithUser(id);
               await controller.trigger(['match'], dialogBot, messageRef);
-            }, 200 * i);
+            }, 1000 * i);
           // }
         });
-      },
-      null,
-      false,
-      'Europe/Moscow'
-    );
-    // Use this if the 4th param is default value(false)
-    job.start();
-    console.log(job);
+      }
+    },
+    null,
+    false,
+    'Europe/Moscow'
+  );
+  // Use this if the 4th param is default value(false)
+  job.start();
 
-  }
   /**
    * #END Sheduling Automation
    */

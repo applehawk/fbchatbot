@@ -62,10 +62,10 @@ module.exports = async (controller) => {
      */
     const recipient = message.recipient;
 
-    const senderProperties = await getUserContextProperties(bot, message);
+    let senderProperties = await getUserContextProperties(bot, message);
 
-    // if (bot.hasActiveDialog() || readyToConversation === 'busy') {
-    //   return;
+    // if (bot.hasActiveDialog() || senderProperties.readyToConversation === 'busy') {
+    //   controller.trigger(['match'], bot, message);
     // }
 
     try {
@@ -133,6 +133,7 @@ module.exports = async (controller) => {
                     /**
                      * Set sender properties
                      */
+                    senderProperties = await getUserContextProperties(bot, message);
                     await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
                     await senderProperties.conversationWithProperty.set(senderProperties.context, recipient.id);
                     await senderProperties.expiredAtProperty.set(senderProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
@@ -150,13 +151,13 @@ module.exports = async (controller) => {
                       call_to_actions: [{
                         type: 'postback',
                         title: '❌ End a conversation',
-                        payload: `reset ${recipient.id}`,
+                        payload: `reset`,
                       }],
                     };
 
                     await controller.trigger(['create_menu'], bot, payload);
 
-                    const dialogBot = await controller.spawn(message.sender.id);
+                    const dialogBot = await controller.spawn(recipient.id);
                     await dialogBot.startConversationWithUser(recipient.id);
 
                     /**
@@ -176,11 +177,11 @@ module.exports = async (controller) => {
                      * Create menu for recipient
                      */
                     payload = {
-                      recipient: recipient,
+                      recipient,
                       call_to_actions: [{
                         type: 'postback',
                         title: '❌ End a conversation',
-                        payload: `reset ${message.sender.id}`,
+                        payload: `reset`,
                       }],
                     };
 
@@ -197,7 +198,7 @@ module.exports = async (controller) => {
                      * Sending information about yourself to parnter
                      */
                     message.recipient = recipient;
-                    await controller.trigger(['get_info'], bot, message);
+                    await controller.trigger(['get_info'], dialogBot, message);
 
                     /**
                      * #BEGIN Bot typing
@@ -281,7 +282,7 @@ module.exports = async (controller) => {
 
                   await convo.stop();
                 } catch(error) {
-                  console.error('[start_dialog.js:283 ERROR]', error);
+                  console.error('[start_dialog.js:285 ERROR]', error);
                   await convo.stop();
                 }
               }, { key: 'confirmation' });
@@ -394,7 +395,7 @@ module.exports = async (controller) => {
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
     } catch(error) {
-      console.error('[start_dialog.js:396 ERROR]', error);
+      console.error('[start_dialog.js:398 ERROR]', error);
       await bot.cancelAllDialogs();
     }
   });

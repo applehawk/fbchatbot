@@ -112,10 +112,10 @@ module.exports = async (controller) => {
             elements.push({ ...formatUserInfo(payload.users[i], i) });
         });
 
-        console.log(payload.users[0]);
+        // console.log(payload.users[0]);
 
         const options = { // [OK]
-            recipient: payload.message.recipient,
+            recipient: payload.message.sender,
             message: {
                 attachment: {
                     type: 'template',
@@ -131,21 +131,19 @@ module.exports = async (controller) => {
         try {
             await payload.bot.api.callAPI('/me/messages', 'POST', options);
 
-            const properties = await getUserContextProperties(payload.bot, payload.message);
-
             await payload.bot.api.callAPI('/me/messages', 'POST', {
                 recipient: payload.message.sender,
                 message: {
-                    // text: `🔗 ${!!properties.facebook_url ? properties.facebook_url : 'no link'}
+                    // text: `🔗 ${!!payload.users[0].state.facebook_url ? payload.users[0].state.facebook_url : 'no link'}
                     text: `
-🗺 ${properties.location}
-💬 ${englishLevelDict[properties.englishLevel]}
-👔 ${communityDict[properties.community]}
-🛠 ${properties.profession}`,
+🗺 ${payload.users[0].state.location}
+💬 ${englishLevelDict[payload.users[0].state.english_level]}
+👔 ${communityDict[payload.users[0].state.community]}
+🛠 ${payload.users[0].state.profession}`,
                 },
             });
         } catch(error) {
-            console.error('[match.js:147 ERROR]:', error);
+            console.error('[match.js:146 ERROR]:', error);
         }
     };
 
@@ -200,12 +198,11 @@ module.exports = async (controller) => {
         return docs;
     };
 
-    // controller.hears(new RegExp(/^match$/i), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
+    // controller.hears(new RegExp(/^match$/i), ['message'], async (bot, message) => {
     controller.on(['match'], async (bot, message) => {
         try {
             const userId = message.sender.id;
-            // const userId = message.recipient.id;
-            const recipient = { id: userId };
+            const recipient = message.sender;
 
             /**
              * #BEGIN Bot typing
@@ -227,8 +224,6 @@ module.exports = async (controller) => {
             const users = await chooseWithLevel(payload) || [];
 
             if (Object.keys(users).length) {
-                // console.log('[match.js:229 users]:', users);
-
                 /**
                  * Add recipient to sender recent users list
                  */
@@ -257,13 +252,10 @@ module.exports = async (controller) => {
                  */
                 await botSay({ bot, message, users: [users].map(user => user) });
 
-                /**
-                 * Add sender to recipient's recent users list
-                 */
                 const id = users['_id'];
                 message.recipient.id = id.match(/(\d+)\/$/)[1];
 
-                const dialogBot = await controller.spawn(message.recipient.id);
+                const dialogBot = await controller.spawn(message.sender.id);
                 await dialogBot.startConversationWithUser(message.recipient.id);
                 const recipientProperties = await getUserContextProperties(dialogBot, message);
 
@@ -296,8 +288,8 @@ module.exports = async (controller) => {
 
                 await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
             }
-        } catch (error) {
-            console.error('[match.js:299 ERROR]:', error);
+        } catch(error) {
+            console.error('[match.js:292 ERROR]:', error);
         }
     });
 };
