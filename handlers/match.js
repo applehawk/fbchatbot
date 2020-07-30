@@ -38,6 +38,7 @@ module.exports = async (controller) => {
         let professionProperty = await userState.createProperty('profession');
         let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
         let recentUsersProperty = await userState.createProperty('recent_users');
+        let userNameProperty = await userState.createProperty('username');
 
         let community = await communityProperty.get(context);
         let conversationWith = await conversationWithProperty.get(context);
@@ -48,6 +49,7 @@ module.exports = async (controller) => {
         let profession = await professionProperty.get(context);
         let readyToConversation = await readyToConversationProperty.get(context);
         let recentUsers = await recentUsersProperty.get(context, []);
+        let userName = await userNameProperty.get(context);
 
         return {
           context,
@@ -62,6 +64,7 @@ module.exports = async (controller) => {
           professionProperty,
           readyToConversationProperty,
           recentUsersProperty,
+          userNameProperty,
 
           community,
           conversationWith,
@@ -72,6 +75,7 @@ module.exports = async (controller) => {
           profession,
           readyToConversation,
           recentUsers,
+          userName,
         };
     };
 
@@ -242,15 +246,20 @@ module.exports = async (controller) => {
                  */
                 await senderProperties.recentUsersProperty.set(senderProperties.context, senderProperties.recentUsers);
 
-                /**
-                 * Save senderProperties changes to storage
-                 */
-                await senderProperties.userState.saveChanges(senderProperties.context);
-
+                    await bot.say({
+                      recipient: message.sender,
+                      sender: message.sender,
+                      text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
+                    });
+            /**
+             * #BEGIN Bot typing
+             */
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                 // /**
                 //  * Send reply with users info
                 //  */
                 await botSay({ bot, message, users: [users].map(user => user) });
+
                     message.text = 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)';
 
                     await bot.say({
@@ -270,14 +279,23 @@ module.exports = async (controller) => {
                       }],
                     };
 
-                    await controller.trigger(['create_menu'], bot, payload);
-
-                const id = users['_id'];
-                message.recipient.id = id.match(/(\d+)\/$/)[1];
+                    const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
+                    // const expiredAt = Date.now() + (1000 * 60 * 30); // 30 minutes
 
                     await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
                     await senderProperties.conversationWithProperty.set(senderProperties.context, message.recipient.id);
-                    await senderProperties.expiredAtProperty.set(senderProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
+                    await senderProperties.expiredAtProperty.set(senderProperties.context, expiredAt);
+
+                    /**
+                     * Save senderProperties changes to storage
+                     */
+                    await senderProperties.userState.saveChanges(senderProperties.context);
+
+                    await controller.trigger(['create_menu'], bot, payload);
+                    await controller.trigger(['ask_for_scheduled_a_call'], bot, message);
+
+                const id = users['_id'];
+                message.recipient.id = id.match(/(\d+)\/$/)[1];
 
                 const dialogBot = await controller.spawn(message.sender.id);
                 await dialogBot.startConversationWithUser(message.recipient.id);
@@ -286,14 +304,13 @@ module.exports = async (controller) => {
                  * Set recipient properties
                  */
                 const recipientProperties = await getUserContextProperties(dialogBot, message);
-
-
+/*
                 recipientProperties.recentUsers.push(id.replace(message.recipient.id, message.sender.id));
                 await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
-
+*/
                 // /**
                 //  * Save recipientProperties changes to storage
-                //  */
+                // */
                 // await recipientProperties.userState.saveChanges(recipientProperties.context);
 
                 // // await controller.trigger(['start_dialog'], dialogBot, message);
@@ -309,7 +326,7 @@ module.exports = async (controller) => {
 
                     await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
                     await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
-                    await recipientProperties.expiredAtProperty.set(recipientProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
+                    await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
 
                     /**
                      * Save recipientProperties changes to storage
@@ -328,8 +345,8 @@ module.exports = async (controller) => {
                       }],
                     };
 
-                    // await controller.trigger(['create_menu'], bot, payload);
                     await controller.trigger(['create_menu'], dialogBot, payload);
+                    await controller.trigger(['session_check'], dialogBot, message);
                     payload = null;
 
                     /**
@@ -362,7 +379,7 @@ module.exports = async (controller) => {
                  * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
                  * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
                  */
-                await bot.changeContext(message.reference);
+                // await bot.changeContext(message.reference);
 
                 /**
                  * #BEGIN Bot typing

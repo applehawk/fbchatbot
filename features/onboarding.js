@@ -64,9 +64,8 @@ module.exports = async (controller) => {
         const items = [];
         Object.keys(dict).forEach((key, i) => {
             items.push({
-                // content_type: 'text',
-                title: dict[key],
                 payload: i,
+                title: dict[key],
             });
         });
         return items;
@@ -115,6 +114,7 @@ module.exports = async (controller) => {
                 await bot.say(ONBOARDING_PROFESSION_2);
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             } else {
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                 await convo.repeat();
             }
         }
@@ -162,6 +162,7 @@ module.exports = async (controller) => {
                 await bot.say(ONBOARDING_ABOUT_YOURSELF_1);
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             } else {
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                 await convo.repeat();
             }
         }
@@ -248,6 +249,7 @@ module.exports = async (controller) => {
                 //await bot.say(ONBOARDING_WHO_INTRODUCE_IN_3);
                 //await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             } else {
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                 await convo.repeat();
             }
         }
@@ -294,6 +296,7 @@ module.exports = async (controller) => {
                 Object.assign(convo.vars, message);
                 await convo.stop();
             } else {
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                 await convo.repeat();
             }
         }
@@ -357,13 +360,12 @@ module.exports = async (controller) => {
              * #BEGIN Bot typing
              */
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
-
             await bot.say(ONBOARDING_THANKS);
 
-            /**
-             * #BEGIN Bot typing
-             */
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+            // /**
+            //  * #BEGIN Bot typing
+            //  */
+            // await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
             /**
              * Sending Gif

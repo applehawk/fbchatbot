@@ -24,7 +24,7 @@ We are the Random English. An international online platform that is intended for
 
 Are you interested in practicing English?`,
 
-    GREETING_2: `Every Monday and Thursday we will offer you an interesting person for a conversation, selected following your interests among other participants. Are you interested?`,
+    GREETING_2: `Every Monday we will offer you an interesting person for a conversation, selected following your interests among other participants. Are you interested?`,
     GREETING_3: `First of all, you should share with us some information about yourself, your needs and your knowledge. It allows other people to know what topics it will be interesting to discuss with you before the call. Are you ready?`,
     // GREETING_4: `Let me ask you some questions and we will create your profile that will be available to other participants. 🤓`,
     // GREETING_5: `Here we go?`,
@@ -98,7 +98,9 @@ Here are recommendations for effective communication:
 
 3. Think about what common may have and how you can help each other.
 
-4. Prepare a list of links or documents (no more than 5) that you can send after the end of the conversation. (maybe a book, podcast or blog)`,
+4. Prepare a list of links or documents (no more than 5) that you can send after the end of the conversation. (maybe a book, podcast or blog).
+
+Finally, that's all! You will receive a link for a new partner each week on mondays. Our artificial intellect will find you a partner that fits your profile.`,
 
     GIF_GREETING: 'https://media.giphy.com/media/kaHP7Ci7xVFzN8JJbk/giphy.gif',
     GIF_ONBOARDING: 'https://media.giphy.com/media/StXP3dSGStWDBvsCjF/giphy.gif',
