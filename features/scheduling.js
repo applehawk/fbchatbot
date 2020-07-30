@@ -16,8 +16,8 @@ module.exports = async (controller) => {
     // Day of Month: 1-31
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
-    // '00 00 12 * * 1,4',
-    '0 */5 * * * *',
+    '00 00 12 * * 1,4',
+    // '0 */5 * * * *',
     async () => {
       const bot = await controller.spawn();
       const { id: botId } = await bot.api.callAPI('/me', 'GET');
