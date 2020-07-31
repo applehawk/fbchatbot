@@ -6,10 +6,19 @@ module.exports = async (controller) => {
   const SCHEDULED_A_CALL_ID = 'SCHEDULED_A_CALL_ID';
 
   controller.on(['ask_for_scheduled_a_call'], async (bot, message) => {
-    let date = new Date();
-    date.setHours(date.getHours() + 12);
+
+    // [PROD]
     // let date = new Date();
-    // date.setMinutes(date.getMinutes() + 15);
+    // date.setHours(date.getHours() + 48);
+
+    // [STAGING]
+    let date = new Date();
+    date.setMinutes(date.getMinutes() + 30);
+
+    // // [TEST]
+    // let date = new Date();
+    // date.setMinutes(date.getMinutes() + 1);
+
     console.log('now:', new Date().toLocaleString(), 'scheduled:', date.toLocaleString());
 
     const job = new CronJob(
@@ -17,7 +26,7 @@ module.exports = async (controller) => {
       async () => {
         const task = setTimeout(async () => {
           await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-          await bot.replaceDialog(SCHEDULED_A_CALL_ID);
+          await bot.replaceDialog(SCHEDULED_A_CALL_ID, { message });
           job.stop();
         }, 1000);
       },

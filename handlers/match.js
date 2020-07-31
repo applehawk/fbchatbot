@@ -251,13 +251,15 @@ module.exports = async (controller) => {
                       sender: message.sender,
                       text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
                     });
-            /**
-             * #BEGIN Bot typing
-             */
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
-                // /**
-                //  * Send reply with users info
-                //  */
+
+                /**
+                 * #BEGIN Bot typing
+                 */
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+
+                /**
+                 * Send reply with users info
+                 */
                 await botSay({ bot, message, users: [users].map(user => user) });
 
                     message.text = 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)';
@@ -279,12 +281,12 @@ module.exports = async (controller) => {
                       }],
                     };
 
-                    const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
+                    // // const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
                     // const expiredAt = Date.now() + (1000 * 60 * 30); // 30 minutes
 
                     await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
                     await senderProperties.conversationWithProperty.set(senderProperties.context, message.recipient.id);
-                    await senderProperties.expiredAtProperty.set(senderProperties.context, expiredAt);
+                    // await senderProperties.expiredAtProperty.set(senderProperties.context, expiredAt);
 
                     /**
                      * Save senderProperties changes to storage
@@ -304,10 +306,7 @@ module.exports = async (controller) => {
                  * Set recipient properties
                  */
                 const recipientProperties = await getUserContextProperties(dialogBot, message);
-/*
-                recipientProperties.recentUsers.push(id.replace(message.recipient.id, message.sender.id));
-                await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
-*/
+
                 // /**
                 //  * Save recipientProperties changes to storage
                 // */
@@ -326,7 +325,7 @@ module.exports = async (controller) => {
 
                     await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
                     await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
-                    await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
+                    // await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
 
                     /**
                      * Save recipientProperties changes to storage
@@ -346,7 +345,7 @@ module.exports = async (controller) => {
                     };
 
                     await controller.trigger(['create_menu'], dialogBot, payload);
-                    await controller.trigger(['session_check'], dialogBot, message);
+                    // await controller.trigger(['session_check'], dialogBot, message);
                     payload = null;
 
                     /**
