@@ -85,7 +85,7 @@ module.exports = async (controller) => {
             // }
           // } // [DEV]
         });
-        job.stop(); // [DEV]
+        // job.stop(); // [DEV]
       }
     },
     null,
