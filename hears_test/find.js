@@ -8,13 +8,7 @@ const {
 module.exports = async (controller) => {
   const formatUserInfo = (user) => { // [OK]
     const {
-      community,
-      english_level,
-      location,
-      profession,
       profile_pic,
-      ready_to_conversation,
-      recent_users,
       username,
     } = user.state;
 
@@ -27,14 +21,6 @@ module.exports = async (controller) => {
       },
       image_url: profile_pic,
       title: `${username}`,
-      subtitle: `
-🗺 ${location}
-💬 ${englishLevelDict[english_level]}
-👔 ${communityDict[community]}
-🛠 ${profession}
-${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
-⌛ ${recent_users.length}`,
-      // buttons: [ ...buttons ],
     };
   };
 
@@ -45,8 +31,10 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
       elements.push({ ...formatUserInfo(payload.items[i]) });
     });
 
+    const recipient = payload.message.sender;
+
     const options = { // [OK]
-      recipient: payload.message.sender,
+      recipient,
       message: {
         attachment: {
           type: 'template',
@@ -61,6 +49,30 @@ ${ready_to_conversation === 'ready' ? '✔ Ready' : '❗ On Air'}
 
     try {
       await payload.bot.api.callAPI('/me/messages', 'POST', options);
+
+      const {
+        community,
+        english_level,
+        facebook_url,
+        location,
+        profession,
+        ready_to_conversation,
+        recent_users,
+      } = payload.items[0].state;
+
+      await payload.bot.api.callAPI('/me/messages', 'POST', {
+        recipient,
+        message: {
+          text: `
+🔗 ${!!facebook_url ? facebook_url : 'no link'}
+🗺 ${location}
+💬 ${englishLevelDict[english_level]}
+👔 ${communityDict[community]}
+🛠 ${profession}
+📢 ${ready_to_conversation === 'ready' ? 'Ready' : 'Busy'}
+${recent_users.length ? '⌛ ' + recent_users.length : ''}`,
+        },
+      });
     } catch(error) {
       console.error(error);
     }

@@ -8,49 +8,33 @@ const {
 module.exports = async (controller) => {
   const formatUserInfo = (user) => { // [OK]
     // if (process.env.NODE_ENV === 'production') {
-      const {
-        community,
-        english_level,
-        location,
-        profession,
-        profile_pic,
-        ready_to_conversation,
-        recent_users,
-        username,
-      } = user.state;
+    const {
+      // community,
+      // english_level,
+      facebook_url,
+      // location,
+      // profession,
+      profile_pic,
+      username,
+    } = user.state;
 
-      return {
-        default_action: {
-          type: 'web_url',
-          url: profile_pic, // <DEFAULT_URL_TO_OPEN>
-          // messenger_extensions: 'FALSE', // <TRUE | FALSE>
-          webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
-        },
-        image_url: profile_pic,
-        title: `${username}`,
-        subtitle: `
-🗺 ${location}
-💬 ${englishLevelDict[english_level]}
-👔 ${communityDict[community]}
-🛠 ${profession}`,
-      };
-//     } else {
-//       return {
-//         title: `username`,
-//         subtitle: `
-// 🗺 location
-// 💬 english_level
-// 👔 community
-// 🛠 profession`,
-//       };
-//     }
+    return {
+      default_action: {
+        type: 'web_url',
+        url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
+        // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+        webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+      },
+      image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+      title: `${username}`,
+    };
   };
 
   const formatMessage = async (payload) => { // [OK]
     const elements = [];
 
-    Object.values(payload.items).forEach((user, i = 0) => {
-      elements.push({ ...formatUserInfo(payload.items[i]) });
+    Object.values(payload.users).forEach((user, i = 0) => {
+      elements.push({ ...formatUserInfo(payload.users[i]) });
     });
 
     const options = { // [OK]
@@ -69,14 +53,26 @@ module.exports = async (controller) => {
 
     try {
       await payload.bot.api.callAPI('/me/messages', 'POST', options);
+
+      await payload.bot.api.callAPI('/me/messages', 'POST', {
+          recipient: payload.message.recipient,
+          message: {
+              // text: `🔗 ${!!payload.users[0].state.facebook_url ? payload.users[0].state.facebook_url : 'no link'}
+              text: `
+🗺 ${payload.users[0].state.location}
+💬 ${englishLevelDict[payload.users[0].state.english_level]}
+👔 ${communityDict[payload.users[0].state.community]}
+🛠 ${payload.users[0].state.profession}`,
+          },
+      });
     } catch(error) {
-      console.error('[get_info.js:63 ERROR]', error);
+      console.error('[get_info.js:68 ERROR]', error);
     }
   };
 
   controller.on(['get_info'], async (bot, message) => {
     try {
-      const id = message.user;
+      const id = message.sender.id;
       if (!!id) {
         let users = null;
         // if (process.env.NODE_ENV === 'production') {
@@ -84,11 +80,11 @@ module.exports = async (controller) => {
         // } else {
         //   users = [{}];
         // }
-        await formatMessage({ bot, message, items: [users].map(user => user) });
+        await formatMessage({ bot, message, users: [users].map(user => user) });
       }
 
     } catch(error) {
-      console.error('[get_info.js:91 ERROR]:', error);
+      console.error('[get_info.js:86 ERROR]:', error);
     }
   });
 };

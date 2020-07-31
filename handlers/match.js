@@ -25,13 +25,68 @@ module.exports = async (controller) => {
     //     }];
     // };
 
+    const getUserContextProperties = async (bot, message) => { // [OK]
+        let userState = new UserState(controller.storage);
+        let context = bot.getConfig('context');
+
+        let communityProperty = await userState.createProperty('community');
+        let conversationWithProperty = await userState.createProperty('conversation_with');
+        let englishLevelProperty = await userState.createProperty('english_level');
+        let expiredAtProperty = await userState.createProperty('expired_at');
+        let facebookURLProperty = await userState.createProperty('facebook_url');
+        let locationProperty = await userState.createProperty('location');
+        let professionProperty = await userState.createProperty('profession');
+        let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
+        let recentUsersProperty = await userState.createProperty('recent_users');
+        let userNameProperty = await userState.createProperty('username');
+
+        let community = await communityProperty.get(context);
+        let conversationWith = await conversationWithProperty.get(context);
+        let englishLevel = await englishLevelProperty.get(context);
+        let expiredAt = await expiredAtProperty.get(context);
+        let facebookURL = await facebookURLProperty.get(context);
+        let location = await locationProperty.get(context);
+        let profession = await professionProperty.get(context);
+        let readyToConversation = await readyToConversationProperty.get(context);
+        let recentUsers = await recentUsersProperty.get(context, []);
+        let userName = await userNameProperty.get(context);
+
+        return {
+          context,
+          userState,
+
+          communityProperty,
+          conversationWithProperty,
+          englishLevelProperty,
+          expiredAtProperty,
+          facebookURLProperty,
+          locationProperty,
+          professionProperty,
+          readyToConversationProperty,
+          recentUsersProperty,
+          userNameProperty,
+
+          community,
+          conversationWith,
+          englishLevel,
+          expiredAt,
+          facebookURL,
+          location,
+          profession,
+          readyToConversation,
+          recentUsers,
+          userName,
+        };
+    };
+
     const formatUserInfo = (user, i = 0) => { // [OK]
         // const buttons = [ ...getButtons(user._id) ];
         const {
-            community,
-            english_level,
-            location,
-            profession,
+            // community,
+            // english_level,
+            facebook_url,
+            // location,
+            // profession,
             profile_pic,
             username,
         } = user.state;
@@ -39,13 +94,17 @@ module.exports = async (controller) => {
         return {
             default_action: {
                 type: 'web_url',
-                url: profile_pic, // <DEFAULT_URL_TO_OPEN>
+                url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
                 // messenger_extensions: 'FALSE', // <TRUE | FALSE>
                 webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
             },
             image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
             title: `${username}`,
-            subtitle: `\n🗺 ${location}\n💬 ${englishLevelDict[english_level]}\n👔 ${communityDict[community]}\n🛠 ${profession}`,
+            // subtitle: `🔗 ${!!facebook_url ? facebook_url : 'no link'}`,
+// 🗺 ${location}
+// 💬 ${englishLevelDict[english_level]}
+// 👔 ${communityDict[community]}
+// 🛠 ${profession}`,
             // buttons: [ ...buttons ],
         };
     };
@@ -56,6 +115,8 @@ module.exports = async (controller) => {
         Object.values(payload.users).forEach((user, i = 0) => {
             elements.push({ ...formatUserInfo(payload.users[i], i) });
         });
+
+        // console.log(payload.users[0]);
 
         const options = { // [OK]
             recipient: payload.message.sender,
@@ -73,8 +134,20 @@ module.exports = async (controller) => {
 
         try {
             await payload.bot.api.callAPI('/me/messages', 'POST', options);
+
+            await payload.bot.api.callAPI('/me/messages', 'POST', {
+                recipient: payload.message.sender,
+                message: {
+                    // text: `🔗 ${!!payload.users[0].state.facebook_url ? payload.users[0].state.facebook_url : 'no link'}
+                    text: `
+🗺 ${payload.users[0].state.location}
+💬 ${englishLevelDict[payload.users[0].state.english_level]}
+👔 ${communityDict[payload.users[0].state.community]}
+🛠 ${payload.users[0].state.profession}`,
+                },
+            });
         } catch(error) {
-            console.error('[match.js:77 ERROR]:', error);
+            console.error('[match.js:146 ERROR]:', error);
         }
     };
 
@@ -129,48 +202,25 @@ module.exports = async (controller) => {
         return docs;
     };
 
-    // controller.hears(new RegExp(/^match$/i), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
+    // controller.hears(new RegExp(/^match$/i), ['message'], async (bot, message) => {
     controller.on(['match'], async (bot, message) => {
         try {
-            // // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-            // // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-            await bot.changeContext(message.reference);
-
-            const userState = new UserState(controller.storage);
-
-            const context = bot.getConfig('context');
-
             const userId = message.sender.id;
-            const recipient = { id: userId };
+            const recipient = message.sender;
 
-            // #BEGIN Bot typing
+            /**
+             * #BEGIN Bot typing
+             */
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
-            // Get User State Properties
             const { channelId } = message.incoming_message;
-            const communityProperty = await userState.createProperty('community');
-            const community = await communityProperty.get(context);
-            const englishLevelProperty = await userState.createProperty('english_level');
-            const englishLevel = await englishLevelProperty.get(context);
-            const locationProperty = await userState.createProperty('location');
-            const location = await locationProperty.get(context);
-            const professionProperty = await userState.createProperty('profession');
-            const profession = await professionProperty.get(context);
-            const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-            const readyToConversation = await readyToConversationProperty.get(context);
-            const recentUsersProperty = await userState.createProperty('recent_users');
 
-            let recentUsers = await recentUsersProperty.get(context, []);
+            // Get User State Properties
+            const senderProperties = await getUserContextProperties(bot, message);
 
             const payload = {
+                ...senderProperties,
                 channelId,
-                community,
-                englishLevel,
-                location,
-                profession,
-                readyToConversation,
-                recentUsers,
-                // storage,
                 userId,
             };
 
@@ -178,44 +228,167 @@ module.exports = async (controller) => {
             const users = await chooseWithLevel(payload) || [];
 
             if (Object.keys(users).length) {
-                console.log('[match.js:181 users]:', users);
-
-                // Send reply with users info
-                await botSay({ bot, message, users: [users].map(user => user) });
-                message.recipient.id = users['_id'].match(/(\d+)\/$/)[1];
-                await controller.trigger(['start_dialog'], bot, message);
-
-                // Set User State Properties
+                /**
+                 * Add recipient to sender recent users list
+                 */
                 const values = Object.values(users);
                 if (values.length > 1) {
-                    // recentUsers = [ ...recentUsers, ...[users].map(user => user._id.match(/(\d+)\/$/)[1]) ];
-                    recentUsers = [ ...recentUsers, ...[users].map(user => user._id) ];
+                    // senderProperties.recentUsers = [ ...senderProperties.recentUsers, ...[users].map(user => user._id.match(/(\d+)\/$/)[1]) ];
+                    senderProperties.recentUsers = [ ...senderProperties.recentUsers, ...[users].map(user => user._id) ];
                 } else {
                     if (!values.includes(users[0]._id)) {
-                        recentUsers = [ ...recentUsers, users[0]._id ];
+                        senderProperties.recentUsers = [ ...senderProperties.recentUsers, users[0]._id ];
                     }
                 }
 
-                // Save recent users to state
-                await recentUsersProperty.set(context, recentUsers);
+                /**
+                 * Save recent users to state
+                 */
+                await senderProperties.recentUsersProperty.set(senderProperties.context, senderProperties.recentUsers);
 
-                // Save userState changes to storage
-                await userState.saveChanges(context);
+                    await bot.say({
+                      recipient: message.sender,
+                      sender: message.sender,
+                      text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
+                    });
+
+                /**
+                 * #BEGIN Bot typing
+                 */
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+
+                /**
+                 * Send reply with users info
+                 */
+                await botSay({ bot, message, users: [users].map(user => user) });
+
+                    message.text = 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)';
+
+                    await bot.say({
+                      recipient: message.sender,
+                      sender: message.sender,
+                      text: message.text,
+                    });
+                    /**
+                     * Creat menu for sender
+                     */
+                    let payload = {
+                      recipient: message.sender,
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset`,
+                      }],
+                    };
+
+                    // // const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
+                    // const expiredAt = Date.now() + (1000 * 60 * 30); // 30 minutes
+
+                    await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
+                    await senderProperties.conversationWithProperty.set(senderProperties.context, message.recipient.id);
+                    // await senderProperties.expiredAtProperty.set(senderProperties.context, expiredAt);
+
+                    /**
+                     * Save senderProperties changes to storage
+                     */
+                    await senderProperties.userState.saveChanges(senderProperties.context);
+
+                    await controller.trigger(['create_menu'], bot, payload);
+                    await controller.trigger(['ask_for_scheduled_a_call'], bot, message);
+
+                const id = users['_id'];
+                message.recipient.id = id.match(/(\d+)\/$/)[1];
+
+                const dialogBot = await controller.spawn(message.sender.id);
+                await dialogBot.startConversationWithUser(message.recipient.id);
+
+                /**
+                 * Set recipient properties
+                 */
+                const recipientProperties = await getUserContextProperties(dialogBot, message);
+
+                // /**
+                //  * Save recipientProperties changes to storage
+                // */
+                // await recipientProperties.userState.saveChanges(recipientProperties.context);
+
+                // // await controller.trigger(['start_dialog'], dialogBot, message);
+
+
+                    // const dialogBot = await controller.spawn(message.sender.id);
+                    // await dialogBot.startConversationWithUser(recipient.id);
+
+                    /**
+                     * Set recipient properties
+                     */
+                    // const recipientProperties = await getUserContextProperties(dialogBot, message);
+
+                    await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
+                    await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
+                    // await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
+
+                    /**
+                     * Save recipientProperties changes to storage
+                     */
+                    await recipientProperties.userState.saveChanges(recipientProperties.context);
+
+                    /**
+                     * Create menu for recipient
+                     */
+                    payload = {
+                      recipient: message.recipient,
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset`,
+                      }],
+                    };
+
+                    await controller.trigger(['create_menu'], dialogBot, payload);
+                    // await controller.trigger(['session_check'], dialogBot, message);
+                    payload = null;
+
+                    /**
+                     * #BEGIN Bot typing
+                     */
+                    // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+
+                    /**
+                     * Sending information about yourself to parnter
+                     */
+                    // message.recipient = recipient;
+                    // await controller.trigger(['get_info'], dialogBot, message);
+
+                    // /**
+                    //  * #BEGIN Bot typing
+                    //  */
+                    // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+
+
+                    // await dialogBot.say({
+                    //   recipient: message.recipient,
+                    //   sender: message.recipient,
+                    //   text: message.text,
+                    // });
             } else {
                 clearTimeout(message.value);
                 message.value = null;
 
-                // [Tip] https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-                // [Tip] https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-                await bot.changeContext(message.reference);
+                /**
+                 * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
+                 * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
+                 */
+                // await bot.changeContext(message.reference);
 
-                // #BEGIN Bot typing
+                /**
+                 * #BEGIN Bot typing
+                 */
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
                 await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
             }
-        } catch (error) {
-            console.error('[match.js:218 ERROR]:', error);
+        } catch(error) {
+            console.error('[match.js:292 ERROR]:', error);
         }
     });
 };

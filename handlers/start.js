@@ -22,9 +22,16 @@ module.exports = async (controller) => {
 
         const userId = `facebook/conversations/${message.user}-${message.user}/`;
         await bot.controller.storage.delete([userId]);
-        // if (message.recipient.user_ref !== undefined) {
 
+        /**
+         * @TODO User comes from messenger or chat
+         */
+        // if (message.recipient.user_ref === 'messenger') {
+        //     ///
+        // } else {
+        //     ///
         // }
+
         // if (message.postback.title === 'Get Started' ||
         //     ( (message.type === 'legacy_reply_to_message_action' && message.message === 'Get Started') ||
         //         (message.recipient.user_ref !== undefined && message.message === 'Get Started')) ||
@@ -38,12 +45,7 @@ module.exports = async (controller) => {
                     id: message.sender.id,
                 };
 
-                // [Tip] Deleting menu
-                await bot.api.callAPI('/me/custom_user_settings', 'DELETE', { // [OK]
-                    recipient,
-                    psid: message.sender.id,
-                    params: ['persistent_menu'],
-                });
+                await controller.trigger(['delete_menu'], bot,  recipient);
 
                 /**
                  * #BEGIN Bot typing
@@ -81,9 +83,9 @@ module.exports = async (controller) => {
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                 await bot.replaceDialog(GREETING_ID, { username, profilePic });
             } catch(error) {
-                console.error('[start.js:82 ERROR]:', error);
+                console.error('[start.js:94 ERROR]:', error);
             }
-        } else {
+        // } else {
             /**
              * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
              * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024

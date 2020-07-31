@@ -13,30 +13,34 @@ module.exports = async (controller) => {
       let context = bot.getConfig('context');
       const userState = new UserState(controller.storage);
       const { channelId } = message.incoming_message;
+
       const communityProperty = await userState.createProperty('community');
-      const community = await communityProperty.get(context);
       const englishLevelProperty = await userState.createProperty('english_level');
-      const englishLevel = await englishLevelProperty.get(context);
+      const facebookURLProperty = await userState.createProperty('facebook_url');
       const locationProperty = await userState.createProperty('location');
-      const location = await locationProperty.get(context);
       const professionProperty = await userState.createProperty('profession');
-      const profession = await professionProperty.get(context);
       const profilePicProperty = await userState.createProperty('profile_pic');
-      const profilePic = await profilePicProperty.get(context);
       const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-      const readyToConversation = await readyToConversationProperty.get(context);
       const recentUsersProperty = await userState.createProperty('recent_users');
+      const usernameProperty = await userState.createProperty('username');
+
+      const community = await communityProperty.get(context);
+      const englishLevel = await englishLevelProperty.get(context);
+      const facebookURL = await facebookURLProperty.get(context);
+      const location = await locationProperty.get(context);
+      const profession = await professionProperty.get(context);
+      const profilePic = await profilePicProperty.get(context);
+      const readyToConversation = await readyToConversationProperty.get(context);
+      const username = await usernameProperty.get(context);
       let recentUsers = await recentUsersProperty.get(context, []);
 
       const userId = message.sender.id;
-
-      const usernameProperty = await userState.createProperty('username');
-      const username = await usernameProperty.get(context);
 
       const payload = {
         channelId,
         community,
         englishLevel,
+        facebookURL,
         location,
         profession,
         profilePic,
@@ -45,8 +49,6 @@ module.exports = async (controller) => {
         userId,
         username,
       };
-
-      console.log(message, JSON.stringify(payload, null, 2));
 
       const recipient = {
           id: userId,
@@ -63,19 +65,13 @@ module.exports = async (controller) => {
               elements: [{
                 default_action: {
                   type: 'web_url',
-                  url: profilePic, // <DEFAULT_URL_TO_OPEN>
+                  url: !!facebookURL ? facebookURL : profilePic, // <DEFAULT_URL_TO_OPEN>
                   // messenger_extensions: 'FALSE', // <TRUE | FALSE>
                   webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
                 },
                 image_url: profilePic,
-                title: `${username} [id: ${userId}]`,
-                subtitle: `
-🗺 ${location}
-💬 ${englishLevelDict[englishLevel]}
-👔 ${communityDict[community]}
-🛠 ${profession}
-${readyToConversation === 'ready' ? '✔ Ready' : '❗ On Air'}
-⌛ ${recentUsers.length}`,
+                title: `${username}`,
+                subtitle: `[${userId}]`,
               }],
             },
           },
@@ -84,21 +80,28 @@ ${readyToConversation === 'ready' ? '✔ Ready' : '❗ On Air'}
 
       await bot.api.callAPI('/me/messages', 'POST', options);
 
+      const rUsers = [];
       if (recentUsers.length) {
-        const rUsers = [];
         recentUsers.forEach(user => {
           rUsers.push(user.match(/(\d+)\/$/)[1]);
         });
-
-        await bot.api.callAPI('/me/messages', 'POST', {
-          recipient,
-          message: {
-            text: `Recent user${recentUsers.length === 1 ? '' : 's'}:\n\n${rUsers.join('\n')}`,
-          },
-        });
       }
+
+      await bot.api.callAPI('/me/messages', 'POST', {
+        recipient,
+        message: {
+// 🔗 ${!!facebookURL ? facebookURL : 'no link'}
+          text: `
+🗺 ${location}
+💬 ${englishLevelDict[englishLevel]}
+👔 ${communityDict[community]}
+🛠 ${profession}
+📢 ${readyToConversation === 'ready' ? 'Ready' : 'Busy'}
+${recentUsers.length ? '⌛ ' + recentUsers.length + '\n\nRecent user' + (recentUsers.length === 1 ? '' : 's') + ':\n\n' + rUsers.join('\n') : ''}`,
+        },
+      });
     } catch (error) {
-      console.error(error);
+      console.error('[me.js:104 ERROR]:', error);
     }
   });
 };

@@ -6,36 +6,76 @@ const { UserState } = require('botbuilder');
 const { communityDict, englishLevelDict, INVITATION_MESSAGE } = require('../constants.js');
 
 module.exports = async (controller) => {
+  const getUserContextProperties = async (bot, message) => { // [OK]
+    let userState = new UserState(controller.storage);
+    let context = bot.getConfig('context');
+
+    let communityProperty = await userState.createProperty('community');
+    let conversationWithProperty = await userState.createProperty('conversation_with');
+    let englishLevelProperty = await userState.createProperty('english_level');
+    let expiredAtProperty = await userState.createProperty('expired_at');
+    let facebookURLProperty = await userState.createProperty('facebook_url');
+    let locationProperty = await userState.createProperty('location');
+    let professionProperty = await userState.createProperty('profession');
+    let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
+    let recentUsersProperty = await userState.createProperty('recent_users');
+
+    let community = await communityProperty.get(context);
+    let conversationWith = await conversationWithProperty.get(context);
+    let englishLevel = await englishLevelProperty.get(context);
+    let expiredAt = await expiredAtProperty.get(context);
+    let facebookURL = await facebookURLProperty.get(context);
+    let location = await locationProperty.get(context);
+    let profession = await professionProperty.get(context);
+    let readyToConversation = await readyToConversationProperty.get(context);
+    let recentUsers = await recentUsersProperty.get(context, []);
+
+    return {
+      context,
+      userState,
+
+      communityProperty,
+      conversationWithProperty,
+      englishLevelProperty,
+      expiredAtProperty,
+      facebookURLProperty,
+      locationProperty,
+      professionProperty,
+      readyToConversationProperty,
+      recentUsersProperty,
+
+      community,
+      conversationWith,
+      englishLevel,
+      expiredAt,
+      facebookURL,
+      location,
+      profession,
+      readyToConversation,
+      recentUsers,
+    };
+  };
+
   controller.on(['start_dialog'], async (bot, message) => {
     /**
      * @TODO Add check user exists
      */
     const recipient = message.recipient;
 
-    /**
-     * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-     * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-     */
-    // await bot.changeContext(message.reference);
+    let senderProperties = await getUserContextProperties(bot, message);
 
-    const userState = new UserState(controller.storage);
-
-    let context = bot.getConfig('context');
-
-    const readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-    const readyToConversation = await readyToConversationProperty.get(context);
-
-    // if (bot.hasActiveDialog() || readyToConversation === 'busy') {
+    // if (bot.hasActiveDialog() || senderProperties.readyToConversation === 'busy') {
+    //   // controller.trigger(['match'], bot, message);
     //   return;
     // }
 
-    try {
+    // try {
       /**
        * #BEGIN Bot typing
        */
       await controller.trigger(['sender_action_typing'], bot, { options: { recipient: { id: message.sender.id } } });
 
-      const dialog = new BotkitConversation(recipient.id, controller);
+      // const dialog = new BotkitConversation(recipient.id, controller);
 
       // await dialog.addQuestion({ // [OK]
       //   text: 'Do you want to start a dialogue with user?',
@@ -57,7 +97,7 @@ module.exports = async (controller) => {
       //         console.log(`start a dialogue with user: ${answerText}`);
       //         await convo.stop();
       //       } catch(error) {
-      //         console.error('[start_dialog.js:63 ERROR]', error);
+      //         console.error('[start_dialog.js:99 ERROR]', error);
       //         await convo.stop();
       //       }
       //     },
@@ -75,47 +115,91 @@ module.exports = async (controller) => {
 
               // console.log(`start a dialogue with user: ${answerText}`);
 
-              await dialog.ask({ // [OK]
-                text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
-                quick_replies: [{
-                  title: 'Write to partner',
-                  payload: 'yes',
-                }],
-              }, async (answerText, convo, bot, message) => {
+              // await dialog.ask({ // [OK]
+              //   text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
+              //   quick_replies: [{
+              //     title: 'Write to partner',
+              //     payload: 'yes',
+              //   }],
+              // }, async (answerText, convo, bot, message) => {
                 try {
-                  // let { text } = message;
-
-                  if (message.text === 'Write to partner') {
+                  // Object.assign(convo.vars, message);
+                  // if (message.text === 'Write to partner') {
                     /**
                      * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
                      * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
                      */
-                    await bot.changeContext(message.reference);
+                    // await bot.changeContext(message.reference);
 
-                    const conversationWithProperty = await userState.createProperty('conversation_with');
-                    const expiredAtProperty = await userState.createProperty('expired_at');
+                    /**
+                     * Set sender properties
+                     */
+                    senderProperties = await getUserContextProperties(bot, message);
+                    await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
+                    await senderProperties.conversationWithProperty.set(senderProperties.context, recipient.id);
+                    await senderProperties.expiredAtProperty.set(senderProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
 
-                    await readyToConversationProperty.set(context, 'busy');
-                    await conversationWithProperty.set(context, recipient.id);
-                    await expiredAtProperty.set(context, Date.now() + 86400000); // 1 day
+                    /**
+                     * Save recipientProperties changes to storage
+                     */
+                    await senderProperties.userState.saveChanges(senderProperties.context);
 
-                    // Save userState changes to storage
-                    await userState.saveChanges(context);
+                    /**
+                     * Creat menu for sender
+                     */
+                    let payload = {
+                      recipient: message.sender,
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset`,
+                      }],
+                    };
+
+                    await controller.trigger(['create_menu'], bot, payload);
 
                     const dialogBot = await controller.spawn(message.sender.id);
-                    await dialogBot.changeContext(message.reference);
                     await dialogBot.startConversationWithUser(recipient.id);
+
+                    /**
+                     * Set recipient properties
+                     */
+                    const recipientProperties = await getUserContextProperties(dialogBot, message);
+
+                    await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
+                    await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
+
+                    /**
+                     * Save recipientProperties changes to storage
+                     */
+                    await recipientProperties.userState.saveChanges(recipientProperties.context);
+
+                    /**
+                     * Create menu for recipient
+                     */
+                    payload = {
+                      recipient,
+                      call_to_actions: [{
+                        type: 'postback',
+                        title: '❌ End a conversation',
+                        payload: `reset`,
+                      }],
+                    };
+
+                    // await controller.trigger(['create_menu'], bot, payload);
+                    await controller.trigger(['create_menu'], dialogBot, payload);
+                    payload = null;
 
                     /**
                      * #BEGIN Bot typing
                      */
-                    // await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
+                    await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient } });
 
                     /**
                      * Sending information about yourself to parnter
                      */
                     message.recipient = recipient;
-                    await controller.trigger(['get_info'], bot, message);
+                    await controller.trigger(['get_info'], dialogBot, message);
 
                     /**
                      * #BEGIN Bot typing
@@ -126,12 +210,12 @@ module.exports = async (controller) => {
 
                     await dialogBot.say({
                       recipient,
-                      text: message.text,
                       sender: message.sender,
+                      text: message.text,
                     });
 
-                    await convo.stop();
-                  }
+                  //   await convo.stop();
+                  // }
 
                   // await bot.cancelAllDialogs();
 
@@ -197,12 +281,12 @@ module.exports = async (controller) => {
                   //         },
                   //     });
 
-                  await convo.stop();
+                  // await convo.stop();
                 } catch(error) {
-                  console.error('[start_dialog.js:198 ERROR]', error);
-                  await convo.stop();
+                  console.error('[start_dialog.js:285 ERROR]', error);
+                  // await convo.stop();
                 }
-              }, { key: 'confirmation' });
+              // }, { key: 'confirmation' });
       //       } catch(error) {
       //         console.error('[start_dialog.js:203 ERROR]', error);
       //         await convo.stop();
@@ -211,13 +295,27 @@ module.exports = async (controller) => {
       //   }
       // ], { key: 'message' });
 
-      await dialog.after(async (results, bot) => {
-        console.log('dialog after:', results);
-      });
+      // await dialog.after(async (results, bot) => {
+      //   console.log('dialog after:', results);
+      //   if (results.text === 'getstarted_payload') {
+      //     await controller.trigger(['start'], bot, results);
+      //     return;
+      //   }
 
-      await controller.addDialog(dialog);
+      //   /**
+      //    * Start matching
+      //    */
+      //   // const senderProperties = await getUserContextProperties(bot, results);
 
-      await bot.replaceDialog(recipient.id);
+      //   // if (senderProperties.readyToConversation === 'ready') {
+      //   //   results.value = undefined;
+      //   //   await controller.trigger(['start_match'], bot, results);
+      //   // }
+      // });
+
+      // await controller.addDialog(dialog);
+
+      // await bot.replaceDialog(recipient.id);
 
       // const { storage } = controller;
       // const context = bot.getConfig('context');
@@ -297,9 +395,9 @@ module.exports = async (controller) => {
       //     // #END Bot typing
       //     await typing({ bot, options: { recipient: message.sender }, mode: false });
       // }
-    } catch(error) {
-      console.error('[start_dialog.js:297 ERROR]', error);
-      await bot.cancelAllDialogs();
-    }
+    // } catch(error) {
+      // console.error('[start_dialog.js:398 ERROR]', error);
+      // await bot.cancelAllDialogs();
+    // }
   });
 };

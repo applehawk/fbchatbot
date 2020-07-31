@@ -26,12 +26,12 @@ module.exports = async (controller) => {
           await bot.changeContext(reference);
           clearTimeout(message.value);
           if (Object.keys(timersQueue).includes(user)) {
-            delay += 10000;
+            delay += 5000;
           } else {
             delay = 10000;
             await setTimer(bot, message);
           }
-        }, 5000);
+        }, 3000);
       }, delay);
       timersQueue[user] = message.value;
     }
