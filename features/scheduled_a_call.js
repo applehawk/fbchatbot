@@ -53,7 +53,7 @@ module.exports = async (controller) => {
 
   await dialog.addQuestion({
     // text: `Hi! 👋\nHow are you? Have you scheduled a call?\n\n${formatButtons(buttons)}`,
-    text: `Hi! 👋\nHow are you? Have you scheduled a call?`,
+    text: `Hi! 👋\nHow are you? Have you already had a call with your partner?`,
     quick_replies: [ ...getItems(buttons) ],
     // // text: `Hi! 👋\nHow are you? Have you scheduled a call?`,
     // recipient: { id: '{{{message.sender}}}' },

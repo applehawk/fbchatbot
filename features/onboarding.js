@@ -17,7 +17,9 @@ const {
     ONBOARDING_WHO_INTRODUCE_IN_4,
     ONBOARDING_RESULTS,
     ONBOARDING_THANKS,
-    ONBOARDING_FB_URL,
+    ONBOARDING_FB_URL_1,
+    ONBOARDING_FB_URL_2,
+    ONBOARDING_FB_URL_3,
 
     communityDict,
     englishLevelDict,
@@ -33,6 +35,7 @@ module.exports = async (controller) => {
 
     const ONBOARDING_ID = 'ONBOARDING_ID';
     const onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
+    let ONBOARDING_FB_URL = `${ONBOARDING_FB_URL_1}\n\n${ONBOARDING_FB_URL_3}`;
 
     // onboarding.before('getstarted_payload', async (bot, message) => {
     //     console.log('before:', message);
@@ -86,6 +89,8 @@ module.exports = async (controller) => {
             message.value = 'Step 4 City question';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
             await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            await bot.say(ONBOARDING_FB_URL_1);
+            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         // } else {
         //     await convo.repeat();
         // }
@@ -94,8 +99,8 @@ module.exports = async (controller) => {
     // #END Location
 
     // #BEGIN Facebook URL
-    await onboarding.ask({
-        text: ONBOARDING_FB_URL,
+    await onboarding.ask({ // [OK]
+        text: ONBOARDING_FB_URL_3,
     }, async (response, convo, bot, message) => {
         await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
@@ -114,6 +119,8 @@ module.exports = async (controller) => {
                 await bot.say(ONBOARDING_PROFESSION_2);
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             } else {
+                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                await bot.say(ONBOARDING_FB_URL_2);
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                 await convo.repeat();
             }

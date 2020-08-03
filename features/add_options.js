@@ -3,7 +3,11 @@
 const CronJob = require('cron').CronJob;
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
-const { ONBOARDING_FB_URL } = require('../constants.js');
+const {
+  ONBOARDING_FB_URL_1,
+  ONBOARDING_FB_URL_2,
+  ONBOARDING_FB_URL_3,
+} = require('../constants.js');
 
 module.exports = async (controller) => {
   // return;
@@ -15,8 +19,15 @@ module.exports = async (controller) => {
   const FB_DIALOG_ID = 'FB_DIALOG_ID';
   const dialog = new BotkitConversation(FB_DIALOG_ID, controller);
 
+  await dialog.before(async (bot, message) => {
+    console.log('bot:', bot, 'message:', message);
+    await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+    await bot.say(ONBOARDING_FB_URL_1);
+    await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+  });
+
   await dialog.ask({
-    text: ONBOARDING_FB_URL,
+    text: ONBOARDING_FB_URL_3,
   }, async (response, convo, bot, message) => {
     Object.assign(convo.vars, message);
     await controller.trigger(['mark_seen'], bot, message);
@@ -30,6 +41,9 @@ module.exports = async (controller) => {
         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await convo.stop();
       } else {
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        await bot.say(ONBOARDING_FB_URL_2);
+        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await convo.repeat();
       }
     }
@@ -58,7 +72,7 @@ module.exports = async (controller) => {
       await userState.saveChanges(context);
       results.value = undefined;
     } catch(error) {
-      console.error('[add_options.js:61 ERROR]:', error);
+      console.error('[add_options.js:75 ERROR]:', error);
     };
   });
 
