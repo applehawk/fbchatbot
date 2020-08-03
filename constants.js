@@ -44,9 +44,10 @@ I'm a web designer in the Spanish game design studio or I am a marketer in the f
 
     ONBOARDING_ENGLISH_LEVEL: `Ok. What about English speaking? Choose your level of English, it will help us to choose the right person for the call.`,
 
-    ONBOARDING_FB_URL: `Fine. Could you share with me a link to your Facebook profile?
-
-It is necessary for the connection with your partners. We will send your partner the link in order to schedule the call.
+    // ONBOARDING_FB_URL_1: `Fine. Could you share with me a link to your Facebook profile?`,
+    ONBOARDING_FB_URL_1: `Good job! We are almost done! Could you share with me a link to your Facebook profile?`,
+    ONBOARDING_FB_URL_2: `Hmm, it does not look like a link that we need. Please put a link to your Facebook page.`,
+    ONBOARDING_FB_URL_3: `It is necessary for the connection with your partners. We will send your partner the link in order to schedule the call.
 
 Where can you find the link?
 

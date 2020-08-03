@@ -39,10 +39,9 @@ module.exports = async (controller) => {
         if (response === 'Yes! How it works? 🤔' /* && !regexp.test(response)*/) {
           message.value = 'Step 1 Click on Tell me how it works';
           await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-          await controller.trigger(['sender_action_typing'], bot, {
-            options: { recipient: message.sender },
-          });
+          await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         } else {
+          await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           await convo.repeat();
         }
       }
@@ -64,10 +63,9 @@ module.exports = async (controller) => {
         if (response === 'Cool! I am ready!' /* && !regexp.test(response)*/) {
           message.value = 'Step 2 Click on How to start';
           await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-          await controller.trigger(['sender_action_typing'], bot, {
-            options: { recipient: message.sender },
-          });
+          await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         } else {
+          await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           await convo.repeat();
         }
       }
@@ -89,12 +87,11 @@ module.exports = async (controller) => {
         if (response === 'Let’s do it! 👍' /* && !regexp.test(response)*/) {
           message.value = 'Step 3 Click on Lets do it';
           await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-          await controller.trigger(['sender_action_typing'], bot, {
-            options: { recipient: message.sender },
-          });
+          await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           Object.assign(convo.vars, message);
           await convo.stop();
         } else {
+          await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           await convo.repeat();
         }
       }
@@ -129,6 +126,7 @@ module.exports = async (controller) => {
       const _userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
       const userId = `facebook/conversations/${_userId}-${_userId}/`;
       await bot.controller.storage.delete([userId]);
+      await controller.trigger(['sender_action_typing'], bot, { options: { recipient: results.sender } });
       await bot.replaceDialog(ONBOARDING_ID, { username: results.username, profilePic: results.profilePic });
     });
   } catch(error) {
