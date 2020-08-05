@@ -5,36 +5,38 @@ const {
     communityDict,
 } = require(`../constants.js`);
 
+const { getUserContextProperties} = require('../helpers.js');
+
 module.exports = async (controller) => {
   const formatUserInfo = (user) => { // [OK]
     // if (process.env.NODE_ENV === 'production') {
     const {
       // community,
-      // english_level,
-      facebook_url,
+      // englishLevel,
+      facebookUrl,
       // location,
       // profession,
-      profile_pic,
-      username,
-    } = user.state;
+      profilePic,
+      userName,
+    } = user;
 
     return {
       default_action: {
         type: 'web_url',
-        url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
+        url: !!facebookUrl ? facebookUrl : profilePic, // <DEFAULT_URL_TO_OPEN>
         // messenger_extensions: 'FALSE', // <TRUE | FALSE>
         webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
       },
-      image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
-      title: `${username}`,
+      image_url: profilePic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+      title: `${userName}`,
     };
   };
 
   const formatMessage = async (payload) => { // [OK]
     const elements = [];
 
-    Object.values(payload.users).forEach((user, i = 0) => {
-      elements.push({ ...formatUserInfo(payload.users[i]) });
+    Object.values(payload.user).forEach((user, i = 0) => {
+      elements.push({ ...formatUserInfo(payload.user) });
     });
 
     const options = { // [OK]
@@ -55,36 +57,23 @@ module.exports = async (controller) => {
       await payload.bot.api.callAPI('/me/messages', 'POST', options);
 
       await payload.bot.api.callAPI('/me/messages', 'POST', {
-          recipient: payload.message.recipient,
-          message: {
-              // text: `🔗 ${!!payload.users[0].state.facebook_url ? payload.users[0].state.facebook_url : 'no link'}
-              text: `
-🗺 ${payload.users[0].state.location}
-💬 ${englishLevelDict[payload.users[0].state.english_level]}
-👔 ${communityDict[payload.users[0].state.community]}
-🛠 ${payload.users[0].state.profession}`,
-          },
+        recipient: payload.message.recipient,
+        message: {
+          // text: `🔗 ${!!payload.user.facebookUrl ? payload.user.facebookUrl : 'no link'}
+          text: `
+🗺 ${payload.user.location}
+💬 ${englishLevelDict[payload.user.englishLevel]}
+👔 ${communityDict[payload.user.community]}
+🛠 ${payload.user.profession}`,
+        },
       });
     } catch(error) {
-      console.error('[get_info.js:68 ERROR]', error);
+      console.error('[get_info.js:71 ERROR]', error);
     }
   };
 
   controller.on(['get_info'], async (bot, message) => {
-    try {
-      const id = message.sender.id;
-      if (!!id) {
-        let users = null;
-        // if (process.env.NODE_ENV === 'production') {
-          users = await controller.storage.Collection.findOne({ _id: `facebook/users/${id}/` }); // [OK]
-        // } else {
-        //   users = [{}];
-        // }
-        await formatMessage({ bot, message, users: [users].map(user => user) });
-      }
-
-    } catch(error) {
-      console.error('[get_info.js:86 ERROR]:', error);
-    }
+    const user = await getUserContextProperties(controller, bot, message);
+    await formatMessage({ bot, message, user });
   });
 };

@@ -6,10 +6,7 @@ const { UserState } = require('botbuilder');
 module.exports = async (controller) => {
   const clearState = async (context, state, field) => {
     const targetProperty = await state.createProperty(field);
-    let target = await targetProperty.get(context, []);
-    target = [];
-    await targetProperty.set(context, target);
-    console.log(target);
+    await targetProperty.set(context, []);
     return context;
   };
 
