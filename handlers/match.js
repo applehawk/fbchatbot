@@ -82,15 +82,15 @@ module.exports = async (controller) => {
         "$ne": `${payload.channelId}/users/${payload.userId}/`,
         "$nin": [ ...payload.recentUsers ],
       },
-      // 'state.ready_to_conversation': { // [OK]
-      //   "$eq": 'ready',
-      // },
-      'state.location': { // [OK] v1
-        "$regex": `((?!${location}).)+`,
+      'state.ready_to_conversation': { // [OK]
+        "$eq": 'ready',
       },
-      // 'state.location': { // [OK][*] v2
-      //   "$ne": payload.location,
+      // 'state.location': { // [OK] v1
+      //   "$regex": `((?!${location}).)+`,
       // },
+      'state.location': { // [OK][*] v2
+        "$ne": payload.location,
+      },
       'state.community': { // [OK]
         "$eq": payload.community,
       },
