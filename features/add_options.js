@@ -10,7 +10,6 @@ const {
 } = require('../constants.js');
 
 module.exports = async (controller) => {
-  // return;
   /**
    * #BEGIN Scheduling Automation
    */
@@ -34,7 +33,7 @@ module.exports = async (controller) => {
     if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
       await convo.stop();
     } else {
-      const regexp = new RegExp(/^(https?):\/\/(www\.)?(facebook\.com)?([^\s\/?\.#-]+\.?)+(\/[^\s]*)?$/i);
+      const regexp = new RegExp(/^(https?):\/\/(www\.)?(facebook\.com)(\/[^\s]+)$/i);
       if (!!response.match(regexp)) {
         console.log(`User Facebook profile link: ${response}`);
         message.value = 'Step 5 Facebook Propfile';
@@ -106,46 +105,43 @@ module.exports = async (controller) => {
 
       if (Object.keys(users).length) {
         Object.values(users).forEach(async ({ id, state }, i) => {
-          // if (i < 2) { // [DEV]
+          const message = {
+            recipient: { id },
+            sender: { id },
+            user: id,
+            channel: id,
+            value: undefined,
+            message: { text: '' },
+            text: '',
+            reference: {
+              // ...message.reference,
+              activityId: undefined,
+              user: { id, name: id },
+              bot: { id: botId },
+              conversation: { id },
+            },
+            incoming_message: {
+              // ...message.incoming_message,
+              channelId: 'facebook',
+              conversation: { id },
+              from: { id, name: id },
+              recipient: { id, name: id },
+              channelData: {
+                // ...message.incoming_message.channelData,
+                sender: { id },
+              },
+            },
+          };
+
+          const task = setTimeout(async () => {
             const bot = await controller.spawn(id);
             await bot.startConversationWithUser(id);
 
             if (!state.facebook_url && !bot.hasActiveDialog()) {
-
-              const message = {
-                recipient: { id },
-                sender: { id },
-                user: id,
-                channel: id,
-                value: undefined,
-                message: { text: '' },
-                text: '',
-                reference: {
-                  // ...message.reference,
-                  activityId: undefined,
-                  user: { id, name: id },
-                  bot: { id: botId },
-                  conversation: { id },
-                },
-                incoming_message: {
-                  // ...message.incoming_message,
-                  channelId: 'facebook',
-                  conversation: { id },
-                  from: { id, name: id },
-                  recipient: { id, name: id },
-                  channelData: {
-                    // ...message.incoming_message.channelData,
-                    sender: { id },
-                  },
-                },
-              };
-
-              const task = setTimeout(async () => {
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-                await bot.beginDialog(FB_DIALOG_ID);
-              }, 1000 * i);
+              controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+              await bot.beginDialog(FB_DIALOG_ID);
             }
-          // } // [DEV]
+          }, 2000 * i);
         });
       }
     },

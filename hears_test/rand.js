@@ -20,6 +20,7 @@ module.exports = async (controller) => { // [OK]
         state: {
           community: Math.round(Math.random() * (communityDict.length - 1)),
           english_level: Math.round(Math.random() * (englishLevelDict.length - 1)),
+          facebook_url: `https://facebook.com/${Math.round(Math.random() * 1e10).toString(16)}`,
           location: locations[Math.round(Math.random() * (locations.length - 1))],
           profession: professions[Math.round(Math.random() * (professions.length - 1))],
           profile_pic: `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
@@ -32,9 +33,9 @@ module.exports = async (controller) => { // [OK]
     }
     try {
       const result = await controller.storage.Collection.insertMany([...users]);
-      console.log(message, JSON.stringify(result, null, 2));
+      // console.log(message, JSON.stringify(result, null, 2));
       await bot.say(`[${message.matches[1]}] Inserted Count: ${result.insertedCount}`);
-    } catch (error) {
+    } catch(error) {
       console.error(error);
     }
   });
