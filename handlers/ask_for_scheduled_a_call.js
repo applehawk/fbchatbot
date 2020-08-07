@@ -24,7 +24,7 @@ module.exports = async (controller) => {
     const job = new CronJob(
       date,
       async () => {
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await bot.replaceDialog(SCHEDULED_A_CALL_ID, { message });
       },
       null,

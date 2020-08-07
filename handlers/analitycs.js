@@ -25,7 +25,6 @@ module.exports = async (controller) => {
         page_scoped_user_id: message.user,
       };
       const status = await bot.api.callAPI(`/${process.env.FACEBOOK_APPID}/activities`, 'POST', options);
-      return status;
     }
   });
 };

@@ -13,6 +13,6 @@ module.exports = async (controller) => {
       return;
     }
 
-    await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+    controller.trigger(['ANALYTICS_EVENT'], bot, message);
   });
 };

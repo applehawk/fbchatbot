@@ -10,7 +10,7 @@ module.exports = async (controller) => {
     return context;
   };
 
-  controller.hears(new RegExp(/^reset ?(.*?)$/i), ['message', 'direct_message'], async (bot, message) => {
+  controller.hears(new RegExp(/^reset ?(.*?)$/i), ['message'], async (bot, message) => {
     const command = message.matches;
 
     try {
@@ -45,7 +45,7 @@ module.exports = async (controller) => {
 
       await bot.say(`[${command[1].length > 1 ? command[0] : message.text}] ${command[1].length ? command[1] : 'users'} empty.`);
     } catch (error) {
-      console.log(error);
+      console.log('[reset.js:48 ERROR]:', error);
     }
   });
 };

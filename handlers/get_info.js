@@ -13,7 +13,7 @@ module.exports = async (controller) => {
     const {
       // community,
       // englishLevel,
-      facebookUrl,
+      facebookURL,
       // location,
       // profession,
       profilePic,
@@ -23,7 +23,7 @@ module.exports = async (controller) => {
     return {
       default_action: {
         type: 'web_url',
-        url: !!facebookUrl ? facebookUrl : profilePic, // <DEFAULT_URL_TO_OPEN>
+        url: !!facebookURL ? facebookURL : profilePic, // <DEFAULT_URL_TO_OPEN>
         // messenger_extensions: 'FALSE', // <TRUE | FALSE>
         webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
       },
@@ -33,12 +33,6 @@ module.exports = async (controller) => {
   };
 
   const formatMessage = async (payload) => { // [OK]
-    const elements = [];
-
-    Object.values(payload.user).forEach((user, i = 0) => {
-      elements.push({ ...formatUserInfo(payload.user) });
-    });
-
     const options = { // [OK]
       recipient: payload.message.recipient,
       message: {
@@ -47,28 +41,31 @@ module.exports = async (controller) => {
           payload: {
             image_aspect_ratio: 'square', // <square | horizontal>
             template_type: 'generic',
-            elements,
+            elements: [{ ...formatUserInfo(payload.user) }],
           }
         }
       }
     };
 
     try {
+      // await controller.trigger(['sender_action_typing'], payload.bot, { options: { recipient: payload.message.recipient } });
       await payload.bot.api.callAPI('/me/messages', 'POST', options);
 
-      await payload.bot.api.callAPI('/me/messages', 'POST', {
+      // await controller.trigger(['sender_action_typing'], payload.bot, { options: { recipient: payload.message.recipient } });
+      await payload.bot.say({
         recipient: payload.message.recipient,
-        message: {
-          // text: `🔗 ${!!payload.user.facebookUrl ? payload.user.facebookUrl : 'no link'}
-          text: `
+        text: `
 🗺 ${payload.user.location}
 💬 ${englishLevelDict[payload.user.englishLevel]}
 👔 ${communityDict[payload.user.community]}
 🛠 ${payload.user.profession}`,
-        },
       });
+      // await controller.trigger(['sender_action_typing'], payload.bot, { options: { recipient: payload.message.recipient } });
+      // await payload.bot.say({
+      //   text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
+      // });
     } catch(error) {
-      console.error('[get_info.js:71 ERROR]', error);
+      console.error('[get_info.js:64 ERROR]', error);
     }
   };
 
