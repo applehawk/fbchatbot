@@ -107,7 +107,7 @@ module.exports = async (controller) => {
             Object.assign(convo.vars, message);
             await convo.stop();
         } else {
-            const regexp = new RegExp(/^(https?):\/\/(www\.)?(facebook\.com)?([^\s\/?\.#-]+\.?)+(\/[^\s]*)?$/i);
+            const regexp = new RegExp(/^(https?):\/\/(www\.)?(facebook\.com)(\/[^\s]+)$/i);
             if (!!response.match(regexp)) {
                 console.log(`User Facebook profile link: ${response}`);
                 message.value = 'Step 5 Facebook Propfile';

@@ -3,11 +3,12 @@
 const CronJob = require('cron').CronJob;
 
 module.exports = async (controller) => {
-  // return;
   /**
    * #BEGIN Scheduling Automation
    */
   const storage = controller._config.storage;
+
+  const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
 
   const job = new CronJob(
     // Seconds: 0-59
@@ -16,6 +17,7 @@ module.exports = async (controller) => {
     // Day of Month: 1-31
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
+
     // '00 00 12 * * 1', // [PROD]
     '00 */10 * * * *', // [STAGING]
     // '0 */5 * * * *', // [TEST]
@@ -25,9 +27,11 @@ module.exports = async (controller) => {
 
       await storage.connect();
 
-      const docs = await storage.Collection.find();
+      const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "ready" } });
+      // const docs = await storage.Collection.find({ 'state.ready_to_conversation': 'busy' });
+      // const docs = await storage.Collection.find();
       const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
-        if (!!_id.match('facebook/users') && state.ready_to_conversation === 'ready') {
+        if (!!_id.match('facebook/users')) {
           const id = _id.match(/\/(\d+)\/$/)[1];
           if (!!id) {
             accum[_id] = { id, state };
@@ -36,12 +40,12 @@ module.exports = async (controller) => {
         return accum;
       }, {});
 
-      if (Object.keys(users).length) {
-        console.log(Object.keys(users).length);
-        Object.values(users).forEach(async ({ id, state }, i) => {
-          // if (id === '3049377188434960' || id === '4011572872217706' ) { // [DEV]
-            const dialogBot = await controller.spawn(id);
+      const count = Object.keys(users).length;
+      console.log('users whos ready for conversation:', count);
 
+      if (count) {
+        Object.values(users).forEach(async ({ id, state }, i) => {
+          // if (i < 10) {
             const message = {
               recipient: { id },
               sender: { id },
@@ -65,27 +69,28 @@ module.exports = async (controller) => {
                 recipient: { id, name: id },
                 channelData: {
                   // ...message.incoming_message.channelData,
+                  messaging_type: 'MESSAGE_TAG',
+                  tag: 'ACCOUNT_UPDATE',
                   sender: { id },
                 },
               },
             };
 
-            await dialogBot.startConversationWithUser(id);
-
-            // if (state.ready_to_conversation === 'ready') {
-              const task = setTimeout(async () => {
-                if (!dialogBot.hasActiveDialog()) {
-                  await controller.trigger(['match'], dialogBot, message);
-                } else if (state.ready_to_conversation === 'busy') {
-                  await controller.trigger(['ask_for_scheduled_a_call'], dialogBot, message);
-                }
-              }, 1000 * i);
-            // } else {
-            //   await controller.trigger(['session_check'], dialogBot, message);
-            // }
-          // } // [DEV]
+            const task = setTimeout(async () => {
+              const dialogBot = await controller.spawn(id);
+              await dialogBot.startConversationWithUser(id);
+              const { conversationWith, userName, readyToConversation } = await getUserContextProperties(controller, dialogBot, message);
+              if (!dialogBot.hasActiveDialog() && readyToConversation === 'ready') {
+                await controller.trigger(['match'], dialogBot, message);
+                // const { conversationWith, userName, readyToConversation } = await getUserContextProperties(controller, dialogBot, message);
+                // console.log('Scheduling:', userName, readyToConversation, conversationWith);
+              } else {
+                console.log(id, conversationWith, userName, readyToConversation, 'has dialog:', dialogBot.hasActiveDialog());
+              }
+              // await resetUserContextProperties(controller, dialogBot, message);
+            }, 2000 * i);
+          // }
         });
-        // job.stop(); // [DEV]
       }
     },
     null,
