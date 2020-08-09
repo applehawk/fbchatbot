@@ -106,14 +106,17 @@ module.exports = async (controller) => {
           { "state.english_level": { "$gte": payload.englishLevel } },
           { "state.english_level": { "$lte": payload.englishLevel } }
         ]}, {
+        "$or": [
+          { "state.community": payload.community },
+          { "state.community": { "$ne": payload.community } }
+        ]}, {
         "$and": [
           { "_id": {
               "$regex": `${payload.channelId}/users*`,
               "$ne": `${payload.channelId}/users/${payload.userId}/`,
               "$nin": [ ...payload.recentUsers ],
             }},
-          { "state.location": { "$ne": payload.location } },
-          { "state.community": payload.community }
+          { "state.location": { "$ne": payload.location } }
         ],
       }]
     };
