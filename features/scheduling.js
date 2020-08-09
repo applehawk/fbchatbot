@@ -88,6 +88,7 @@ module.exports = async (controller) => {
                 console.log(id, conversationWith, userName, readyToConversation, 'has dialog:', dialogBot.hasActiveDialog());
               }
               // await resetUserContextProperties(controller, dialogBot, message);
+            // }, 500 * i);
             }, 2000 * i);
           // }
         });
