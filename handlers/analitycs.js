@@ -2,13 +2,7 @@
 
 module.exports = async (controller) => {
   controller.on(['ANALYTICS_EVENT'], async (bot, message) => {
-    if (/*message.value !== undefined && */(message.type === 'message' || message.type === 'facebook_postback' || message.type === 'messaging_postback')) {
-      /**
-       * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-       * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-       */
-      // await bot.changeContext(message.reference);
-
+    if ((message.type === 'message' || message.type === 'facebook_postback' || message.type === 'messaging_postback')) {
       console.log(`[ANALYTICS_EVENT]: ${message.type}${!!message.value ? ' ' + message.value : ''} ${message.text}`);
 
       const options = {
