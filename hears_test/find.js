@@ -15,6 +15,7 @@ module.exports = async (controller) => {
         await recipientBot.startConversationWithUser(id);
         const {
           community,
+          conversationWith,
           englishLevel,
           facebookURL,
           location,
@@ -68,12 +69,13 @@ module.exports = async (controller) => {
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
           text: `
-  🗺 ${location}
-  💬 ${englishLevelDict[englishLevel]}
-  👔 ${communityDict[community]}
-  🛠 ${profession}
-  📢 ${readyToConversation === 'ready' ? 'Ready' : 'Busy'}
-  ${recentUsers.length ? '⌛ ' + recentUsers.length + '\n\nRecent user' + (recentUsers.length === 1 ? '' : 's') + ':\n\n' + rUsers.join('\n') : ''}`,
+🗺 ${location}
+💬 ${englishLevelDict[englishLevel]}
+👔 ${communityDict[community]}
+🛠 ${profession}
+📢 ${readyToConversation === 'ready' ? 'Ready' : 'Busy (with ' + conversationWith + ')'}
+Has dialog: ${recipientBot.hasActiveDialog()}
+${recentUsers.length ? '⌛ ' + recentUsers.length + '\n\nRecent user' + (recentUsers.length === 1 ? '' : 's') + ':\n\n' + rUsers.join('\n') : ''}`,
         });
       }
     } catch(error) {

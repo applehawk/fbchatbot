@@ -24,8 +24,17 @@ module.exports = async (controller) => {
     const job = new CronJob(
       date,
       async () => {
-        controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        await bot.replaceDialog(SCHEDULED_A_CALL_ID, { message });
+        const messageRef = {
+          ...message,
+          messaging_type: 'MESSAGE_TAG',
+          tag: 'ACCOUNT_UPDATE',
+        };
+
+        const dialogBot = await controller.spawn(messageRef.recipient.id);
+        await dialogBot.startConversationWithUser(messageRef.recipient.id);
+
+        controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient: messageRef.recipient } });
+        await dialogBot.replaceDialog(SCHEDULED_A_CALL_ID, { messageRef });
       },
       null,
       false,

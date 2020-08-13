@@ -92,17 +92,21 @@ module.exports = async (controller) => {
 
       await storage.connect();
 
-      const docs = await storage.Collection.find({ "state.facebook_url": { "$eq": undefined } });
+      const docs = await storage.Collection.find({ "state.facebook_url": { "$exists": false } });
+
+      if (!docs) {
+        return;
+      }
+
       const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
-        const id = _id.match(/\/(\d+)\/$/)[1];
+        const id = _id.match(/\/(\d+)\/?$/);
         if (!!id) {
-          accum[_id] = { id, state };
+          accum[_id] = { id: id[1], state };
         }
         return accum;
       }, {});
 
       console.log('facebook_url:', Object.keys(users).length);
-      return;
 
       if (Object.keys(users).length) {
         Object.values(users).forEach(async ({ id, state }, i) => {
