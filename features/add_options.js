@@ -19,7 +19,6 @@ module.exports = async (controller) => {
   const dialog = new BotkitConversation(FB_DIALOG_ID, controller);
 
   await dialog.before(async (bot, message) => {
-    console.log('bot:', bot, 'message:', message);
     await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
     await bot.say(ONBOARDING_FB_URL_1);
     await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -33,7 +32,7 @@ module.exports = async (controller) => {
     if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
       await convo.stop();
     } else {
-      const regexp = new RegExp(/^(https?):\/\/(www\.)?(facebook\.com)(\/[^\s]+)$/i);
+      const regexp = new RegExp(/^(https?):\/\/((www\.)|(m\.))?(facebook\.com)(\/[^\s]+)$/i);
       if (!!response.match(regexp)) {
         console.log(`User Facebook profile link: ${response}`);
         message.value = 'Step 5 Facebook Propfile';
@@ -86,48 +85,49 @@ module.exports = async (controller) => {
     // Day of Week: 0-6 (Sun-Sat)
     // '00 00 12 * * 1,4',
     '0 0 11 * * *',
+    // '0 */5 * * * *',
     async () => {
       const bot = await controller.spawn();
       const { id: botId } = await bot.api.callAPI('/me', 'GET');
 
       await storage.connect();
 
-      const docs = await storage.Collection.find();
+      const docs = await storage.Collection.find({ "state.facebook_url": { "$eq": undefined } });
       const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
-        if (!!_id.match('facebook/users') && state.facebook_url === undefined) {
-          const id = _id.match(/\/(\d+)\/$/)[1];
-          if (!!id) {
-            accum[_id] = { id, state };
-          }
+        const id = _id.match(/\/(\d+)\/$/)[1];
+        if (!!id) {
+          accum[_id] = { id, state };
         }
         return accum;
       }, {});
 
+      console.log('facebook_url:', Object.keys(users).length);
+      return;
+
       if (Object.keys(users).length) {
         Object.values(users).forEach(async ({ id, state }, i) => {
           const message = {
+            channel: id,
+            message: { text: '' },
+            messaging_type: 'MESSAGE_TAG',
             recipient: { id },
             sender: { id },
-            user: id,
-            channel: id,
-            value: undefined,
-            message: { text: '' },
+            tag: 'ACCOUNT_UPDATE',
             text: '',
+            user: id,
+            value: undefined,
             reference: {
-              // ...message.reference,
               activityId: undefined,
               user: { id, name: id },
               bot: { id: botId },
               conversation: { id },
             },
             incoming_message: {
-              // ...message.incoming_message,
               channelId: 'facebook',
               conversation: { id },
               from: { id, name: id },
               recipient: { id, name: id },
               channelData: {
-                // ...message.incoming_message.channelData,
                 sender: { id },
               },
             },

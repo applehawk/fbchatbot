@@ -54,7 +54,7 @@ let storage = null;
 
 const adapter = new FacebookAdapter({
   access_token: FACEBOOK_ACCESS_TOKEN,
-  api_version: 'v7.0',
+  api_version: 'v8.0',
   app_secret: FACEBOOK_APP_SECRET,
   debug: true, // [*]
   // receive_via_postback: true, // [*]
@@ -136,8 +136,13 @@ const middlewares = {
   },
 
   ingest: async (bot, message, next) => {
+    message = {
+      ...message,
+      messaging_type: 'MESSAGE_TAG',
+      tag: 'ACCOUNT_UPDATE',
+    };
     // await resetUserContextProperties(controller, bot, message);
-    console.log('[ingest]:'/*, message*/);
+    console.log('[ingest]:', message);
 
     controller.trigger(['mark_seen'], bot, message);
 
@@ -146,7 +151,7 @@ const middlewares = {
       const target = senderProperties.conversationWith;
 
       if (target) { // [OK]
-        console.log(`[bot.js:194 DIALOG]: ${message.sender.id} > ${target}`);
+        console.log(`[bot.js:154 DIALOG]: ${message.sender.id} > ${target}`);
         /**
          * #BEGIN Conversation with user
          */
@@ -185,7 +190,7 @@ const middlewares = {
           }
 
         } catch(error) {
-          console.error('[bot.js:254 ERROR]:', error);
+          console.error('[bot.js:193 ERROR]:', error);
         }
         /**
          * #END Conversation with user
@@ -196,13 +201,13 @@ const middlewares = {
         if (message.postback.payload.match('reset')) {
           const { conversationWith } = await getUserContextProperties(controller, bot, message);
 
-          resetUserContextProperties(controller, bot, message);
+          await resetUserContextProperties(controller, bot, message);
 
           const messageRef = {
             ...message,
+            channel: conversationWith,
             sender: { id: conversationWith },
             user: conversationWith,
-            channel: conversationWith,
             value: undefined,
             reference: {
               ...message.reference,
@@ -212,8 +217,6 @@ const middlewares = {
             },
             incoming_message: {
               ...message.incoming_message,
-              // messaging_type: 'MESSAGE_TAG',
-              // tag: 'ACCOUNT_UPDATE',
               conversation: { id: conversationWith },
               from: { id: conversationWith, name: conversationWith },
               recipient: message.recipient,
@@ -227,7 +230,7 @@ const middlewares = {
           const dialogBot = await controller.spawn(message.sender.id);
           await dialogBot.startConversationWithUser(conversationWith);
 
-          resetUserContextProperties(controller, dialogBot, messageRef);
+          await resetUserContextProperties(controller, dialogBot, messageRef);
         }
       }
     }
@@ -236,26 +239,29 @@ const middlewares = {
     next();
   },
 
- send: async (bot, message, next) => { // [OK]
-   console.log('[send]:'/*, message*/);
+  send: async (bot, message, next) => { // [OK]
+    message = {
+      ...message,
+      messaging_type: 'MESSAGE_TAG',
+      tag: 'ACCOUNT_UPDATE',
+    };
+    console.log('[send]:', message);
 
-   // call next, or else the message will be intercepted
-   next();
- },
+    // call next, or else the message will be intercepted
+    next();
+  },
 
- receive: async (bot, message, next) => {
-   console.log('[receive]:'/*, message*/);
+  receive: async (bot, message, next) => {
+    console.log('[receive]:', message);
+    // call next, or else the message will be intercepted
+    next();
+  },
 
-   // call next, or else the message will be intercepted
-   next();
- },
-
- interpret: async (bot, message, next) => {
-   console.log('[interpret]:'/*, message*/);
-
-   // call next, or else the message will be intercepted
-   next();
- },
+  interpret: async (bot, message, next) => {
+    console.log('[interpret]:', message);
+    // call next, or else the message will be intercepted
+    next();
+  },
 };
 
 Object.keys(middlewares).forEach(func => {
