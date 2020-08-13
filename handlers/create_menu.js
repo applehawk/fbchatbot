@@ -5,8 +5,7 @@ module.exports = async (controller) => {
     // if (process.env.NODE_ENV === 'production') {
       await controller.trigger(['delete_menu'], bot,  payload.recipient);
       const menu = {
-        recipient: payload.recipient,
-        psid: payload.recipient.id,
+        messaging_type: 'MESSAGE_TAG',
         persistent_menu: [{
           locale: 'default',
           composer_input_disabled: false,
@@ -14,12 +13,15 @@ module.exports = async (controller) => {
             ...payload.call_to_actions,
           ],
         }],
+        psid: payload.recipient.id,
+        recipient: payload.recipient,
+        tag: 'ACCOUNT_UPDATE',
       };
 
       try {
         await bot.api.callAPI('/me/custom_user_settings', 'POST', menu);
       } catch(error) {
-        console.error('[create_menu.js:22 ERROR]:', payload, error);
+        console.error('[create_menu.js:24 ERROR]:', payload, error);
       }
     // }
   });

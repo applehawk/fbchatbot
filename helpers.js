@@ -62,40 +62,33 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
 };
 
 const resetUserContextProperties = async (controller, bot, message) => { // [OK]
-  const {
-    context,
-    userState,
+  await bot.cancelAllDialogs();
+  const senderProperties = await getUserContextProperties(controller, bot, message);
 
-    conversationWithProperty,
-    expiredAtProperty,
-    readyToConversationProperty,
+  await controller.trigger(['delete_menu'], bot, message.sender);
 
-    conversationWith,
-  } = await getUserContextProperties(controller, bot, message);
-
-  controller.trigger(['delete_menu'], bot, message.sender);
-
-  await conversationWithProperty.set(context, 0);
-  await expiredAtProperty.set(context, 0);
-  await readyToConversationProperty.set(context, 'ready');
+  await senderProperties.conversationWithProperty.set(senderProperties.context, 0);
+  await senderProperties.expiredAtProperty.set(senderProperties.context, 0);
+  await senderProperties.readyToConversationProperty.set(senderProperties.context, 'ready');
 
   /**
    * Save userState changes to storage
    */
-  await userState.saveChanges(context);
-  console.log('session cleared');
+  await senderProperties.userState.saveChanges(senderProperties.context);
+  console.log(`[helpers.js:78 reset]: ${message.sender.id} >>> session cleared`);
 
   /**
    * #BEGIN Bot typing
    */
-  controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+  await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
 
   await bot.say({ // [OK]
     recipient: message.sender,
     text: USER_DIALOG_SESSION_EXPIRED,
+    messaging_type: 'MESSAGE_TAG',
+    tag: 'ACCOUNT_UPDATE',
   });
 
-  await bot.cancelAllDialogs();
   message.value = undefined;
 
   return;
