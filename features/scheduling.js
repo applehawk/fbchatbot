@@ -28,11 +28,11 @@ module.exports = async (controller) => {
       await storage.connect();
 
       const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "ready" } });
-      // const docs = await storage.Collection.find({ 'state.ready_to_conversation': 'busy' });
+      // const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "busy" } });
       // const docs = await storage.Collection.find();
       const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
         if (!!_id.match('facebook/users')) {
-          const id = _id.match(/\/(\d+)\/$/)[1];
+          const id = _id.match(/\/(\d+)\/?$/)[1];
           if (!!id) {
             accum[_id] = { id, state };
           }
@@ -87,7 +87,7 @@ module.exports = async (controller) => {
             }
           //   await resetUserContextProperties(controller, dialogBot, message);
           //   await controller.trigger(['reset'], dialogBot, message);
-          // }, 1000 * i);
+          // }, 500 * i);
           }, 2000 * i);
         });
       }

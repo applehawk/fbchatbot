@@ -193,23 +193,41 @@ module.exports = async (controller) => {
          */
         await senderProperties.userState.saveChanges(senderProperties.context);
 
-        // message.channelData = {
-        //   ...message.incoming_message.channelData,
-        //   messaging_type: 'MESSAGE_TAG',
-        //   tag: 'ACCOUNT_UPDATE',
-        // };
-
         const senderBot = bot;
-        const senderMessage = Object.assign({}, message);
-        const recipientMessage = Object.assign({}, message);
+        const senderMessage = { ...message };
 
         /**
          * RECIPIENT
          */
 
-        recipientMessage.recipient.id = id;
-        const recipientBot = await controller.spawn(senderMessage.sender.id);
-        await recipientBot.startConversationWithUser(recipientMessage.recipient.id);
+        const recipientMessage = {
+          ...message,
+          channel: id,
+          messaging_type: 'MESSAGE_TAG',
+          recipient: { id },
+          sender: { id },
+          tag: 'ACCOUNT_UPDATE',
+          user: id,
+          value: undefined,
+          reference: {
+            ...message.reference,
+            user: { id, name: id },
+            conversation: { id },
+          },
+          incoming_message: {
+            channelId: 'facebook',
+            conversation: { id },
+            from: { id, name: id },
+            recipient: { id, name: id },
+            channelData: {
+              messaging_type: 'MESSAGE_TAG',
+              tag: 'ACCOUNT_UPDATE',
+              sender: { id },
+            },
+          },
+        };
+        const recipientBot = await controller.spawn(id);
+        await recipientBot.startConversationWithUser(id);
 
         /**
          * Set recipient properties
@@ -271,8 +289,6 @@ module.exports = async (controller) => {
           },
         };
 
-        recipientMessage.sender.id = recipientMessage.recipient.id;
-
         controller.trigger(['sender_action_typing'], recipientBot, { options: { recipient: recipientMessage.recipient } });
         await recipientBot.say({
           messaging_type: 'MESSAGE_TAG',
@@ -290,12 +306,8 @@ module.exports = async (controller) => {
          * Create menu for recipient
          */
         payload = {
-          recipient: recipientMessage.recipient,
-          call_to_actions: [{
-            type: 'postback',
-            title: '❌ End a conversation',
-            payload: `reset`,
-          }],
+          ...payload,
+          recipient: recipientMessage.sender,
         };
 
         await controller.trigger(['create_menu'], recipientBot, payload);
@@ -323,7 +335,7 @@ module.exports = async (controller) => {
         });
       }
     } catch(error) {
-      console.error('[match.js:326 ERROR]:', error);
+      console.error('[match.js:322 ERROR]:', error);
     }
     const finish = Date.now() - start;
     console.log(`match: ${finish}ms`);
