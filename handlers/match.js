@@ -43,6 +43,8 @@ module.exports = async (controller) => {
 
     const options = { // [OK]
       recipient: message.sender,
+      messaging_type: 'MESSAGE_TAG',
+      tag: 'ACCOUNT_UPDATE',
       message: {
         attachment: {
           type: 'template',
@@ -61,20 +63,23 @@ module.exports = async (controller) => {
 
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
       await bot.say({
+        messaging_type: 'MESSAGE_TAG',
+        tag: 'ACCOUNT_UPDATE',
         text: `
 🗺 ${user.state.location}
 💬 ${englishLevelDict[user.state.english_level]}
 👔 ${communityDict[user.state.community]}
 🛠 ${user.state.profession}`,
-        // },
       });
 
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
       await bot.say({
+        messaging_type: 'MESSAGE_TAG',
+        tag: 'ACCOUNT_UPDATE',
         text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
       });
     } catch(error) {
-      console.error('[match.js:77 ERROR]:', error);
+      console.error('[match.js:82 ERROR]:', error);
     }
   };
 
@@ -138,16 +143,13 @@ module.exports = async (controller) => {
     const finish = Date.now() - start;
     console.log(`search: ${finish}ms`);
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`\n[${payload.userId} >>> ${user._id.match(/(\d+)\/$/)[1]}${!!user.state.conversation_with ? ' [WRONG]: ' + user.state.conversation_with : ''}]\n`);
-    }
+    console.log(`\n[${payload.userId} >>> ${user._id.match(/(\d+)\/$/)[1]}${!!user.state.conversation_with && user.state.conversation_with !== payload.userId ? ' [WRONG]: ' + user.state.conversation_with : ''}]\n`);
 
     return user;
   };
 
   // controller.hears(new RegExp(/^match$/i), ['message'], async (bot, message) => {
   controller.on(['match'], async (bot, message) => {
-    // Get User State Properties
     const start = Date.now();
     try {
       const userId = message.sender.id;
@@ -155,6 +157,7 @@ module.exports = async (controller) => {
 
       const { channelId } = message.incoming_message;
 
+      // Get User State Properties
       let senderProperties = await getUserContextProperties(controller, bot, message);
       const payload = {
         ...senderProperties,
@@ -164,7 +167,6 @@ module.exports = async (controller) => {
 
       // Getting users from DB
       const user = await chooseWithLevel(payload);
-      // return;
 
       if (Object.keys(user).length) {
         /**
@@ -191,28 +193,31 @@ module.exports = async (controller) => {
          */
         await senderProperties.userState.saveChanges(senderProperties.context);
 
-        message.channelData = {
-          ...message.incoming_message.channelData,
-          messaging_type: 'MESSAGE_TAG',
-          tag: 'ACCOUNT_UPDATE',
-        };
+        // message.channelData = {
+        //   ...message.incoming_message.channelData,
+        //   messaging_type: 'MESSAGE_TAG',
+        //   tag: 'ACCOUNT_UPDATE',
+        // };
 
         const senderBot = bot;
-        const senderMessage = Object.assign({}, { ...message });
-        const recipientMessage = Object.assign({}, { ...message });
+        const senderMessage = Object.assign({}, message);
+        const recipientMessage = Object.assign({}, message);
 
         /**
          * RECIPIENT
          */
 
         recipientMessage.recipient.id = id;
-        const recipientBot = await controller.spawn(recipientMessage.recipient.id);
+        const recipientBot = await controller.spawn(senderMessage.sender.id);
         await recipientBot.startConversationWithUser(recipientMessage.recipient.id);
 
         /**
          * Set recipient properties
          */
         let recipientProperties = await getUserContextProperties(controller, recipientBot, recipientMessage);
+
+        recipientProperties.recentUsers = [ ...recipientProperties.recentUsers, `${channelId}/users/${senderMessage.sender.id}/` ];
+        await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
         await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
         await recipientProperties.conversationWithProperty.set(recipientProperties.context, senderMessage.sender.id);
         // await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
@@ -241,6 +246,8 @@ module.exports = async (controller) => {
 
         controller.trigger(['sender_action_typing'], senderBot, { options: { recipient } });
         await senderBot.say({
+          messaging_type: 'MESSAGE_TAG',
+          tag: 'ACCOUNT_UPDATE',
           text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
         });
 
@@ -268,6 +275,8 @@ module.exports = async (controller) => {
 
         controller.trigger(['sender_action_typing'], recipientBot, { options: { recipient: recipientMessage.recipient } });
         await recipientBot.say({
+          messaging_type: 'MESSAGE_TAG',
+          tag: 'ACCOUNT_UPDATE',
           text: `Hey ${recipientProperties.userName}! Here is you partner for this week.`,
         });
 
@@ -293,7 +302,7 @@ module.exports = async (controller) => {
         controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
         payload = null;
       } else {
-        clearTimeout(message.value);
+        // clearTimeout(message.value);
         message.value = null;
 
         /**
@@ -307,10 +316,14 @@ module.exports = async (controller) => {
          */
         controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
-        await bot.say(MATCH_NOT_FOUND_SUITABLE_USER);
+        await bot.say({
+          messaging_type: 'MESSAGE_TAG',
+          tag: 'ACCOUNT_UPDATE',
+          text: MATCH_NOT_FOUND_SUITABLE_USER,
+        });
       }
     } catch(error) {
-      console.error('[match.js:310 ERROR]:', error);
+      console.error('[match.js:326 ERROR]:', error);
     }
     const finish = Date.now() - start;
     console.log(`match: ${finish}ms`);
