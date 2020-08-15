@@ -1,11 +1,11 @@
 'use strict';
 
-/**
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License.
- */
-
 const { GIF_GREETING } = require('../constants.js');
+const { UserState } = require('botbuilder');
+const {
+    getUserContextProperties,
+    resetUserContextProperties,
+} = require('../helpers.js');
 
 module.exports = async (controller) => {
     const GREETING_ID = 'GREETING_ID';
@@ -14,14 +14,22 @@ module.exports = async (controller) => {
         bot.cancelAllDialogs();
         const refer = message.recipient.user_ref !== undefined ? 'chat_plugin' : 'messenger';
         console.log('[GET STARTED]:', message, '[refer]:', refer, message.recipient.user_ref);
-        /**
-         * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-         * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-         */
-        // await bot.changeContext(message.reference);
 
         const userId = `facebook/conversations/${message.user}-${message.user}/`;
         await bot.controller.storage.delete([userId]);
+
+        const senderProperties = await getUserContextProperties(controller, bot, message);
+
+        await controller.trigger(['delete_menu'], bot, message.sender);
+
+        await senderProperties.conversationWithProperty.set(senderProperties.context, 0);
+        await senderProperties.expiredAtProperty.set(senderProperties.context, 0);
+        await senderProperties.readyToConversationProperty.set(senderProperties.context, 'ready');
+
+        /**
+        * Save userState changes to storage
+        */
+        await senderProperties.userState.saveChanges(senderProperties.context);
 
         /**
          * @TODO User comes from messenger or chat
@@ -32,14 +40,10 @@ module.exports = async (controller) => {
         //     ///
         // }
 
-        // if (message.postback.title === 'Get Started' ||
-        //     ( (message.type === 'legacy_reply_to_message_action' && message.message === 'Get Started') ||
-        //         (message.recipient.user_ref !== undefined && message.message === 'Get Started')) ||
-        //             message.text === 'getstarted_payload' ) {
         if (message.text === 'getstarted_payload' || message.text === 'Get Started') {
             try {
                 message.value = 'Get Started';
-                await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+                controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
                 const recipient = {
                     id: message.sender.id,
@@ -50,7 +54,7 @@ module.exports = async (controller) => {
                 /**
                  * #BEGIN Bot typing
                  */
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+                controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
 
                 // Get user's FB Profile Info
                 const url = `/${message.sender.id}`;
@@ -83,7 +87,7 @@ module.exports = async (controller) => {
                 await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
                 await bot.replaceDialog(GREETING_ID, { username, profilePic });
             } catch(error) {
-                console.error('[start.js:94 ERROR]:', error);
+                console.error('[start.js:90 ERROR]:', error);
             }
         // } else {
             /**

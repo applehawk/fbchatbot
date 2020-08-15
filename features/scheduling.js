@@ -23,7 +23,7 @@ module.exports = async (controller) => {
     // '0 */5 * * * *', // [TEST]
     async () => {
       const bot = await controller.spawn();
-      const { id: botId } = await bot.api.callAPI('/me', 'GET');
+      // const { id: botId } = await bot.api.callAPI('/me', 'GET');
 
       await storage.connect();
 
@@ -58,7 +58,7 @@ module.exports = async (controller) => {
             reference: {
               activityId: undefined,
               user: { id, name: id },
-              bot: { id: botId },
+              // bot: { id: botId },
               conversation: { id },
             },
             incoming_message: {

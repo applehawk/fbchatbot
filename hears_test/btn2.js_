@@ -1,26 +1,27 @@
+'use strict;'
+
 const { communityDict, askCommunityStr } = require('../constants.js');
 
 module.exports = async (controller) => {
-  controller.hears('btn2', ['message', 'direct_message'], async (bot, message) => {
+  controller.hears(new RegExp(/^btn2$/i), ['message'], async (bot, message) => {
 
     const options = {
-      recipient: message.recipient,
+      recipient: message.sender,
       message: {
         attachment: {
           type: 'template',
-          text: askCommunityStr,
           payload: {
             template_type: 'generic',
-            elements: {
+            elements: [
             buttons: [
               { type: 'postback',
-                title: communityDict[0],
+                title: '1234567890 1234567890 1234567890',
                 payload: 0 },
               { type: 'postback',
-                title: communityDict[1],
+                title: '1234567890 1234567890 1234567890',
                 payload: 1 },
               { type: 'postback',
-                title: communityDict[2],
+                title: '1234567890 1234567890 1234567890',
                 payload: 2 }//,
               // { type: 'postback',
               //   title: communityDict[3],
@@ -40,8 +41,8 @@ module.exports = async (controller) => {
               'title':communityDict.EnglishPresentations,
               'payload':communityDict.EnglishPresentations
               },*/
-              ],
-            },
+              ]
+            ],
           },
         },
       },

@@ -1,8 +1,6 @@
 'use strict';
 
-const {
-    communityDict,
-} = require(`../constants.js`);
+const { communityDict } = require(`../constants.js`);
 
 module.exports = async (controller) => {
     const getCommunityButtons = () => {
@@ -17,14 +15,14 @@ module.exports = async (controller) => {
         return buttons;
     };
 
-    controller.hears('btn', ['message', 'direct_message'], async (bot, message) => {
+    controller.hears(new RegExp(/^btn$/i), ['message'], async (bot, message) => {
         const buttons = [ ...getCommunityButtons() ];
 
         const elements = [];
 
         communityDict.forEach((item, i) => {
             elements.push({
-                title: communityDict[i],
+                title: 'title1 title2 title3 title4 title5 title6 title7 title8 title9 title10',
                 image_url: `https://picsum.photos/300/200/?random=${i + 10}`,
                 subtitle: 'We have the right hat for everyone.',
                 buttons: [buttons[i]],
@@ -32,7 +30,7 @@ module.exports = async (controller) => {
         });
 
         const options = {
-            recipient: message.recipient,
+            recipient: message.sender,
             message: {
                 attachment: {
                     type: 'template',

@@ -2,6 +2,7 @@
 
 const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
+const { resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   const clearState = async (context, state, field) => {
@@ -10,8 +11,8 @@ module.exports = async (controller) => {
     return context;
   };
 
-  // controller.hears(new RegExp(/^reset ?(.*?)$/i), ['message'], async (bot, message) => {
-  controller.on(['reset'], async (bot, message) => {
+  controller.hears(new RegExp(/^reset$/i), ['message'], async (bot, message) => {
+  // controller.on(['reset'], async (bot, message) => {
     try {
       const userState = new UserState(controller.storage);
       const context = bot.getConfig('context');
@@ -25,8 +26,9 @@ module.exports = async (controller) => {
       // Save userState changes to storage
       await userState.saveChanges(cleaned);
       console.log('users empty');
+      await resetUserContextProperties(controller, bot, message);
     } catch (error) {
-      console.log('[reset.js:29 ERROR]:', error);
+      console.log('[reset.js:31 ERROR]:', error);
     }
   });
 };
