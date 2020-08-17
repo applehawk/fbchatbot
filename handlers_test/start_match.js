@@ -5,8 +5,9 @@ module.exports = async (controller) => {
   let timersQueue = [];
 
   const setTimer = async (bot, message) => { // [OK]
-    clearTimeout(timersQueue[message.user]);
-    timersQueue[message.user] = null;
+    const user = message.user || message.channelData.sender.id;
+    clearTimeout(timersQueue[user]);
+    timersQueue[user] = null;
     /**
      * Running a timer if the user doesn't have an active dialog and message.value is empty
      */
@@ -24,15 +25,15 @@ module.exports = async (controller) => {
         setTimeout(async () => { // [OK]
           await bot.changeContext(reference);
           clearTimeout(message.value);
-          if (Object.keys(timersQueue).includes(message.user)) {
-            delay += 10000;
+          if (Object.keys(timersQueue).includes(user)) {
+            delay += 5000;
           } else {
             delay = 10000;
             await setTimer(bot, message);
           }
-        }, 5000);
+        }, 3000);
       }, delay);
-      timersQueue[message.user] = message.value;
+      timersQueue[user] = message.value;
     }
   };
 

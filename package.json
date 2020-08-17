@@ -4,15 +4,19 @@
   "description": "",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "./patch.sh && node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "heroku-postbuid": "npm run start"
   },
   "dependencies": {
     "botbuilder-adapter-facebook": "^1.0.10",
     "botbuilder-storage-mongodb": "^0.9.5",
     "botkit": "^4.9.0",
     "botkit-plugin-cms": "^1.0.3",
-    "dotenv": "^7.0.0"
+    "cron": "^1.8.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "ava": "^3.11.1",
+    "dotenv": "^7.0.0"
+  }
 }
