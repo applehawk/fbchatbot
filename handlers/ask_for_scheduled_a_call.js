@@ -7,13 +7,13 @@ module.exports = async (controller) => {
 
   controller.on(['ask_for_scheduled_a_call'], async (bot, message) => {
 
-    // // [PROD]
-    // let date = new Date();
-    // date.setHours(date.getHours() + 48);
-
-    // [STAGING]
+    // [PROD]
     let date = new Date();
-    date.setMinutes(date.getMinutes() + 5);
+    date.setHours(date.getHours() + 48);
+
+    // // [STAGING]
+    // let date = new Date();
+    // date.setMinutes(date.getMinutes() + 5);
 
     // // [TEST]
     // let date = new Date();
