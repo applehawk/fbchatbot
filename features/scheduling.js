@@ -5,6 +5,7 @@ const CronJob = require('cron').CronJob;
 const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
+  return;
   /**
    * #BEGIN Scheduling Automation
    */
