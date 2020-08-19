@@ -263,23 +263,23 @@ module.exports = async (controller) => {
     }, { key: 'community' });
     // #END Community
 
-    // #BEGIN About ExpertIn
+    // // #BEGIN About ExpertIn
 
-    await onboarding.ask({
-        text: ONBOARDING_WHO_INTRODUCE_IN_4,
-    }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
-        if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
-            Object.assign(convo.vars, message);
-            await convo.stop();
-        } else {
-            console.log(`User who introduceIn: ${response}`);
-            message.value = 'Step 9 Someone introduce';
-            await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-        }
-    }, { key: 'who_introducein' });
-    // #END About ExpertIn
+    // await onboarding.ask({
+    //     text: ONBOARDING_WHO_INTRODUCE_IN_4,
+    // }, async (response, convo, bot, message) => {
+    //     //await controller.trigger(['mark_seen'], bot, message);
+    //     if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
+    //         Object.assign(convo.vars, message);
+    //         await convo.stop();
+    //     } else {
+    //         console.log(`User who introduceIn: ${response}`);
+    //         message.value = 'Step 9 Someone introduce';
+    //         await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+    //         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+    //     }
+    // }, { key: 'who_introducein' });
+    // // #END About ExpertIn
 
     /**
      * Inform to the user about self
