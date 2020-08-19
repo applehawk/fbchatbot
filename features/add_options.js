@@ -84,8 +84,8 @@ module.exports = async (controller) => {
     // Day of Month: 1-31
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
-    '0 0 11 * * 1',
-    // '0 0 11 * * *',
+    '0 0 11 * * *',
+    // '0 */10 * * * *',
     // '0 */5 * * * *',
     async () => {
       const bot = await controller.spawn();
