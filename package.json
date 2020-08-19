@@ -9,6 +9,7 @@
     "heroku-postbuid": "npm run start"
   },
   "dependencies": {
+    "@amplitude/node": "^0.3.3",
     "botbuilder-adapter-facebook": "^1.0.10",
     "botbuilder-storage-mongodb": "^0.9.5",
     "botkit": "^4.9.0",
