@@ -5,7 +5,6 @@ const CronJob = require('cron').CronJob;
 const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
-  return;
   /**
    * #BEGIN Scheduling Automation
    */
@@ -23,9 +22,6 @@ module.exports = async (controller) => {
     // '0 */10 * * * *', // [STAGING]
     // '0 */5 * * * *', // [TEST]
     async () => {
-      const bot = await controller.spawn();
-      // const { id: botId } = await bot.api.callAPI('/me', 'GET');
-
       await storage.connect();
 
       const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "ready" } });
@@ -59,7 +55,6 @@ module.exports = async (controller) => {
             reference: {
               activityId: undefined,
               user: { id, name: id },
-              // bot: { id: botId },
               conversation: { id },
             },
             incoming_message: {
