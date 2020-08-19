@@ -165,7 +165,7 @@ const middlewares = {
             // /**
             //  * #BEGIN Bot typing
             //  */
-            // await controller.trigger(['sender_action_typing'], dialogBot, {
+            // /*await */controller.trigger(['sender_action_typing'], dialogBot, {
             //   options: { recipient: { id: target } },
             // });
             // // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expiredAt).toLocaleString()}]`;
@@ -178,19 +178,15 @@ const middlewares = {
             //   recipient: { id: target },
             //   sender: { id: message.sender.id },
             //   text: message.text,
+            //   messaging_type: 'MESSAGE_TAG',
+            //   tag: 'ACCOUNT_UPDATE',
             // });
           } else if (Date.now() > senderProperties.expiredAt) {
-            // // v1 [OK]
-            // await resetUserContextProperties(controller, dialogBot, message);
-            // await resetUserContextProperties(controller, bot, message);
-
-            // v2 [*]
-            // await controller.trigger(['session_check'], dialogBot, message);
             // await controller.trigger(['session_check'], bot, message);
           }
 
         } catch(error) {
-          console.error('[bot.js:193 ERROR]:', error);
+          console.error('[bot.js:189 ERROR]:', error);
         }
         /**
          * #END Conversation with user
@@ -203,34 +199,37 @@ const middlewares = {
 
           await resetUserContextProperties(controller, bot, message);
 
-          const messageRef = {
-            ...message,
-            channel: conversationWith,
-            sender: { id: conversationWith },
-            user: conversationWith,
-            value: undefined,
-            reference: {
-              ...message.reference,
-              activityId: undefined,
-              user: { id: conversationWith, name: conversationWith },
-              conversation: { id: conversationWith },
-            },
-            incoming_message: {
-              ...message.incoming_message,
-              conversation: { id: conversationWith },
-              from: { id: conversationWith, name: conversationWith },
-              recipient: message.recipient,
-              channelData: {
-                ...message.incoming_message.channelData,
-                sender: { id: conversationWith },
-              },
-            },
-          };
+          /**
+           * @TIP Moved into helpers.js
+           */
+          // const messageRef = {
+          //   ...message,
+          //   channel: conversationWith,
+          //   sender: { id: conversationWith },
+          //   user: conversationWith,
+          //   value: undefined,
+          //   reference: {
+          //     ...message.reference,
+          //     activityId: undefined,
+          //     user: { id: conversationWith, name: conversationWith },
+          //     conversation: { id: conversationWith },
+          //   },
+          //   incoming_message: {
+          //     ...message.incoming_message,
+          //     conversation: { id: conversationWith },
+          //     from: { id: conversationWith, name: conversationWith },
+          //     recipient: message.recipient,
+          //     channelData: {
+          //       ...message.incoming_message.channelData,
+          //       sender: { id: conversationWith },
+          //     },
+          //   },
+          // };
 
-          const dialogBot = await controller.spawn(message.sender.id);
-          await dialogBot.startConversationWithUser(conversationWith);
+          // const dialogBot = await controller.spawn(message.sender.id);
+          // await dialogBot.startConversationWithUser(conversationWith);
 
-          await resetUserContextProperties(controller, dialogBot, messageRef);
+          // await resetUserContextProperties(controller, dialogBot, messageRef);
         }
       }
     }

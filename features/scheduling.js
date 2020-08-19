@@ -5,6 +5,7 @@ const CronJob = require('cron').CronJob;
 const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
+  return;
   /**
    * #BEGIN Scheduling Automation
    */
@@ -18,12 +19,12 @@ module.exports = async (controller) => {
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
 
-    // '0 0 12 * * 1', // [PROD]
-    '0 */10 * * * *', // [STAGING]
+    '0 0 12 * * 1', // [PROD]
+    // '0 */10 * * * *', // [STAGING]
     // '0 */5 * * * *', // [TEST]
     async () => {
       const bot = await controller.spawn();
-      const { id: botId } = await bot.api.callAPI('/me', 'GET');
+      // const { id: botId } = await bot.api.callAPI('/me', 'GET');
 
       await storage.connect();
 
@@ -58,7 +59,7 @@ module.exports = async (controller) => {
             reference: {
               activityId: undefined,
               user: { id, name: id },
-              bot: { id: botId },
+              // bot: { id: botId },
               conversation: { id },
             },
             incoming_message: {

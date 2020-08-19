@@ -10,6 +10,7 @@ const {
 } = require('../constants.js');
 
 module.exports = async (controller) => {
+  return;
   /**
    * #BEGIN Scheduling Automation
    */
@@ -28,7 +29,7 @@ module.exports = async (controller) => {
     text: ONBOARDING_FB_URL_3,
   }, async (response, convo, bot, message) => {
     Object.assign(convo.vars, message);
-    await controller.trigger(['mark_seen'], bot, message);
+    // await controller.trigger(['mark_seen'], bot, message);
     if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
       await convo.stop();
     } else {
@@ -48,7 +49,7 @@ module.exports = async (controller) => {
   }, { key: 'facebook_url' });
 
   await dialog.after(async (results, bot) => { // [OK]
-    await controller.trigger(['mark_seen'], bot, results);
+    // await controller.trigger(['mark_seen'], bot, results);
     try {
       if (results.text === 'getstarted_payload') {
         await controller.trigger(['start'], bot, results);
@@ -70,7 +71,7 @@ module.exports = async (controller) => {
       await userState.saveChanges(context);
       results.value = undefined;
     } catch(error) {
-      console.error('[add_options.js:75 ERROR]:', error);
+      console.error('[add_options.js:73 ERROR]:', error);
     };
   });
 
@@ -83,8 +84,8 @@ module.exports = async (controller) => {
     // Day of Month: 1-31
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
-    // '00 00 12 * * 1,4',
     '0 0 11 * * *',
+    // '0 */10 * * * *',
     // '0 */5 * * * *',
     async () => {
       const bot = await controller.spawn();

@@ -153,7 +153,6 @@ module.exports = async (controller) => {
     const start = Date.now();
     try {
       const userId = message.sender.id;
-      const recipient = message.sender;
 
       const { channelId } = message.incoming_message;
 
@@ -261,8 +260,9 @@ module.exports = async (controller) => {
 
         await controller.trigger(['create_menu'], senderBot, payload);
         controller.trigger(['ask_for_scheduled_a_call'], senderBot, senderMessage);
+        controller.trigger(['session_check'], senderBot, senderMessage);
 
-        controller.trigger(['sender_action_typing'], senderBot, { options: { recipient } });
+        controller.trigger(['sender_action_typing'], senderBot, { options: { recipient: senderMessage.sender } });
         await senderBot.say({
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
@@ -289,7 +289,7 @@ module.exports = async (controller) => {
           },
         };
 
-        controller.trigger(['sender_action_typing'], recipientBot, { options: { recipient: recipientMessage.recipient } });
+        controller.trigger(['sender_action_typing'], recipientBot, { options: { recipient: recipientMessage.sender } });
         await recipientBot.say({
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
@@ -312,6 +312,7 @@ module.exports = async (controller) => {
 
         await controller.trigger(['create_menu'], recipientBot, payload);
         controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
+        // controller.trigger(['session_check'], recipientBot, recipientMessage);
         payload = null;
       } else {
         // clearTimeout(message.value);

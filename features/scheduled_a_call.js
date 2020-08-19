@@ -73,7 +73,7 @@ module.exports = async (controller) => {
     {
       default: true,
       handler: async (response, convo, bot, message) => {
-        await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+        controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await convo.repeat();
       },
     },
@@ -82,7 +82,7 @@ module.exports = async (controller) => {
       // pattern: '1',
       pattern: 'No',
       handler: async (response, convo, bot, message) => {
-        await controller.trigger(['mark_seen'], bot, message);
+        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -94,7 +94,7 @@ module.exports = async (controller) => {
             message.value = 'Scheduled a call';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
 
           //   // [PING DIALOG]
           //   await dialog.ask({
@@ -105,7 +105,7 @@ module.exports = async (controller) => {
           //     }],
           //   }, async (response, convo, bot, message) => {
           //       console.log('ping to partner');
-          //       await controller.trigger(['mark_seen'], bot, message);
+          //       // await controller.trigger(['mark_seen'], bot, message);
           //       if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           //         Object.assign(convo.vars, message);
           //         await convo.stop();
@@ -114,9 +114,8 @@ module.exports = async (controller) => {
           //           /**
           //            * @TODO Ping to partner
           //            */
-          //           await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+          //           controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           //           await bot.say({
-          //             recipient: message.sender,
           //             text: 'Well, soon your partner receives a notification and contact you.'
           //           });
           //           /**
@@ -125,7 +124,7 @@ module.exports = async (controller) => {
           //           Object.assign(convo.vars, message);
           //           await convo.stop();
           //         } else {
-          //           await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+          //           controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           //           await convo.repeat();
           //         }
           //       }
@@ -140,16 +139,15 @@ module.exports = async (controller) => {
                 title: 'Partner don’t answer',
                 payload: 'Partner don’t answer',
               }, {
-                title: 'I haven’t writtend yet',
-                payload: 'I haven’t writtend yet',
+                title: 'I haven’t written yet',
+                payload: 'I haven’t written yet',
               }],
             }, [
               {
                 default: false,
                 pattern: 'Yes',
                 handler: async (response, convo, bot, message) => {
-                  console.log(response, message.text);
-                  await controller.trigger(['mark_seen'], bot, message);
+                  // await controller.trigger(['mark_seen'], bot, message);
                   if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                     Object.assign(convo.vars, message);
                     await convo.stop();
@@ -157,9 +155,8 @@ module.exports = async (controller) => {
                     /**
                      * @TODO Ping to partner
                      */
-                    await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                    controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                     await bot.say({
-                      recipient: message.sender,
                       text: 'Great! Have a good conversation!'
                     });
                     /**
@@ -174,8 +171,7 @@ module.exports = async (controller) => {
                 default: false,
                 pattern: 'Partner don’t answer',
                 handler: async (response, convo, bot, message) => {
-                  console.log(response, message.text);
-                  await controller.trigger(['mark_seen'], bot, message);
+                  // await controller.trigger(['mark_seen'], bot, message);
                   if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                     Object.assign(convo.vars, message);
                     await convo.stop();
@@ -183,14 +179,11 @@ module.exports = async (controller) => {
                     /**
                      * @TODO Ping to partner
                      */
-                    await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                    controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                    controller.trigger(['repeat_match'], bot, message);
                     await bot.say({
-                      recipient: message.sender,
                       text: 'Don’t worry! We will send you another partner today!'
                     });
-                    /**
-                     * @TODO Scheduled a call after 12 hours
-                     */
                     Object.assign(convo.vars, message);
                     await convo.stop();
                   }
@@ -198,10 +191,9 @@ module.exports = async (controller) => {
               },
               {
                 default: false,
-                pattern: 'I haven’t writtend y...',
+                pattern: 'I haven’t written',
                 handler: async (response, convo, bot, message) => {
-                  console.log(response, message.text);
-                  await controller.trigger(['mark_seen'], bot, message);
+                  // await controller.trigger(['mark_seen'], bot, message);
                   if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                     Object.assign(convo.vars, message);
                     await convo.stop();
@@ -209,9 +201,8 @@ module.exports = async (controller) => {
                     /**
                      * @TODO Ping to partner
                      */
-                    await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                    controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                     await bot.say({
-                      recipient: message.sender,
                       text: 'Don’t wait! Your partner is waiting for you!'
                     });
                     /**
@@ -225,14 +216,14 @@ module.exports = async (controller) => {
               {
                 default: true,
                 handler: async (response, convo, bot, message) => {
-                  await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                  controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                   await convo.repeat();
                 },
               }
               ], { key: 'already_scheduled_a_call' });
 
           // } else {
-          //   await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+          //   controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           //   await convo.repeat();
           // }
         }
@@ -243,7 +234,7 @@ module.exports = async (controller) => {
       // pattern: '2',
       pattern: 'Yes I do',
       handler: async (response, convo, bot, message) => {
-        await controller.trigger(['mark_seen'], bot, message);
+        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -252,19 +243,17 @@ module.exports = async (controller) => {
           //   message.text = buttons[response - 1];
             message.value = 'Scheduled a call';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             // await bot.say({
-            //   recipient: message.sender,
             //   text: 'Okey dokey! Use https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)'
             // });
             await bot.say({
-              recipient: message.sender,
               text: 'Great!',
             });
             Object.assign(convo.vars, message);
             await convo.stop();
           // } else {
-          //   await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+          //   controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
           //   await convo.repeat();
           // }
         }
@@ -274,7 +263,7 @@ module.exports = async (controller) => {
       default: false,
       pattern: '3',
       handler: async (response, convo, bot, message) => {
-        await controller.trigger(['mark_seen'], bot, message);
+        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -284,14 +273,13 @@ module.exports = async (controller) => {
             message.text = buttons[response - 1];
             message.value = 'Scheduled a call';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await bot.say({
-              recipient: message.sender,
               text: 'OK. Have a productive conversation! 😉'
             });
             await convo.stop();
           } else {
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await convo.repeat();
           }
         }
@@ -301,7 +289,7 @@ module.exports = async (controller) => {
       default: false,
       pattern: '4',
       handler: async (response, convo, bot, message) => {
-        await controller.trigger(['mark_seen'], bot, message);
+        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -310,14 +298,14 @@ module.exports = async (controller) => {
             message.text = buttons[response - 1];
             message.value = 'Scheduled a call';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
 
             // [APPRECIATE DIALOG]
             await dialog.ask({
               text: 'Great! How do you appreciate your dialogue?',
               quick_replies: [ ...getItems(appreciateDialogue) ],
             }, async (response, convo, bot, message) => {
-              await controller.trigger(['mark_seen'], bot, message);
+              // await controller.trigger(['mark_seen'], bot, message);
               if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                 Object.assign(convo.vars, message);
                 await convo.stop();
@@ -328,14 +316,14 @@ module.exports = async (controller) => {
                   await controller.trigger(['ANALYTICS_EVENT'], bot, message);
                   await convo.stop();
                 } else {
-                  await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                  controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                   await convo.repeat();
                 }
               }
             }, { key: 'appreciate_dialog' });
 
           } else {
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await convo.repeat();
           }
         }
@@ -345,7 +333,7 @@ module.exports = async (controller) => {
       default: false,
       pattern: '5',
       handler: async (response, convo, bot, message) => {
-        await controller.trigger(['mark_seen'], bot, message);
+        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -355,13 +343,12 @@ module.exports = async (controller) => {
             message.value = 'Scheduled a call';
             await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await bot.say({
-              recipient: message.sender,
               text: 'Ok. Give us some time and we will send you a new contact.',
             });
 
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
 
             // [PROBLEM DIALOG]
             await dialog.ask({
@@ -377,9 +364,8 @@ module.exports = async (controller) => {
                 message.value = 'Problem with partner';
                 await controller.trigger(['ANALYTICS_EVENT'], bot, message);
 
-                await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+                controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
                 await bot.say({
-                  recipient: message.sender,
                   text: 'Thanks. We\'ll keep it on mind',
                 });
                 await convo.stop();
@@ -387,7 +373,7 @@ module.exports = async (controller) => {
             }, { key: 'problem_with_partner' });
 
           } else {
-            await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
+            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
             await convo.repeat();
           }
         }

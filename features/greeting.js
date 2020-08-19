@@ -14,12 +14,6 @@ module.exports = async (controller) => {
 
   const greeting = controller.dialogSet.dialogs[GREETING_ID];
 
-  // greeting.before('getstarted_payload', async (bot, message) => {
-  //   console.log('before:', message);
-  //   // const userId = `facebook/conversations/${message.user}-${message.user}/`;
-  //   // await bot.controller.storage.delete([userId]);
-  // });
-
   try {
     // send a greeting
     await greeting.ask({
@@ -29,8 +23,7 @@ module.exports = async (controller) => {
         payload: 'Yes! How it works?',
       }],
     }, async (response, convo, bot, message) => {
-      // console.log(message);
-      await controller.trigger(['mark_seen'], bot, message);
+      // await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'getstarted_payload' || message.text === 'getstarted_payload' || response === 'Get Started') {
           Object.assign(convo.vars, message);
@@ -54,7 +47,7 @@ module.exports = async (controller) => {
         payload: 'GREETING_2',
       }],
     }, async (response, convo, bot, message) => {
-      await controller.trigger(['mark_seen'], bot, message);
+      // await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'getstarted_payload' || message.text === 'getstarted_payload' || response === 'Get Started') {
         Object.assign(convo.vars, message);
@@ -78,7 +71,7 @@ module.exports = async (controller) => {
         payload: 'Let’s do it! 👍',
       }],
     }, async (response, convo, bot, message) => {
-      await controller.trigger(['mark_seen'], bot, message);
+      // await controller.trigger(['mark_seen'], bot, message);
       // const regexp = new RegExp(/(\s|\d)+?/gius);
       if (response === 'getstarted_payload' || message.text === 'getstarted_payload' || response === 'Get Started') {
         Object.assign(convo.vars, message);
@@ -116,20 +109,20 @@ module.exports = async (controller) => {
     // });
 
     await greeting.after(async (results, bot) => {
-      await controller.trigger(['mark_seen'], bot, results);
+      // await controller.trigger(['mark_seen'], bot, results);
       if (results.text === 'getstarted_payload' || results === 'getstarted_payload' || results === 'Get Started') {
         await controller.trigger(['start'], bot, results);
         return;
       }
-      const context = bot.getConfig('context');
-      const activity = context._activity;
-      const _userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
-      const userId = `facebook/conversations/${_userId}-${_userId}/`;
-      await bot.controller.storage.delete([userId]);
+      // const context = bot.getConfig('context');
+      // const activity = context._activity;
+      // const _userId = activity && activity.from && activity.from.id ? activity.from.id : undefined;
+      // const userId = `facebook/conversations/${_userId}-${_userId}/`;
+      // await bot.controller.storage.delete([userId]);
       await controller.trigger(['sender_action_typing'], bot, { options: { recipient: results.sender } });
       await bot.replaceDialog(ONBOARDING_ID, { username: results.username, profilePic: results.profilePic });
     });
   } catch(error) {
-    console.error(error);
+    console.error('[greeting.js:126 ERROR]:', error);
   }
 };
