@@ -90,8 +90,7 @@ Work: {{{vars.profession}}}
 I have interested in: {{{vars.about_yourself}}}`,
 
     // ONBOARDING_THANKS: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.',
-    ONBOARDING_THANKS: `
-Finally, that's all! You will receive a link for a new partner each week on mondays. Our artificial intellect will find you a partner that fits your profile.
+    ONBOARDING_THANKS: `Finally, that's all! You will receive a link for a new partner each week on mondays. Our artificial intellect will find you a partner that fits your profile.
 
 Here are recommendations for effective communication:
 

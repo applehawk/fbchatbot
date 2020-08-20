@@ -82,7 +82,6 @@ module.exports = async (controller) => {
       // pattern: '1',
       pattern: 'No',
       handler: async (response, convo, bot, message) => {
-        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -105,7 +104,6 @@ module.exports = async (controller) => {
           //     }],
           //   }, async (response, convo, bot, message) => {
           //       console.log('ping to partner');
-          //       // await controller.trigger(['mark_seen'], bot, message);
           //       if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           //         Object.assign(convo.vars, message);
           //         await convo.stop();
@@ -147,7 +145,6 @@ module.exports = async (controller) => {
                 default: false,
                 pattern: 'Yes',
                 handler: async (response, convo, bot, message) => {
-                  // await controller.trigger(['mark_seen'], bot, message);
                   if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                     Object.assign(convo.vars, message);
                     await convo.stop();
@@ -171,7 +168,6 @@ module.exports = async (controller) => {
                 default: false,
                 pattern: 'Partner don’t answer',
                 handler: async (response, convo, bot, message) => {
-                  // await controller.trigger(['mark_seen'], bot, message);
                   if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                     Object.assign(convo.vars, message);
                     await convo.stop();
@@ -193,7 +189,6 @@ module.exports = async (controller) => {
                 default: false,
                 pattern: 'I haven’t written',
                 handler: async (response, convo, bot, message) => {
-                  // await controller.trigger(['mark_seen'], bot, message);
                   if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                     Object.assign(convo.vars, message);
                     await convo.stop();
@@ -234,7 +229,6 @@ module.exports = async (controller) => {
       // pattern: '2',
       pattern: 'Yes I do',
       handler: async (response, convo, bot, message) => {
-        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -263,7 +257,6 @@ module.exports = async (controller) => {
       default: false,
       pattern: '3',
       handler: async (response, convo, bot, message) => {
-        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -289,7 +282,6 @@ module.exports = async (controller) => {
       default: false,
       pattern: '4',
       handler: async (response, convo, bot, message) => {
-        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -305,7 +297,6 @@ module.exports = async (controller) => {
               text: 'Great! How do you appreciate your dialogue?',
               quick_replies: [ ...getItems(appreciateDialogue) ],
             }, async (response, convo, bot, message) => {
-              // await controller.trigger(['mark_seen'], bot, message);
               if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
                 Object.assign(convo.vars, message);
                 await convo.stop();
@@ -333,7 +324,6 @@ module.exports = async (controller) => {
       default: false,
       pattern: '5',
       handler: async (response, convo, bot, message) => {
-        // await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
           Object.assign(convo.vars, message);
           await convo.stop();
@@ -382,7 +372,6 @@ module.exports = async (controller) => {
   ], { key: 'scheduled_a_call' });
 
   await dialog.after(async (results, bot) => { // [OK]
-    await controller.trigger(['mark_seen'], bot, results);
     try {
       if (results.text === 'getstarted_payload') {
         await controller.trigger(['start'], bot, results);

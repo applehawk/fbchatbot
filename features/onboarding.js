@@ -78,7 +78,6 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_LOCATION,
     }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
             Object.assign(convo.vars, message);
             await convo.stop();
@@ -102,7 +101,6 @@ module.exports = async (controller) => {
     await onboarding.ask({ // [OK]
         text: ONBOARDING_FB_URL_3,
     }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
             Object.assign(convo.vars, message);
             await convo.stop();
@@ -132,7 +130,6 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_PROFESSION_3,
     }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
             Object.assign(convo.vars, message);
             await convo.stop();
@@ -155,7 +152,6 @@ module.exports = async (controller) => {
         text: ONBOARDING_ENGLISH_LEVEL,
         quick_replies: [ ...getDictItems(englishLevelDict) ],
     }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
             Object.assign(convo.vars, message);
             await convo.stop();
@@ -180,7 +176,6 @@ module.exports = async (controller) => {
     await onboarding.ask({
         text: ONBOARDING_ABOUT_YOURSELF_2,
     }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
             Object.assign(convo.vars, message);
             await convo.stop();
@@ -237,7 +232,6 @@ module.exports = async (controller) => {
         text: ONBOARDING_COMMUNITY,
         quick_replies: [ ...getDictItems(communityDict) ],
     }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
             Object.assign(convo.vars, message);
             await convo.stop();
@@ -268,7 +262,6 @@ module.exports = async (controller) => {
     // await onboarding.ask({
     //     text: ONBOARDING_WHO_INTRODUCE_IN_4,
     // }, async (response, convo, bot, message) => {
-    //     //await controller.trigger(['mark_seen'], bot, message);
     //     if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
     //         Object.assign(convo.vars, message);
     //         await convo.stop();
@@ -291,7 +284,6 @@ module.exports = async (controller) => {
             payload: 'All right. Let’s go!',
         }],
     }, async (response, convo, bot, message) => {
-        //await controller.trigger(['mark_seen'], bot, message);
         if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
             Object.assign(convo.vars, message);
             await convo.stop();
@@ -310,7 +302,6 @@ module.exports = async (controller) => {
     });
 
     await onboarding.after(async (results, bot) => { // [OK]
-        // await controller.trigger(['mark_seen'], bot, results);
         try {
             if (results.text === 'getstarted_payload') {
                 await controller.trigger(['start'], bot, results);

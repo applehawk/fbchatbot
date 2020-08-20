@@ -10,7 +10,6 @@ const {
 } = require('../constants.js');
 
 module.exports = async (controller) => {
-  return;
   /**
    * #BEGIN Scheduling Automation
    */
