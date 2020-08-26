@@ -28,15 +28,14 @@ module.exports = async (controller) => {
     text: ONBOARDING_FB_URL_3,
   }, async (response, convo, bot, message) => {
     Object.assign(convo.vars, message);
-    // await controller.trigger(['mark_seen'], bot, message);
     if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
       await convo.stop();
     } else {
       const regexp = new RegExp(/^(https?):\/\/((www\.)|(m\.))?(facebook\.com)(\/[^\s]+)$/i);
-      if (!!response.match(regexp)) {
+      if (!!response && !!response.match(regexp)) {
         console.log(`User Facebook profile link: ${response}`);
-        message.value = 'Step 5 Facebook Propfile';
-        await controller.trigger(['ANALYTICS_EVENT'], bot, message);
+        message.value = 'Step 5 Facebook Profile';
+        controller.trigger(['ANALYTICS_EVENT'], bot, message);
         await convo.stop();
       } else {
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -48,7 +47,6 @@ module.exports = async (controller) => {
   }, { key: 'facebook_url' });
 
   await dialog.after(async (results, bot) => { // [OK]
-    // await controller.trigger(['mark_seen'], bot, results);
     try {
       if (results.text === 'getstarted_payload') {
         await controller.trigger(['start'], bot, results);
