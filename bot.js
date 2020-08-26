@@ -195,7 +195,7 @@ const middlewares = {
     } else {
       if (!!message.postback) {
         if (message.postback.payload.match('reset')) {
-          const { conversationWith } = await getUserContextProperties(controller, bot, message);
+          // const { conversationWith } = await getUserContextProperties(controller, bot, message);
 
           await resetUserContextProperties(controller, bot, message);
 
@@ -289,8 +289,8 @@ controller.ready(async () => {
    * load test feature modules
    */
   if (isDev) {
-    await controller.loadModules(__dirname + '/handlers_test', '.js');
-    await controller.loadModules(__dirname + '/hears_test', '.js');
+    controller.loadModules(__dirname + '/handlers_test', '.js');
+    controller.loadModules(__dirname + '/hears_test', '.js');
   }
 
   console.log(
