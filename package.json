@@ -4,9 +4,8 @@
   "description": "",
   "main": "bot.js",
   "scripts": {
-    "start": "./patch.sh && node bot.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "heroku-postbuid": "npm run start"
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@amplitude/node": "^0.3.3",
@@ -18,6 +17,6 @@
   },
   "devDependencies": {
     "ava": "^3.11.1",
-    "dotenv": "^7.0.0"
+    "dotenv": "^8.2.0"
   }
 }
