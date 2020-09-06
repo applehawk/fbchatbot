@@ -1,9 +1,10 @@
 'use strict;'
 
+const { test } = require('ava');
 const bot = require('../bot.js');
 const { BotkitTestClient } = require('botkit');
 
-const ONBOARDING_ID = 'ONBOARDING_ID';
+const ONBOARDING_ID = 'ONBOARDING_ID'; //?
 
 const client = new BotkitTestClient('test', bot, ONBOARDING_ID);
 
