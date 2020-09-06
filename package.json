@@ -2,6 +2,9 @@
   "name": "botkit-welcome-bot",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "14.9.0"
+  },
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
