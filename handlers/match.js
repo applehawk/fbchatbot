@@ -143,7 +143,9 @@ module.exports = async (controller) => {
     const finish = Date.now() - start;
     console.log(`search: ${finish}ms`);
 
-    console.log(`\n[${payload.userId} >>> ${user._id.match(/(\d+)\/$/)[1]}${!!user.state.conversation_with && user.state.conversation_with !== payload.userId ? ' [WRONG]: ' + user.state.conversation_with : ''}]\n`);
+    if (user.length) {
+      console.log(`\n[${payload.userId} >>> ${user._id.match(/(\d+)\/?$/)[1]}${!!user.state.conversation_with && user.state.conversation_with !== payload.userId ? ' [WRONG]: ' + user.state.conversation_with : ''}]\n`);
+    }
 
     return user;
   };
@@ -181,7 +183,7 @@ module.exports = async (controller) => {
 
         // // const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
         // const expiredAt = Date.now() + (1000 * 60 * 30); // 30 minutes
-        const id = user._id.match(/(\d+)\/$/)[1];
+        const id = user._id.match(/(\d+)\/?$/)[1];
 
         await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
         await senderProperties.conversationWithProperty.set(senderProperties.context, id);
@@ -246,21 +248,21 @@ module.exports = async (controller) => {
         const finish = Date.now() - start;
         console.log(`set properties: ${finish}ms`);
 
-        /**
-         * Creat menu for sender
-         */
-        let payload = {
-          recipient: senderMessage.sender,
-          call_to_actions: [{
-            type: 'postback',
-            title: '❌ End a conversation',
-            payload: `reset`,
-          }],
-        };
+        // /**
+        //  * Creat menu for sender
+        //  */
+        // let payload = {
+        //   recipient: senderMessage.sender,
+        //   call_to_actions: [{
+        //     type: 'postback',
+        //     title: '❌ End a conversation',
+        //     payload: `reset`,
+        //   }],
+        // };
 
-        await controller.trigger(['create_menu'], senderBot, payload);
+        // await controller.trigger(['create_menu'], senderBot, payload);
         controller.trigger(['ask_for_scheduled_a_call'], senderBot, senderMessage);
-        controller.trigger(['session_check'], senderBot, senderMessage);
+        // controller.trigger(['session_check'], senderBot, senderMessage);
 
         controller.trigger(['sender_action_typing'], senderBot, { options: { recipient: senderMessage.sender } });
         await senderBot.say({
@@ -302,15 +304,15 @@ module.exports = async (controller) => {
         botSay({ bot: recipientBot, message: recipientMessage, user: matchedUser });
         // controller.trigger(['get_info'], recipientBot, recipientMessage);
 
-        /**
-         * Create menu for recipient
-         */
-        payload = {
-          ...payload,
-          recipient: recipientMessage.sender,
-        };
+        // /**
+        //  * Create menu for recipient
+        //  */
+        // payload = {
+        //   ...payload,
+        //   recipient: recipientMessage.sender,
+        // };
 
-        await controller.trigger(['create_menu'], recipientBot, payload);
+        // await controller.trigger(['create_menu'], recipientBot, payload);
         controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
         // controller.trigger(['session_check'], recipientBot, recipientMessage);
         payload = null;
@@ -327,7 +329,7 @@ module.exports = async (controller) => {
         /**
          * #BEGIN Bot typing
          */
-        controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+        controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
 
         await bot.say({
           messaging_type: 'MESSAGE_TAG',
@@ -336,7 +338,7 @@ module.exports = async (controller) => {
         });
       }
     } catch(error) {
-      console.error('[match.js:322 ERROR]:', error);
+      console.error('[match.js:341 ERROR]:', error);
     }
     const finish = Date.now() - start;
     console.log(`match: ${finish}ms`);
