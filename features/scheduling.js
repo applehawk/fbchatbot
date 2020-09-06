@@ -74,16 +74,14 @@ module.exports = async (controller) => {
             const dialogBot = await controller.spawn(id);
             await dialogBot.startConversationWithUser(id);
             const { conversationWith, userName, readyToConversation } = await getUserContextProperties(controller, dialogBot, message);
-            if (!dialogBot.hasActiveDialog() && readyToConversation === 'ready') {
+            if (/*!dialogBot.hasActiveDialog() && */readyToConversation === 'ready') {
               await controller.trigger(['match'], dialogBot, message);
-              // const { conversationWith, userName, readyToConversation } = await getUserContextProperties(controller, dialogBot, message);
-              // console.log('Scheduling:', userName, readyToConversation, conversationWith);
             } else {
               console.log(id, conversationWith, userName, readyToConversation, 'has dialog:', dialogBot.hasActiveDialog());
             }
-          //   await resetUserContextProperties(controller, dialogBot, message);
-          //   await controller.trigger(['reset'], dialogBot, message);
-          // }, 500 * i);
+          // //   await resetUserContextProperties(controller, dialogBot, message);
+          // //   await controller.trigger(['reset'], dialogBot, message);
+          // // }, 500 * i);
           }, 2000 * i);
         });
       }

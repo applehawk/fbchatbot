@@ -1,6 +1,7 @@
 'use strict';
 
 const CronJob = require('cron').CronJob;
+const { resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   const SCHEDULED_A_CALL_ID = 'SCHEDULED_A_CALL_ID';
@@ -32,6 +33,9 @@ module.exports = async (controller) => {
 
         const dialogBot = await controller.spawn(messageRef.recipient.id);
         await dialogBot.startConversationWithUser(messageRef.recipient.id);
+
+        // temp
+        await resetUserContextProperties(controller, dialogBot, messageRef);
 
         controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient: messageRef.recipient } });
         await dialogBot.replaceDialog(SCHEDULED_A_CALL_ID, { messageRef });
