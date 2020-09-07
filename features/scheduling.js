@@ -24,9 +24,9 @@ module.exports = async (controller) => {
     async () => {
       await storage.connect();
 
-      const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "ready" } });
+      // const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "ready" } });
       // const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "busy" } });
-      // const docs = await storage.Collection.find();
+      const docs = await storage.Collection.find();
       const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
         if (!!_id.match('facebook/users')) {
           const id = _id.match(/\/(\d+)\/?$/)[1];
@@ -73,6 +73,10 @@ module.exports = async (controller) => {
           const task = setTimeout(async () => {
             const dialogBot = await controller.spawn(id);
             await dialogBot.startConversationWithUser(id);
+
+            // temp
+            await resetUserContextProperties(controller, dialogBot, message);
+
             const { conversationWith, userName, readyToConversation } = await getUserContextProperties(controller, dialogBot, message);
             if (/*!dialogBot.hasActiveDialog() && */readyToConversation === 'ready') {
               await controller.trigger(['match'], dialogBot, message);
