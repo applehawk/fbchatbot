@@ -315,7 +315,7 @@ module.exports = async (controller) => {
         // await controller.trigger(['create_menu'], recipientBot, payload);
         controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
         // controller.trigger(['session_check'], recipientBot, recipientMessage);
-        payload = null;
+        // payload = null;
       } else {
         // clearTimeout(message.value);
         message.value = null;
