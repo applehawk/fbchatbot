@@ -29,7 +29,7 @@ module.exports = async (controller) => {
         // messenger_extensions: 'FALSE', // <TRUE | FALSE>
         webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
       },
-      image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+      image_url: process.env.NODE_ENV === 'development' ? profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}` : profile_pic,
       title: `${username}`,
     };
   };
