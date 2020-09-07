@@ -18,8 +18,8 @@ module.exports = async (controller) => {
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
 
-    '0 0 12 * * 1', // [PROD]
-    // '0 */10 * * * *', // [STAGING]
+    // '0 0 12 * * 1', // [PROD]
+    '0 0 */1 * * *', // [STAGING]
     // '0 */5 * * * *', // [TEST]
     async () => {
       await storage.connect();
@@ -73,9 +73,6 @@ module.exports = async (controller) => {
           const task = setTimeout(async () => {
             const dialogBot = await controller.spawn(id);
             await dialogBot.startConversationWithUser(id);
-
-            // temp
-            await resetUserContextProperties(controller, dialogBot, message);
 
             const { conversationWith, userName, readyToConversation } = await getUserContextProperties(controller, dialogBot, message);
             if (/*!dialogBot.hasActiveDialog() && */readyToConversation === 'ready') {
