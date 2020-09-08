@@ -22,16 +22,34 @@ module.exports = async (controller) => {
       username,
     } = user.state;
 
-    return {
-      default_action: {
-        type: 'web_url',
-        url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
-        // messenger_extensions: 'FALSE', // <TRUE | FALSE>
-        webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
-      },
+    let payload = {
       image_url: process.env.NODE_ENV === 'development' ? profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}` : profile_pic,
       title: `${username}`,
     };
+
+    if (!!facebook_url) {
+      payload = {
+        ...payload,
+        buttons: [{
+          type: 'web_url',
+          url: facebook_url,
+          title: '🔗 on Facebook',
+          webview_height_ratio: 'full',
+        }],
+      };
+    } else {
+      payload = {
+        ...payload,
+        default_action: {
+          type: 'web_url',
+          url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
+          // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+          webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+        },
+      };
+    }
+
+    return payload;
   };
 
   const botSay = async (payload) => { // [OK]

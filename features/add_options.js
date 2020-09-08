@@ -90,7 +90,7 @@ module.exports = async (controller) => {
 
       await storage.connect();
 
-      const docs = await storage.Collection.find({ "state.facebook_url": { "$exists": false } });
+      const docs = await storage.Collection.find({ "state.facebook_url": { $exists: false } });
 
       if (!docs) {
         return;
@@ -138,6 +138,7 @@ module.exports = async (controller) => {
           const task = setTimeout(async () => {
             const bot = await controller.spawn(id);
             await bot.startConversationWithUser(id);
+            console.log('add_options', id);
 
             if (!state.facebook_url && !bot.hasActiveDialog()) {
               controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });

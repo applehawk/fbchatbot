@@ -63,10 +63,10 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
 
 const resetUserContextProperties = async (controller, bot, message) => { // [OK]
   const senderBot = await controller.spawn(message.sender.id);
+  await senderBot.cancelAllDialogs();
   await senderBot.startConversationWithUser(message.sender.id);
   let senderProperties = await getUserContextProperties(controller, senderBot, message);
   if (!!senderProperties.conversationWith) {
-    await senderBot.cancelAllDialogs();
 
     const conversationWith = senderProperties.conversationWith;
 
