@@ -61,6 +61,7 @@ module.exports = async (controller) => {
 
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
       await bot.say({
+        ...message,
         messaging_type: 'MESSAGE_TAG',
         tag: 'ACCOUNT_UPDATE',
         text: `

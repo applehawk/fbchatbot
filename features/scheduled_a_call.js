@@ -46,10 +46,10 @@ module.exports = async (controller) => {
     return result.join('\n');
   };
 
-  /**
-   * #BEGIN Scheduling Automation
-   */
-  const storage = controller._config.storage;
+  // /**
+  //  * #BEGIN Scheduling Automation
+  //  */
+  // const storage = controller._config.storage;
 
   await dialog.addQuestion({
     // text: `Hi! 👋\nHow are you? Have you scheduled a call?\n\n${formatButtons(buttons)}`,

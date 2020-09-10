@@ -18,7 +18,7 @@ module.exports = async (controller) => {
 
     // // [TEST]
     // let date = new Date();
-    // date.setMinutes(date.getMinutes() + 1);
+    // date.setMinutes(date.getMinutes() + 8);
 
     console.log('now:', new Date().toLocaleString(), 'scheduled:', date.toLocaleString());
 
@@ -37,8 +37,8 @@ module.exports = async (controller) => {
         // temp
         await resetUserContextProperties(controller, dialogBot, messageRef);
 
-        controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient: messageRef.recipient } });
-        await dialogBot.replaceDialog(SCHEDULED_A_CALL_ID, { messageRef });
+        await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient: messageRef.recipient } });
+        dialogBot.replaceDialog(SCHEDULED_A_CALL_ID, { messageRef });
       },
       null,
       false,

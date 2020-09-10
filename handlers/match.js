@@ -81,6 +81,7 @@ module.exports = async (controller) => {
 
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
       await bot.say({
+        ...message,
         messaging_type: 'MESSAGE_TAG',
         tag: 'ACCOUNT_UPDATE',
         text: `
@@ -92,6 +93,7 @@ module.exports = async (controller) => {
 
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
       await bot.say({
+        ...message,
         messaging_type: 'MESSAGE_TAG',
         tag: 'ACCOUNT_UPDATE',
         text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
@@ -101,10 +103,10 @@ module.exports = async (controller) => {
     }
   };
 
-  const chooseWithLevel = async (payload) => {
+  const findUser = async (payload) => {
     // const location = `${payload.location}`.split(',').join('|'); // [OK] v1
 
-    const findAllUsersQuery = {
+    const query = {
       // _id: {
       //   "$regex": `${payload.channelId}/users*`,
       //   "$ne": `${payload.channelId}/users/${payload.userId}/`,
@@ -146,10 +148,10 @@ module.exports = async (controller) => {
 
     const start = Date.now();
     // // v1 [OK][~]
-    // const user = await controller.storage.Collection.findOne(findAllUsersQuery);
+    // const user = await controller.storage.Collection.findOne(query);
 
     // v2 [OK]
-    const docs = await controller.storage.Collection.find(findAllUsersQuery)
+    const docs = await controller.storage.Collection.find(query)
       .sort({ 'state.english_level': -1 })
       .limit(1); // [OK]
 
@@ -178,14 +180,14 @@ module.exports = async (controller) => {
 
       // Get User State Properties
       let senderProperties = await getUserContextProperties(controller, bot, message);
-      const payload = {
+      const options = {
         ...senderProperties,
         channelId,
         userId,
       };
 
       // Getting users from DB
-      const user = await chooseWithLevel(payload);
+      const user = await findUser(options);
 
       if (Object.keys(user).length) {
         /**
@@ -284,6 +286,7 @@ module.exports = async (controller) => {
 
         controller.trigger(['sender_action_typing'], senderBot, { options: { recipient: senderMessage.sender } });
         await senderBot.say({
+          ...senderMessage,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
           text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
@@ -311,6 +314,7 @@ module.exports = async (controller) => {
 
         controller.trigger(['sender_action_typing'], recipientBot, { options: { recipient: recipientMessage.sender } });
         await recipientBot.say({
+          ...recipientMessage,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
           text: `Hey ${recipientProperties.userName}! Here is you partner for this week.`,
@@ -350,6 +354,7 @@ module.exports = async (controller) => {
         controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
 
         await bot.say({
+          ...message,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
           text: MATCH_NOT_FOUND_SUITABLE_USER,
