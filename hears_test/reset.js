@@ -11,8 +11,8 @@ module.exports = async (controller) => {
     return context;
   };
 
-  // controller.hears(new RegExp(/^reset$/i), ['message'], async (bot, message) => {
-  controller.on(['reset'], async (bot, message) => {
+  controller.hears(new RegExp(/^reset$/i), ['message'], async (bot, message) => {
+  // controller.on(['reset'], async (bot, message) => {
     try {
       const userState = new UserState(controller.storage);
       const context = bot.getConfig('context');
