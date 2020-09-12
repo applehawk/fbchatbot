@@ -74,10 +74,14 @@ module.exports = async (controller) => {
             const dialogBot = await controller.spawn(id);
             await dialogBot.startConversationWithUser(id);
 
-            await controller.trigger(['match'], dialogBot, message);
+            // const senderProperties = await getUserContextProperties(controller, dialogBot, message);
+
+            // if (senderProperties.readyToConversation === 'ready') {
+            //   await controller.trigger(['match'], dialogBot, message);
+            // }
 
           //   // await resetUserContextProperties(controller, dialogBot, message);
-          //   controller.trigger(['reset'], dialogBot, message);
+            controller.trigger(['reset'], dialogBot, message);
           // }, 500 * i);
           }, 2000 * i);
         });
