@@ -18,8 +18,8 @@ module.exports = async (controller) => {
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
 
-    // '0 0 12 * * 1', // [PROD]
-    '0 0 */1 * * *', // [STAGING]
+    '0 0 12 * * 1', // [PROD]
+    // '0 0 */1 * * *', // [STAGING]
     // '0 */10 * * * *', // [TEST]
     async () => {
       await storage.connect();
@@ -74,14 +74,14 @@ module.exports = async (controller) => {
             const dialogBot = await controller.spawn(id);
             await dialogBot.startConversationWithUser(id);
 
-            // const senderProperties = await getUserContextProperties(controller, dialogBot, message);
+            const senderProperties = await getUserContextProperties(controller, dialogBot, message);
 
-            // if (senderProperties.readyToConversation === 'ready') {
-            //   await controller.trigger(['match'], dialogBot, message);
-            // }
+            if (senderProperties.readyToConversation === 'ready') {
+              await controller.trigger(['match'], dialogBot, message);
+            }
 
           //   // await resetUserContextProperties(controller, dialogBot, message);
-            controller.trigger(['reset'], dialogBot, message);
+          //   controller.trigger(['reset'], dialogBot, message);
           // }, 500 * i);
           }, 2000 * i);
         });
