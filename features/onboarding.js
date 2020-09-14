@@ -22,7 +22,7 @@ const {
   ONBOARDING_FB_URL_3,
 
   communityDict,
-  englishLevelDict,
+  english_levelDict,
 
   GIF_ONBOARDING,
 } = require('../constants.js');
@@ -144,16 +144,16 @@ module.exports = async (controller) => {
   // #BEGIN English Level
   await onboarding.ask({
     text: ONBOARDING_ENGLISH_LEVEL,
-    quick_replies: [ ...getDictItems(englishLevelDict) ],
+    quick_replies: [ ...getDictItems(english_levelDict) ],
   }, async (response, convo, bot, message) => {
     if (response === 'getstarted_payload' || message.text === 'getstarted_payload') {
       Object.assign(convo.vars, message);
       await convo.stop();
     } else {
-      if (englishLevelDict.includes(response)) {
+      if (english_levelDict.includes(response)) {
         message.value = 'Step 7 English level';
         controller.trigger(['ANALYTICS_EVENT'], bot, message);
-        console.log(`User has EnglishLevel: ${response}`);
+        console.log(`User has english_level: ${response}`);
         // #BEGIN About Yourself
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
         await bot.say(ONBOARDING_ABOUT_YOURSELF_1);
@@ -311,33 +311,33 @@ module.exports = async (controller) => {
       // const aboutExpertInProperty = userState.createProperty('about_expertin');
       // const aboutWhoIntroduceIn = userState.createProperty('who_introducein');
       const aboutYouselfProperty = userState.createProperty('about_yourself');
-      const communityProperty = userState.createProperty('community');
-      const conversationWithProperty = userState.createProperty('conversation_with');
-      const englishLevelProperty = userState.createProperty('english_level');
-      const facebookURLProperty = userState.createProperty('facebook_url');
-      const locationProperty = userState.createProperty('location');
-      const professionProperty = userState.createProperty('profession');
-      const profilePicProperty = userState.createProperty('profile_pic');
-      const readyToConversationProperty = userState.createProperty('ready_to_conversation');
-      const recentUsersProperty = userState.createProperty('recent_users');
-      const usernameProperty = userState.createProperty('username');
+      const community_property = userState.createProperty('community');
+      const conversation_with_property = userState.createProperty('conversation_with');
+      const english_level_property = userState.createProperty('english_level');
+      const facebook_url_property = userState.createProperty('facebook_url');
+      const location_property = userState.createProperty('location');
+      const profession_property = userState.createProperty('profession');
+      const profile_pic_property = userState.createProperty('profile_pic');
+      const ready_to_conversation_property = userState.createProperty('ready_to_conversation');
+      const recent_users_property = userState.createProperty('recent_users');
+      const username_property = userState.createProperty('username');
 
       // await aboutExpertInProperty.set(context, results.about_expertin);
       // await aboutWhoIntroduceIn.set(context, results.who_introducein);
       await aboutYouselfProperty.set(context, results.about_yourself);
-      await communityProperty.set(context, communityDict.indexOf(results.community));
-      await conversationWithProperty.set(context, 0);
-      await englishLevelProperty.set(
+      await community_property.set(context, communityDict.indexOf(results.community));
+      await conversation_with_property.set(context, 0);
+      await english_level_property.set(
         context,
-        englishLevelDict.indexOf(results.english_level)
+        english_levelDict.indexOf(results.english_level)
       );
-      await facebookURLProperty.set(context, results.facebook_url);
-      await locationProperty.set(context, results.location);
-      await professionProperty.set(context, results.profession);
-      await profilePicProperty.set(context, results.profilePic);
-      await readyToConversationProperty.set(context, 'ready'); // results.ready_to_conversation
-      await recentUsersProperty.set(context, []);
-      await usernameProperty.set(context, results.username);
+      await facebook_url_property.set(context, results.facebook_url);
+      await location_property.set(context, results.location);
+      await profession_property.set(context, results.profession);
+      await profile_pic_property.set(context, results.profile_pic);
+      await ready_to_conversation_property.set(context, 'ready');
+      await recent_users_property.set(context, []);
+      await username_property.set(context, results.username);
 
       /**
        * Save User's Info
@@ -403,9 +403,10 @@ module.exports = async (controller) => {
         };
 
         await controller.trigger(['create_menu'], bot, payload);
+        payload = null;
       }
     } catch(error) {
-      console.error('[onboarding.js:414 ERROR]:', error);
+      console.error('[onboarding.js:409 ERROR]:', error);
     };
   });
 };

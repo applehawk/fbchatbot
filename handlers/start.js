@@ -40,13 +40,13 @@ module.exports = async (controller) => {
 
         const senderProperties = await getUserContextProperties(controller, bot, message);
 
-        await senderProperties.conversationWithProperty.set(senderProperties.context, 0);
-        await senderProperties.expiredAtProperty.set(senderProperties.context, 0);
+        await senderProperties.conversation_with_property.set(senderProperties.context, 0);
+        await senderProperties.expired_at_property.set(senderProperties.context, 0);
 
         /**
-         * @Info For start set readyToConversation as 'busy'
+         * @Info For start set ready_to_conversation as 'busy'
          */
-        await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
+        await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'busy');
 
         /**
          * Save userState changes to storage
@@ -67,7 +67,7 @@ module.exports = async (controller) => {
         }${
           response.last_name !== '' ? ' ' + response.last_name : ''
         }`;
-        const profilePic = response.profile_pic;
+        const profile_pic = response.profile_pic;
 
         const options = {
           recipient,
@@ -89,7 +89,7 @@ module.exports = async (controller) => {
          * @Tip It will be automatically deleted at the beginning of the next dialog.
          */
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
-        await bot.replaceDialog(GREETING_ID, { username, profilePic });
+        await bot.replaceDialog(GREETING_ID, { username, profile_pic });
       } catch(error) {
         console.error('[start.js:93 ERROR]:', error);
       }

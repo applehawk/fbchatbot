@@ -1,7 +1,7 @@
 'use strict';
 
 const {
-    englishLevelDict,
+    english_levelDict,
     communityDict,
 } = require(`../constants.js`);
 
@@ -12,23 +12,23 @@ module.exports = async (controller) => {
     // if (process.env.NODE_ENV === 'production') {
     const {
       // community,
-      // englishLevel,
-      facebookURL,
+      // english_level,
+      facebook_url,
       // location,
       // profession,
-      profilePic,
-      userName,
+      profile_pic,
+      username,
     } = user;
 
     return {
       default_action: {
         type: 'web_url',
-        url: !!facebookURL ? facebookURL : profilePic, // <DEFAULT_URL_TO_OPEN>
+        url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
         // messenger_extensions: 'FALSE', // <TRUE | FALSE>
         webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
       },
-      image_url: profilePic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
-      title: `${userName}`,
+      image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+      title: `${username}`,
     };
   };
 
@@ -56,7 +56,7 @@ module.exports = async (controller) => {
         recipient: payload.message.recipient,
         text: `
 🗺 ${payload.user.location}
-💬 ${englishLevelDict[payload.user.englishLevel]}
+💬 ${english_levelDict[payload.user.english_level]}
 👔 ${communityDict[payload.user.community]}
 🛠 ${payload.user.profession}`,
       });

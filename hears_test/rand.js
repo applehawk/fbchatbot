@@ -1,7 +1,7 @@
 'use strict';
 
 const {
-  englishLevelDict,
+  english_levelDict,
   communityDict,
 } = require(`../constants.js`);
 
@@ -19,7 +19,7 @@ module.exports = async (controller) => { // [OK]
         dt: new Date(Date.now() - Math.round(Math.random() * 1e10)),
         state: {
           community: Math.round(Math.random() * (communityDict.length - 1)),
-          english_level: Math.round(Math.random() * (englishLevelDict.length - 1)),
+          english_level: Math.round(Math.random() * (english_levelDict.length - 1)),
           facebook_url: `https://facebook.com/${Math.round(Math.random() * 1e10).toString(16)}`,
           location: locations[Math.round(Math.random() * (locations.length - 1))],
           profession: professions[Math.round(Math.random() * (professions.length - 1))],

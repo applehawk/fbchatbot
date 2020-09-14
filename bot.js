@@ -44,6 +44,7 @@ let storage = null;
 
 // if (!isDev) {
   storage = new MongoDbStorage({
+    debug: true,
     collection: DATABASE_COLLECTION,
     database: DATABASE_NAME,
     url: MONGO_URI,
@@ -148,7 +149,7 @@ const middlewares = {
 
     if (message.type !== 'facebook_postback' && !bot.hasActiveDialog()) {
       let senderProperties = await getUserContextProperties(controller, bot, message);
-      const target = senderProperties.conversationWith;
+      const target = senderProperties.conversation_with;
 
       if (target) { // [OK]
         console.log(`[bot.js:154 DIALOG]: ${message.sender.id} > ${target}`);
@@ -161,14 +162,14 @@ const middlewares = {
 
           let recipientProperties = await getUserContextProperties(controller, dialogBot, message);
 
-          if (Date.now() < senderProperties.expiredAt) { // [OK]
+          if (Date.now() < senderProperties.expired_at) { // [OK]
             // /**
             //  * #BEGIN Bot typing
             //  */
             // /*await */controller.trigger(['sender_action_typing'], dialogBot, {
             //   options: { recipient: { id: target } },
             // });
-            // // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expiredAt).toLocaleString()}]`;
+            // // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expired_at).toLocaleString()}]`;
 
             // /**
             //  * Send message recipientProperties conversation
@@ -181,7 +182,7 @@ const middlewares = {
             //   messaging_type: 'MESSAGE_TAG',
             //   tag: 'ACCOUNT_UPDATE',
             // });
-          } else if (Date.now() > senderProperties.expiredAt) {
+          } else if (Date.now() > senderProperties.expired_at) {
             // await controller.trigger(['session_check'], bot, message);
           }
 
@@ -195,7 +196,7 @@ const middlewares = {
     } else {
       if (!!message.postback) {
         if (message.postback.payload.match('reset')) {
-          // const { conversationWith } = await getUserContextProperties(controller, bot, message);
+          // const { conversation_with } = await getUserContextProperties(controller, bot, message);
 
           await resetUserContextProperties(controller, bot, message);
 
@@ -204,30 +205,30 @@ const middlewares = {
            */
           // const messageRef = {
           //   ...message,
-          //   channel: conversationWith,
-          //   sender: { id: conversationWith },
-          //   user: conversationWith,
+          //   channel: conversation_with,
+          //   sender: { id: conversation_with },
+          //   user: conversation_with,
           //   value: undefined,
           //   reference: {
           //     ...message.reference,
           //     activityId: undefined,
-          //     user: { id: conversationWith, name: conversationWith },
-          //     conversation: { id: conversationWith },
+          //     user: { id: conversation_with, name: conversation_with },
+          //     conversation: { id: conversation_with },
           //   },
           //   incoming_message: {
           //     ...message.incoming_message,
-          //     conversation: { id: conversationWith },
-          //     from: { id: conversationWith, name: conversationWith },
+          //     conversation: { id: conversation_with },
+          //     from: { id: conversation_with, name: conversation_with },
           //     recipient: message.recipient,
           //     channelData: {
           //       ...message.incoming_message.channelData,
-          //       sender: { id: conversationWith },
+          //       sender: { id: conversation_with },
           //     },
           //   },
           // };
 
           // const dialogBot = await controller.spawn(message.sender.id);
-          // await dialogBot.startConversationWithUser(conversationWith);
+          // await dialogBot.startConversationWithUser(conversation_with);
 
           // await resetUserContextProperties(controller, dialogBot, messageRef);
         }

@@ -90,7 +90,7 @@ module.exports = async (controller) => {
         return;
       }
       await controller.trigger(['sender_action_typing'], bot, { options: { recipient: results.sender } });
-      await bot.replaceDialog(ONBOARDING_ID, { username: results.username, profilePic: results.profilePic });
+      await bot.replaceDialog(ONBOARDING_ID, { username: results.username, profile_pic: results.profile_pic });
     });
   } catch(error) {
     console.error('[greeting.js:96 ERROR]:', error);

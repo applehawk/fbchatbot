@@ -3,7 +3,7 @@
 const { UserState } = require('botbuilder');
 
 const {
-  englishLevelDict,
+  english_levelDict,
   communityDict,
   MATCH_NOT_FOUND_SUITABLE_USER,
 } = require(`../constants.js`);
@@ -50,7 +50,7 @@ module.exports = async (controller) => {
       title: `${username}`,
       // subtitle: `🔗 ${!!facebook_url ? facebook_url : 'no link'}`,
 // 🗺 ${location}
-// 💬 ${englishLevelDict[english_level]}
+// 💬 ${english_levelDict[english_level]}
 // 👔 ${communityDict[community]}
 // 🛠 ${profession}`,
       // buttons: [ ...buttons ],
@@ -89,7 +89,7 @@ module.exports = async (controller) => {
           // text: `🔗 ${!!payload.user.state.facebook_url ? payload.user.state.facebook_url : 'no link'}
           text: `
 🗺 ${payload.user.state.location}
-💬 ${englishLevelDict[payload.user.state.english_level]}
+💬 ${english_levelDict[payload.user.state.english_level]}
 👔 ${communityDict[payload.user.state.community]}
 🛠 ${payload.user.state.profession}`,
         },
@@ -101,11 +101,11 @@ module.exports = async (controller) => {
 
   const chooseWithLevel = async (payload) => {
     // const location = `${payload.location}`.split(',').join('|'); // [OK] v1
-    const englishLevelQuery = {
+    const english_levelQuery = {
       $cond: {
-        if: { $gte: ["$state.english_level", payload.englishLevel] },
-        then: { $gte: ["$state.english_level", payload.englishLevel] },
-        else: { $lte: ["$state.english_level", payload.englishLevel] },
+        if: { $gte: ["$state.english_level", payload.english_level] },
+        then: { $gte: ["$state.english_level", payload.english_level] },
+        else: { $lte: ["$state.english_level", payload.english_level] },
       },
     };
 
@@ -113,7 +113,7 @@ module.exports = async (controller) => {
         _id: {
           $regex: `${payload.channelId}/users*`,
           $ne: `${payload.channelId}/users/${payload.userId}/`,
-          $nin: [ ...payload.recentUsers ],
+          $nin: [ ...payload.recent_users ],
         },
         'state.ready_to_conversation': { // [OK]
           $eq: 'ready',
@@ -128,14 +128,14 @@ module.exports = async (controller) => {
           $eq: payload.community,
         },
         // 'state.english_level': { // [OK]
-        //   $gte: payload.englishLevel,
+        //   $gte: payload.english_level,
         // },
       // $or: [{
         $expr: {
-          $gte: [ englishLevelQuery, payload.englishLevel ],
+          $gte: [ english_levelQuery, payload.english_level ],
         },
         // $expr: {
-        //   $lte: [ 'state.english_level', payload.englishLevel ],
+        //   $lte: [ 'state.english_level', payload.english_level ],
         // },
       // }],
     };
@@ -199,12 +199,12 @@ module.exports = async (controller) => {
         /**
          * Add recipient to sender recent users list
          */
-        senderProperties.recentUsers = [ ...senderProperties.recentUsers, user._id ];
+        senderProperties.recent_users = [ ...senderProperties.recent_users, user._id ];
 
         /**
          * Save recent users to state
          */
-        await senderProperties.recentUsersProperty.set(senderProperties.context, senderProperties.recentUsers);
+        await senderProperties.recent_users_property.set(senderProperties.context, senderProperties.recent_users);
 
       /**
        * #BEGIN Bot typing
@@ -213,7 +213,7 @@ module.exports = async (controller) => {
           await bot.say({
             recipient: message.sender,
             sender: message.sender,
-            text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
+            text: `Hey ${senderProperties.username}! Here is you partner for this week.`,
           });
 
         /**
@@ -245,12 +245,12 @@ module.exports = async (controller) => {
             }],
           };
 
-          // // const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
-          // const expiredAt = Date.now() + (1000 * 60 * 30); // 30 minutes
+          // // const expired_at = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
+          // const expired_at = Date.now() + (1000 * 60 * 30); // 30 minutes
 
-          await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
-          await senderProperties.conversationWithProperty.set(senderProperties.context, message.recipient.id);
-          // await senderProperties.expiredAtProperty.set(senderProperties.context, expiredAt);
+          await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'busy');
+          await senderProperties.conversation_with_property.set(senderProperties.context, message.recipient.id);
+          // await senderProperties.expired_at_property.set(senderProperties.context, expired_at);
 
           /**
            * Save senderProperties changes to storage
@@ -286,9 +286,9 @@ module.exports = async (controller) => {
            */
           // const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
 
-          await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
-          await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
-          // await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
+          await recipientProperties.ready_to_conversation_property.set(recipientProperties.context, 'busy');
+          await recipientProperties.conversation_with_property.set(recipientProperties.context, message.sender.id);
+          // await recipientProperties.expired_at_property.set(recipientProperties.context, expired_at);
 
           /**
            * Save recipientProperties changes to storage

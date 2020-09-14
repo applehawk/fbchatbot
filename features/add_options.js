@@ -59,8 +59,8 @@ module.exports = async (controller) => {
 
       const context = bot.getConfig('context');
 
-      const facebookURLProperty = userState.createProperty('facebook_url');
-      await facebookURLProperty.set(context, results.facebook_url);
+      const facebook_url_property = userState.createProperty('facebook_url');
+      await facebook_url_property.set(context, results.facebook_url);
 
       /**
        * Save User's Info

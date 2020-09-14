@@ -18,7 +18,7 @@ module.exports = async (controller) => {
 
     // // [TEST]
     // let date = new Date();
-    // date.setMinutes(date.getMinutes() + 8);
+    // date.setMinutes(date.getMinutes() + 1);
 
     console.log('now:', new Date().toLocaleString(), 'scheduled:', date.toLocaleString());
 

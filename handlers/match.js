@@ -3,7 +3,7 @@
 const { UserState } = require('botbuilder');
 
 const {
-  englishLevelDict,
+  english_levelDict,
   communityDict,
   MATCH_NOT_FOUND_SUITABLE_USER,
 } = require(`../constants.js`);
@@ -86,7 +86,7 @@ module.exports = async (controller) => {
         tag: 'ACCOUNT_UPDATE',
         text: `
 🗺 ${user.state.location}
-💬 ${englishLevelDict[user.state.english_level]}
+💬 ${english_levelDict[user.state.english_level]}
 👔 ${communityDict[user.state.community]}
 🛠 ${user.state.profession}`,
       });
@@ -110,7 +110,7 @@ module.exports = async (controller) => {
       // _id: {
       //   "$regex": `${payload.channelId}/users*`,
       //   "$ne": `${payload.channelId}/users/${payload.userId}/`,
-      //   "$nin": [ ...payload.recentUsers ],
+      //   "$nin": [ ...payload.recent_users ],
       // },
       // // "state.location": { // [OK] v1
       // //   "$regex": `((?!${location}).)+`,
@@ -125,21 +125,22 @@ module.exports = async (controller) => {
           { "state.ready_to_conversation": "ready" }
         ]}, {
         "$or": [
-          { "state.english_level": payload.englishLevel + 1 },
-          { "state.english_level": payload.englishLevel },
-          { "state.english_level": payload.englishLevel - 1 },
-          { "state.english_level": { "$gte": payload.englishLevel } },
-          { "state.english_level": { "$lte": payload.englishLevel } }
+          { "state.english_level": payload.english_level + 1 },
+          { "state.english_level": payload.english_level },
+          { "state.english_level": payload.english_level - 1 },
+          { "state.english_level": { "$gte": payload.english_level } },
+          { "state.english_level": { "$lte": payload.english_level } }
         ]}, {
         "$or": [
           { "state.community": payload.community },
-          { "state.community": { "$ne": payload.community } }
+          { "state.community": { "$ne": payload.community } },
+          { "state.community": { "$ne": undefined } }
         ]}, {
         "$and": [
           { "_id": {
               "$regex": `${payload.channelId}/users*`,
               "$ne": `${payload.channelId}/users/${payload.userId}/`,
-              "$nin": [ ...payload.recentUsers ],
+              "$nin": [ ...payload.recent_users ],
             }},
           { "state.location": { "$ne": payload.location } }
         ],
@@ -194,20 +195,20 @@ module.exports = async (controller) => {
          * Add recipient to sender recent users list
          */
         const start = Date.now();
-        senderProperties.recentUsers = [ ...senderProperties.recentUsers, user._id ];
+        senderProperties.recent_users = [ ...senderProperties.recent_users, user._id ];
 
         /**
          * Save recent users to state
          */
-        await senderProperties.recentUsersProperty.set(senderProperties.context, senderProperties.recentUsers);
+        await senderProperties.recent_users_property.set(senderProperties.context, senderProperties.recent_users);
 
-        // // const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
-        // const expiredAt = Date.now() + (1000 * 60 * 30); // 30 minutes
+        // // const expired_at = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
+        // const expired_at = Date.now() + (1000 * 60 * 30); // 30 minutes
         const id = user._id.match(/(\d+)\/?$/)[1];
 
-        await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
-        await senderProperties.conversationWithProperty.set(senderProperties.context, id);
-        // await senderProperties.expiredAtProperty.set(senderProperties.context, expiredAt);
+        await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'busy');
+        await senderProperties.conversation_with_property.set(senderProperties.context, id);
+        // await senderProperties.expired_at_property.set(senderProperties.context, expired_at);
 
         /**
          * Save senderProperties changes to storage
@@ -255,11 +256,11 @@ module.exports = async (controller) => {
          */
         let recipientProperties = await getUserContextProperties(controller, recipientBot, recipientMessage);
 
-        recipientProperties.recentUsers = [ ...recipientProperties.recentUsers, `${channelId}/users/${senderMessage.sender.id}/` ];
-        await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
-        await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
-        await recipientProperties.conversationWithProperty.set(recipientProperties.context, senderMessage.sender.id);
-        // await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
+        recipientProperties.recent_users = [ ...recipientProperties.recent_users, `${channelId}/users/${senderMessage.sender.id}/` ];
+        await recipientProperties.recent_users_property.set(recipientProperties.context, recipientProperties.recent_users);
+        await recipientProperties.ready_to_conversation_property.set(recipientProperties.context, 'busy');
+        await recipientProperties.conversation_with_property.set(recipientProperties.context, senderMessage.sender.id);
+        // await recipientProperties.expired_at_property.set(recipientProperties.context, expired_at);
 
         /**
          * Save recipientProperties changes to storage
@@ -289,7 +290,7 @@ module.exports = async (controller) => {
           ...senderMessage,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
-          text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
+          text: `Hey ${senderProperties.username}! Here is you partner for this week.`,
         });
 
         /**
@@ -305,10 +306,10 @@ module.exports = async (controller) => {
         const matchedUser = {
           state: {
             ...senderProperties,
-            english_level: senderProperties.englishLevel,
-            facebook_url: senderProperties.facebookURL,
-            username: senderProperties.userName,
-            profile_pic: senderProperties.profilePic,
+            english_level: senderProperties.english_level,
+            facebook_url: senderProperties.facebook_url,
+            username: senderProperties.username,
+            profile_pic: senderProperties.profile_pic,
           },
         };
 
@@ -317,7 +318,7 @@ module.exports = async (controller) => {
           ...recipientMessage,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
-          text: `Hey ${recipientProperties.userName}! Here is you partner for this week.`,
+          text: `Hey ${recipientProperties.username}! Here is you partner for this week.`,
         });
 
         /**

@@ -18,11 +18,11 @@ module.exports = async (controller) => {
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
 
-    '0 0 12 * * 1', // [PROD]
+    '0 0 15 * * 1', // [PROD]
     // '0 0 */1 * * *', // [STAGING]
-    // '0 */10 * * * *', // [TEST]
+    // '0 */5 * * * *', // [TEST]
     async () => {
-      await storage.connect();
+      await storage.connect({ useNewUrlParser: true, debug: true, keepAlive: true });
 
       // const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "ready" } });
       // const docs = await storage.Collection.find({ "state.ready_to_conversation": { "$eq": "busy" } });
@@ -76,7 +76,7 @@ module.exports = async (controller) => {
 
             const senderProperties = await getUserContextProperties(controller, dialogBot, message);
 
-            if (senderProperties.readyToConversation === 'ready') {
+            if (senderProperties.ready_to_conversation === 'ready') {
               await controller.trigger(['match'], dialogBot, message);
             }
 
@@ -86,6 +86,7 @@ module.exports = async (controller) => {
           }, 2000 * i);
         });
       }
+      // await storage.close();
     },
     null,
     false,

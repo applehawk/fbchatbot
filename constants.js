@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = Object.freeze({
-    englishLevelDict: [
+    english_levelDict: [
         'Elementary',
         'Pre-Intermediate',
         'Intermediate',
@@ -82,7 +82,7 @@ I know guys from Bank of America and TransferWise. I can help with the introduct
     ONBOARDING_RESULTS: `😎 Great. Look at the result:
 
 {{{vars.username}}}
-{{{vars.facebook_url}}}
+🔗 {{{vars.facebook_url}}}
 Location: {{{vars.location}}}
 English Level: {{{vars.english_level}}}
 Community: {{{vars.community}}}

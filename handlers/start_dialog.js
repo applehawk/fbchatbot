@@ -3,56 +3,56 @@
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
-const { communityDict, englishLevelDict, INVITATION_MESSAGE } = require('../constants.js');
+const { communityDict, english_levelDict, INVITATION_MESSAGE } = require('../constants.js');
 
 module.exports = async (controller) => {
   const getUserContextProperties = async (bot, message) => { // [OK]
     let userState = new UserState(controller.storage);
     let context = bot.getConfig('context');
 
-    let communityProperty = await userState.createProperty('community');
-    let conversationWithProperty = await userState.createProperty('conversation_with');
-    let englishLevelProperty = await userState.createProperty('english_level');
-    let expiredAtProperty = await userState.createProperty('expired_at');
-    let facebookURLProperty = await userState.createProperty('facebook_url');
-    let locationProperty = await userState.createProperty('location');
-    let professionProperty = await userState.createProperty('profession');
-    let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-    let recentUsersProperty = await userState.createProperty('recent_users');
+    let community_property = await userState.createProperty('community');
+    let conversation_with_property = await userState.createProperty('conversation_with');
+    let english_level_property = await userState.createProperty('english_level');
+    let expired_at_property = await userState.createProperty('expired_at');
+    let facebook_url_property = await userState.createProperty('facebook_url');
+    let location_property = await userState.createProperty('location');
+    let profession_property = await userState.createProperty('profession');
+    let ready_to_conversation_property = await userState.createProperty('ready_to_conversation');
+    let recent_users_property = await userState.createProperty('recent_users');
 
-    let community = await communityProperty.get(context);
-    let conversationWith = await conversationWithProperty.get(context);
-    let englishLevel = await englishLevelProperty.get(context);
-    let expiredAt = await expiredAtProperty.get(context);
-    let facebookURL = await facebookURLProperty.get(context);
-    let location = await locationProperty.get(context);
-    let profession = await professionProperty.get(context);
-    let readyToConversation = await readyToConversationProperty.get(context);
-    let recentUsers = await recentUsersProperty.get(context, []);
+    let community = await community_property.get(context);
+    let conversation_with = await conversation_with_property.get(context);
+    let english_level = await english_level_property.get(context);
+    let expired_at = await expired_at_property.get(context);
+    let facebook_url = await facebook_url_property.get(context);
+    let location = await location_property.get(context);
+    let profession = await profession_property.get(context);
+    let ready_to_conversation = await ready_to_conversation_property.get(context);
+    let recent_users = await recent_users_property.get(context, []);
 
     return {
       context,
       userState,
 
-      communityProperty,
-      conversationWithProperty,
-      englishLevelProperty,
-      expiredAtProperty,
-      facebookURLProperty,
-      locationProperty,
-      professionProperty,
-      readyToConversationProperty,
-      recentUsersProperty,
+      community_property,
+      conversation_with_property,
+      english_level_property,
+      expired_at_property,
+      facebook_url_property,
+      location_property,
+      profession_property,
+      ready_to_conversation_property,
+      recent_users_property,
 
       community,
-      conversationWith,
-      englishLevel,
-      expiredAt,
-      facebookURL,
+      conversation_with,
+      english_level,
+      expired_at,
+      facebook_url,
       location,
       profession,
-      readyToConversation,
-      recentUsers,
+      ready_to_conversation,
+      recent_users,
     };
   };
 
@@ -64,7 +64,7 @@ module.exports = async (controller) => {
 
     let senderProperties = await getUserContextProperties(bot, message);
 
-    // if (bot.hasActiveDialog() || senderProperties.readyToConversation === 'busy') {
+    // if (bot.hasActiveDialog() || senderProperties.ready_to_conversation === 'busy') {
     //   // controller.trigger(['match'], bot, message);
     //   return;
     // }
@@ -135,9 +135,9 @@ module.exports = async (controller) => {
                      * Set sender properties
                      */
                     senderProperties = await getUserContextProperties(bot, message);
-                    await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
-                    await senderProperties.conversationWithProperty.set(senderProperties.context, recipient.id);
-                    await senderProperties.expiredAtProperty.set(senderProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
+                    await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'busy');
+                    await senderProperties.conversation_with_property.set(senderProperties.context, recipient.id);
+                    await senderProperties.expired_at_property.set(senderProperties.context, (Date.now() + (1000 * 60 * 60 * 24 * 2))); // 2 days
 
                     /**
                      * Save recipientProperties changes to storage
@@ -166,8 +166,8 @@ module.exports = async (controller) => {
                      */
                     const recipientProperties = await getUserContextProperties(dialogBot, message);
 
-                    await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
-                    await recipientProperties.conversationWithProperty.set(recipientProperties.context, message.sender.id);
+                    await recipientProperties.ready_to_conversation_property.set(recipientProperties.context, 'busy');
+                    await recipientProperties.conversation_with_property.set(recipientProperties.context, message.sender.id);
 
                     /**
                      * Save recipientProperties changes to storage
@@ -274,7 +274,7 @@ module.exports = async (controller) => {
                   //             //         template_type: 'generic',
                   //             //         elements: [{
                   //             //             title: matchUser.state.username,
-                  //             //             subtitle: `\n🗺 ${matchUser.state.location}\n💬 ${englishLevelDict[matchUser.state.english_level]}\n👔 ${communityDict[matchUser.state.community]}\n🛠 ${matchUser.state.profession}`,
+                  //             //             subtitle: `\n🗺 ${matchUser.state.location}\n💬 ${english_levelDict[matchUser.state.english_level]}\n👔 ${communityDict[matchUser.state.community]}\n🛠 ${matchUser.state.profession}`,
                   //             //         }],
                   //             //     },
                   //             // },
@@ -307,7 +307,7 @@ module.exports = async (controller) => {
       //    */
       //   // const senderProperties = await getUserContextProperties(bot, results);
 
-      //   // if (senderProperties.readyToConversation === 'ready') {
+      //   // if (senderProperties.ready_to_conversation === 'ready') {
       //   //   results.value = undefined;
       //   //   await controller.trigger(['start_match'], bot, results);
       //   // }
@@ -377,7 +377,7 @@ module.exports = async (controller) => {
       //             //         template_type: 'generic',
       //             //         elements: [{
       //             //             title: matchUser.state.username,
-      //             //             subtitle: `\n🗺 ${matchUser.state.location}\n💬 ${englishLevelDict[matchUser.state.english_level]}\n👔 ${communityDict[matchUser.state.community]}\n🛠 ${matchUser.state.profession}`,
+      //             //             subtitle: `\n🗺 ${matchUser.state.location}\n💬 ${english_levelDict[matchUser.state.english_level]}\n👔 ${communityDict[matchUser.state.community]}\n🛠 ${matchUser.state.profession}`,
       //             //         }],
       //             //     },
       //             // },
