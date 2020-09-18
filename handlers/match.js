@@ -27,7 +27,7 @@ module.exports = async (controller) => {
       title: `${username}`,
     };
 
-    const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}:${process.env.PORT}`;
+    const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}${process.env.NODE_ENV === "development" ? ':' + process.env.PORT : ""}`;
     const url = `${baseUrl}/api/profile?id=${user._id.match(/(\d+)\/?$/)[1]}`;
 
     if (!!facebook_url) {
