@@ -1,4 +1,4 @@
-'use strict;'
+'use strict';
 
 const { UserState } = require('botbuilder');
 const { USER_DIALOG_SESSION_EXPIRED } = require('./constants.js');
@@ -87,14 +87,17 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
 
 const resetUserContextProperties = async (controller, bot, message) => { // [OK]
   const senderBot = await controller.spawn(message.sender.id);
+  const userId = `facebook/conversations/${message.sender.id}-${message.sender.id}/`;
+  await controller.storage.delete([userId]);
   await senderBot.cancelAllDialogs();
   await senderBot.startConversationWithUser(message.sender.id);
+
+  controller.trigger(['delete_menu'], senderBot, message.sender);
+
   let senderProperties = await getUserContextProperties(controller, senderBot, message);
-  if (!!senderProperties.conversation_with) {
 
+  // if (!!senderProperties.conversation_with) {
     const conversation_with = senderProperties.conversation_with;
-
-    await controller.trigger(['delete_menu'], senderBot, message.sender);
 
     await senderProperties.conversation_with_property.set(senderProperties.context, 0);
     await senderProperties.expired_at_property.set(senderProperties.context, 0);
@@ -104,9 +107,9 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
      * Save userState changes to storage
      */
     await senderProperties.userState.saveChanges(senderProperties.context);
-    console.log(`[helpers.js:83 reset]: ${message.sender.id} >>> session cleared`);
 
-    console.log(message.sender.id, 'conversation_with:', conversation_with);
+    console.log(`[helpers.js:111 reset]: ${message.sender.id} >>> ${conversation_with} session cleared`);
+
     // /**
     //  * #BEGIN Bot typing
     //  */
@@ -152,7 +155,7 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
     }
 
     message.value = undefined;
-  }
+  // }
 
   return;
 };

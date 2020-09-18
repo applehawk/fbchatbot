@@ -23,6 +23,9 @@ module.exports = async (controller) => {
 
       const recipient = message.sender;
 
+      const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}:${process.env.PORT}`;
+      const url = `${baseUrl}/api/profile?id=${recipient.id}`;
+
       const options = {
         recipient,
         messaging_type: 'MESSAGE_TAG',
@@ -34,15 +37,15 @@ module.exports = async (controller) => {
               image_aspect_ratio: 'square', // <square | horizontal>
               template_type: 'generic',
               elements: [{
-                default_action: {
+                buttons: [{
                   type: 'web_url',
-                  url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
-                  // messenger_extensions: 'FALSE', // <TRUE | FALSE>
-                  webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
-                },
+                  url,
+                  title: '🔗 on Facebook',
+                  webview_height_ratio: 'full',
+                }],
                 image_url: profile_pic,
                 title: `${username}`,
-                subtitle: `[${recipient.id}]`,
+                subtitle: `${recipient.id}`,
               }],
             },
           },

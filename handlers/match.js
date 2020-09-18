@@ -27,12 +27,15 @@ module.exports = async (controller) => {
       title: `${username}`,
     };
 
+    const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}:${process.env.PORT}`;
+    const url = `${baseUrl}/api/profile?id=${user._id.match(/(\d+)\/?$/)[1]}`;
+
     if (!!facebook_url) {
       payload = {
         ...payload,
         buttons: [{
           type: 'web_url',
-          url: facebook_url,
+          url,
           title: '🔗 on Facebook',
           webview_height_ratio: 'full',
         }],
@@ -42,7 +45,7 @@ module.exports = async (controller) => {
         ...payload,
         default_action: {
           type: 'web_url',
-          url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
+          url: !!facebook_url ? url : profile_pic, // <DEFAULT_URL_TO_OPEN>
           // messenger_extensions: 'FALSE', // <TRUE | FALSE>
           webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
         },
@@ -106,45 +109,101 @@ module.exports = async (controller) => {
   const findUser = async (payload) => {
     // const location = `${payload.location}`.split(',').join('|'); // [OK] v1
 
+    // const query = {
+    //   "$and": [{
+    //     "$and": [{
+    //       "$or": [
+    //         { "state.conversation_with": payload.userId },
+    //         { "state.conversation_with": 0 },
+    //         { "state.ready_to_conversation": "ready" }
+    //       ]}, {
+    //       "$or": [
+    //         { "state.conversation_with": 0 },
+    //         { "state.ready_to_conversation": "ready" },
+    //       ]}
+    //     ]}, {
+    //     "$or": [
+    //       { "state.english_level": payload.english_level + 1 },
+    //       { "state.english_level": payload.english_level },
+    //       { "state.english_level": payload.english_level - 1 },
+    //       { "state.english_level": { "$gte": payload.english_level } },
+    //       { "state.english_level": { "$lte": payload.english_level } }
+    //     ]}, {
+    //     "$or": [
+    //       { "state.community": payload.community },
+    //       // { "state.community": { "$ne": payload.community } },
+    //       { "state.community": { "$ne": undefined } }
+    //     ]}, {
+    //     "$and": [
+    //       { "_id": {
+    //           "$regex": `${payload.channelId}/users*`,
+    //           "$ne": `${payload.channelId}/users/${payload.userId}/`,
+    //           "$nin": [ ...payload.recent_users ],
+    //         }},
+    //       { "state.location": { "$ne": payload.location } }
+    //     ],
+    //   }]
+    // };
+
     const query = {
-      // _id: {
-      //   "$regex": `${payload.channelId}/users*`,
-      //   "$ne": `${payload.channelId}/users/${payload.userId}/`,
-      //   "$nin": [ ...payload.recent_users ],
-      // },
-      // // "state.location": { // [OK] v1
-      // //   "$regex": `((?!${location}).)+`,
-      // // },
-      // "state.location": { "$ne": payload.location },
-      // "state.community": payload.community,
-      // "state.ready_to_conversation": "ready",
-      "$and": [{
-        "$or": [
-          { "state.conversation_with": payload.userId },
-          // { "state.conversation_with": 0 }
-          { "state.ready_to_conversation": "ready" }
-        ]}, {
-        "$or": [
-          { "state.english_level": payload.english_level + 1 },
-          { "state.english_level": payload.english_level },
-          { "state.english_level": payload.english_level - 1 },
-          { "state.english_level": { "$gte": payload.english_level } },
-          { "state.english_level": { "$lte": payload.english_level } }
-        ]}, {
-        "$or": [
-          { "state.community": payload.community },
-          { "state.community": { "$ne": payload.community } },
-          { "state.community": { "$ne": undefined } }
-        ]}, {
-        "$and": [
-          { "_id": {
-              "$regex": `${payload.channelId}/users*`,
-              "$ne": `${payload.channelId}/users/${payload.userId}/`,
-              "$nin": [ ...payload.recent_users ],
-            }},
-          { "state.location": { "$ne": payload.location } }
-        ],
-      }]
+      $and: [
+        {
+          $or: [
+            {
+              $and: [
+                { 'state.conversation_with': payload.userId },
+                { 'state.ready_to_conversation': 'busy' },
+              ],
+            },
+            // {
+            //   $and: [
+            //     { 'state.conversation_with': { $gte: 0 } },
+            //     { 'state.ready_to_conversation': 'ready' },
+            //   ],
+            // },
+            // {
+            //   $and: [
+            //     { 'state.conversation_with': 0 },
+                { 'state.ready_to_conversation': 'ready' },
+            //   ],
+            // },
+            // {
+            //   $and: [
+            //     { 'state.conversation_with': 0 },
+            //     { 'state.ready_to_conversation': 'busy' },
+            //   ],
+            // },
+          ],
+        },
+        {
+          $or: [
+            { 'state.english_level': payload.english_level + 1 },
+            { 'state.english_level': payload.english_level },
+            { 'state.english_level': payload.english_level - 1 },
+            { 'state.english_level': { $gte: payload.english_level } },
+            { 'state.english_level': { $lte: payload.english_level } },
+          ],
+        },
+        {
+          $or: [
+            { 'state.community': payload.community },
+            { "state.community": { $ne: payload.community } },
+            { 'state.community': { $ne: undefined } },
+          ],
+        },
+        {
+          $and: [
+            {
+              _id: {
+                $regex: `${payload.channelId}/users*`,
+                $ne: `${payload.channelId}/users/${payload.userId}/`,
+                $nin: [...payload.recent_users],
+              },
+            },
+            { 'state.location': { $ne: payload.location } },
+          ],
+        },
+      ],
     };
 
     const start = Date.now();
@@ -282,7 +341,7 @@ module.exports = async (controller) => {
         // };
 
         // await controller.trigger(['create_menu'], senderBot, payload);
-        controller.trigger(['ask_for_scheduled_a_call'], senderBot, senderMessage);
+        // controller.trigger(['ask_for_scheduled_a_call'], senderBot, senderMessage);
         // controller.trigger(['session_check'], senderBot, senderMessage);
 
         controller.trigger(['sender_action_typing'], senderBot, { options: { recipient: senderMessage.sender } });
@@ -304,6 +363,7 @@ module.exports = async (controller) => {
          */
 
         const matchedUser = {
+          _id: user._id.replace(/(\d+)\/?$/, message.user),
           state: {
             ...senderProperties,
             english_level: senderProperties.english_level,
@@ -336,7 +396,7 @@ module.exports = async (controller) => {
         // };
 
         // await controller.trigger(['create_menu'], recipientBot, payload);
-        controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
+        // controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
         // controller.trigger(['session_check'], recipientBot, recipientMessage);
         // payload = null;
       } else {

@@ -1,4 +1,4 @@
-'use strict;'
+'use strict';
 
 const { test } = require('ava');
 const bot = require('../bot.js');

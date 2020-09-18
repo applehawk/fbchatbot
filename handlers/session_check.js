@@ -1,4 +1,4 @@
-'use strict;'
+'use strict';
 
 const CronJob = require('cron').CronJob;
 const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
