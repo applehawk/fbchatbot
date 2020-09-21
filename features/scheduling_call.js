@@ -50,7 +50,7 @@ module.exports = async (controller) => {
     const job = new CronJob(
       '0 0 12-15 * * 3', // [PROD]
       // '0 30 * * * *', // [STAGING]
-      // '0 58 * * * *', // [TEST]
+      // '0 30 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({ useNewUrlParser: true, debug: true, keepAlive: true });
