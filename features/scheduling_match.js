@@ -2,7 +2,7 @@
 
 const CronJob = require('cron').CronJob;
 
-const { getUserContextProperties/* , resetUserContextProperties */ } = require('../helpers.js');
+const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   /**
@@ -44,7 +44,7 @@ module.exports = async (controller) => {
 
       // '0 0 12-15 * * 1', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
-      '0 55 * * * *', // [TEST]
+      '0 0 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({
