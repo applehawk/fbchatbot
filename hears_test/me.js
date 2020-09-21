@@ -40,7 +40,7 @@ module.exports = async (controller) => {
                 buttons: [{
                   type: 'web_url',
                   url,
-                  title: '🔗 on Facebook',
+                  title: 'Go to profile',
                   webview_height_ratio: 'full',
                 }],
                 image_url: profile_pic,

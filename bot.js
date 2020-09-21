@@ -101,6 +101,7 @@ controller.webserver.get('/api/profile', async (req, res) => {
   const query = req['_parsedUrl'].query;
   const queryMatch = query.match(/(\d+)/);
   const id = !!queryMatch ? queryMatch[0] : false;
+  console.log(req['_parsedUrl'].path, query, id);
   if (id) {
     const bot = await controller.spawn();
     const { id: botId } = await bot.api.callAPI('/me', 'GET');
@@ -147,6 +148,7 @@ controller.webserver.get('/api/profile', async (req, res) => {
   } else {
     await res.sendStatus(404);
   }
+  // await res.sendStatus(301);
 });
 
 // // make content of the local public folder available at http://MYBOTURL/path/to/folder
