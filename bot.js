@@ -104,8 +104,8 @@ controller.webserver.get('/api/profile', async (req, res) => {
   console.log(req['_parsedUrl'].path, query, id);
   if (id) {
     try {
-      const bot = await controller.spawn();
-      const { id: botId } = await bot.api.callAPI('/me', 'GET');
+      // const bot = await controller.spawn();
+      // const { id: botId } = await bot.api.callAPI('/me', 'GET');
 
       const message = {
         channel: id,
@@ -121,7 +121,7 @@ controller.webserver.get('/api/profile', async (req, res) => {
         value: undefined,
         reference: {
           activityId: undefined,
-          bot: { id: botId },
+          bot: { id: process.env.FACEBOOK_APPID },
           conversation: { id },
           user: { id, name: id },
         },
@@ -154,10 +154,6 @@ controller.webserver.get('/api/profile', async (req, res) => {
   }
 });
 
-controller.webserver.get('/api/lionstuff', async (req, res) => {
-  await res.redirect('https://facebook.com/lionstuff.work');
-});
-
 controller.webserver.get('/api/redirecttest', async (req, res) => {
   // const query = req['_parsedUrl'].query;
   // const queryMatch = query.match(/(\d+)/);
@@ -183,8 +179,7 @@ controller.webserver.get('/api/redirecttest', async (req, res) => {
         value: undefined,
         reference: {
           activityId: undefined,
-          // bot: { id: botId },
-          bot: { id: '282884182743459' },
+          bot: { id: process.env.FACEBOOK_APPID },
           conversation: { id },
           user: { id, name: id },
         },
