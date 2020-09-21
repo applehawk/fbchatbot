@@ -85,16 +85,9 @@ module.exports = async (controller) => {
     // '0 */10 * * * *',
     // '0 */5 * * * *',
     async () => {
-      const bot = await controller.spawn();
-      const { id: botId } = await bot.api.callAPI('/me', 'GET');
-
       await storage.connect();
 
       const docs = await storage.Collection.find({ "state.facebook_url": { "$exists": false } });
-
-      // if (!docs) {
-      //   return;
-      // }
 
       const users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
         const id = _id.match(/\/(\d+)\/?$/);
@@ -123,7 +116,6 @@ module.exports = async (controller) => {
             reference: {
               activityId: undefined,
               user: { id, name: id },
-              bot: { id: botId },
               conversation: { id },
             },
             incoming_message: {
@@ -138,8 +130,8 @@ module.exports = async (controller) => {
           };
 
           const task = setTimeout(async () => {
-            const bot = await controller.spawn(id);
-            await bot.startConversationWithUser(id);
+            const dialogBot = await controller.spawn(id);
+            await dialogBot.startConversationWithUser(id);
 
             const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
 
@@ -147,11 +139,10 @@ module.exports = async (controller) => {
             await storage.delete([userId]);
             await dialogBot.cancelAllDialogs();
 
-            controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
-            await bot.replaceDialog(FB_DIALOG_ID);
+            controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient: message.sender } });
+            await dialogBot.replaceDialog(FB_DIALOG_ID);
 
             usersList.splice(senderIndex, 1);
-            senderProperties = null;
           }, 2000 * i);
         });
       }

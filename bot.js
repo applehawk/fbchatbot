@@ -97,56 +97,56 @@ controller.webserver.get('/', async (req, res) => {
   await res.send(`This app is running Botkit ${ controller.version }.`);
 });
 
-controller.webserver.get('/api/date', async (req, res) => {
-  await res.send(JSON.stringify(res.body, null, 2));
-});
-
 controller.webserver.get('/api/profile', async (req, res) => {
+  const query = req['_parsedUrl'].query;
+  const queryMatch = query.match(/(\d+)/);
+  const id = !!queryMatch ? queryMatch[0] : false;
+  if (id) {
+    const bot = await controller.spawn();
+    const { id: botId } = await bot.api.callAPI('/me', 'GET');
 
-  const bot = await controller.spawn();
-  const { id: botId } = await bot.api.callAPI('/me', 'GET');
-
-  const id = req['_parsedUrl'].query.match(/(\d+)/)[0];
-
-  const message = {
-    channel: id,
-    message: { text: '' },
-    messaging_type: 'MESSAGE_TAG',
-    recipient: { id },
-    sender: { id },
-    tag: 'ACCOUNT_UPDATE',
-    text: '',
-    timestamp: Date.now(),
-    type: 'facebook_postback',
-    user: id,
-    value: undefined,
-    reference: {
-      activityId: undefined,
-      bot: { id: botId },
-      conversation: { id },
-      user: { id, name: id },
-    },
-    incoming_message: {
-      channelId: 'facebook',
-      conversation: { id },
-      from: { id, name: id },
-      recipient: { id, name: id },
-      channelData: {
-        messaging_type: 'MESSAGE_TAG',
-        tag: 'ACCOUNT_UPDATE',
-        sender: { id },
+    const message = {
+      channel: id,
+      message: { text: '' },
+      messaging_type: 'MESSAGE_TAG',
+      recipient: { id },
+      sender: { id },
+      tag: 'ACCOUNT_UPDATE',
+      text: '',
+      timestamp: Date.now(),
+      type: 'facebook_postback',
+      user: id,
+      value: undefined,
+      reference: {
+        activityId: undefined,
+        bot: { id: botId },
+        conversation: { id },
+        user: { id, name: id },
       },
-    },
-  };
+      incoming_message: {
+        channelId: 'facebook',
+        conversation: { id },
+        from: { id, name: id },
+        recipient: { id, name: id },
+        channelData: {
+          messaging_type: 'MESSAGE_TAG',
+          tag: 'ACCOUNT_UPDATE',
+          sender: { id },
+        },
+      },
+    };
 
-  const dialogBot = await controller.spawn(id);
-  await dialogBot.startConversationWithUser(id);
+    const dialogBot = await controller.spawn(id);
+    await dialogBot.startConversationWithUser(id);
 
-  const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
+    const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
 
-  message.value = 'Click button user profile';
-  await controller.trigger(['ANALYTICS_EVENT'], dialogBot, message);
-  await res.redirect(recipientProperties.facebook_url);
+    message.value = 'Click button user profile';
+    await controller.trigger(['ANALYTICS_EVENT'], dialogBot, message);
+    await res.redirect(recipientProperties.facebook_url);
+  } else {
+    await res.sendStatus(404);
+  }
 });
 
 // // make content of the local public folder available at http://MYBOTURL/path/to/folder
@@ -194,7 +194,7 @@ const middlewares = {
       tag: 'ACCOUNT_UPDATE',
     };
     // await resetUserContextProperties(controller, bot, message);
-    console.log('[ingest]:'/*, message*/);
+    console.log('[ingest]:'/* , message */);
 
     controller.trigger(['mark_seen'], bot, message);
 
@@ -296,20 +296,20 @@ const middlewares = {
       messaging_type: 'MESSAGE_TAG',
       tag: 'ACCOUNT_UPDATE',
     };
-    console.log('[send]:'/*, message*/);
+    console.log('[send]:', message);
 
     // call next, or else the message will be intercepted
     next();
   },
 
   receive: async (bot, message, next) => {
-    console.log('[receive]:'/*, message*/);
+    console.log('[receive]:'/* , message */);
     // call next, or else the message will be intercepted
     next();
   },
 
   interpret: async (bot, message, next) => {
-    console.log('[interpret]:'/*, message*/);
+    console.log('[interpret]:'/* , message */);
     // call next, or else the message will be intercepted
     next();
   },
@@ -345,13 +345,12 @@ controller.ready(async () => {
     controller.loadModules(__dirname + '/hears_test', '.js');
   }
 
-  console.log(
-    `\n[EVENTS]:\n${
-        Object.keys(controller._events).sort().join('\n')
-    }\n\n[TRIGGERS]:\n${
-        Object.keys(controller._triggers).sort().join('\n')
-    }\n\n[INTERRUPTS]:\n${
-        Object.keys(controller._interrupts).sort().join('\n')
-    }\n[READY]\n`
-  );
+  if (!isDev) {
+    console.log(
+      `\n[EVENTS]:\n${Object.keys(controller._events).sort().join('\n')
+      }\n\n[TRIGGERS]:\n${Object.keys(controller._triggers).sort().join('\n')
+      }\n\n[INTERRUPTS]:\n${Object.keys(controller._interrupts).sort().join('\n')
+      }\n[READY]\n`
+    );
+  }
 });
