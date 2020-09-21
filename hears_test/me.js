@@ -25,6 +25,7 @@ module.exports = async (controller) => {
 
       const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}${process.env.NODE_ENV === "development" ? ':' + process.env.PORT : ""}`;
       const url = `${baseUrl}/api/profile?id=${recipient.id}`;
+      console.log(url);
 
       const options = {
         recipient,

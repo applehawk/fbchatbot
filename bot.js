@@ -103,52 +103,114 @@ controller.webserver.get('/api/profile', async (req, res) => {
   const id = !!queryMatch ? queryMatch[0] : false;
   console.log(req['_parsedUrl'].path, query, id);
   if (id) {
-    const bot = await controller.spawn();
-    const { id: botId } = await bot.api.callAPI('/me', 'GET');
+    try {
+      const bot = await controller.spawn();
+      const { id: botId } = await bot.api.callAPI('/me', 'GET');
 
-    const message = {
-      channel: id,
-      message: { text: '' },
-      messaging_type: 'MESSAGE_TAG',
-      recipient: { id },
-      sender: { id },
-      tag: 'ACCOUNT_UPDATE',
-      text: '',
-      timestamp: Date.now(),
-      type: 'facebook_postback',
-      user: id,
-      value: undefined,
-      reference: {
-        activityId: undefined,
-        bot: { id: botId },
-        conversation: { id },
-        user: { id, name: id },
-      },
-      incoming_message: {
-        channelId: 'facebook',
-        conversation: { id },
-        from: { id, name: id },
-        recipient: { id, name: id },
-        channelData: {
-          messaging_type: 'MESSAGE_TAG',
-          tag: 'ACCOUNT_UPDATE',
-          sender: { id },
+      const message = {
+        channel: id,
+        message: { text: '' },
+        messaging_type: 'MESSAGE_TAG',
+        recipient: { id },
+        sender: { id },
+        tag: 'ACCOUNT_UPDATE',
+        text: '',
+        timestamp: Date.now(),
+        type: 'facebook_postback',
+        user: id,
+        value: undefined,
+        reference: {
+          activityId: undefined,
+          bot: { id: botId },
+          conversation: { id },
+          user: { id, name: id },
         },
-      },
-    };
+        incoming_message: {
+          channelId: 'facebook',
+          conversation: { id },
+          from: { id, name: id },
+          recipient: { id, name: id },
+          channelData: {
+            messaging_type: 'MESSAGE_TAG',
+            tag: 'ACCOUNT_UPDATE',
+            sender: { id },
+          },
+        },
+      };
 
-    const dialogBot = await controller.spawn(id);
-    await dialogBot.startConversationWithUser(id);
+      const dialogBot = await controller.spawn(id);
+      await dialogBot.startConversationWithUser(id);
 
-    const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
+      const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
 
-    message.value = 'Click button user profile';
-    await controller.trigger(['ANALYTICS_EVENT'], dialogBot, message);
-    await res.redirect(recipientProperties.facebook_url);
+      message.value = 'Click button user profile';
+      await controller.trigger(['ANALYTICS_EVENT'], dialogBot, message);
+      await res.redirect(recipientProperties.facebook_url);
+    } catch (error) {
+      console.error(error);
+    }
   } else {
     await res.sendStatus(404);
   }
-  // await res.sendStatus(301);
+});
+
+controller.webserver.get('/api/lionstuff', async (req, res) => {
+  await res.redirect('https://facebook.com/lionstuff');
+});
+
+controller.webserver.get('/api/redirecttest', async (req, res) => {
+  // const query = req['_parsedUrl'].query;
+  // const queryMatch = query.match(/(\d+)/);
+  const id = '2775599249211354';
+  // console.log(req['_parsedUrl'].path, query, id);
+  if (id) {
+    try {
+      const bot = await controller.spawn();
+      const { id: botId } = await bot.api.callAPI('/me', 'GET');
+
+      const message = {
+        channel: id,
+        message: { text: '' },
+        messaging_type: 'MESSAGE_TAG',
+        recipient: { id },
+        sender: { id },
+        tag: 'ACCOUNT_UPDATE',
+        text: '',
+        timestamp: Date.now(),
+        type: 'facebook_postback',
+        user: id,
+        value: undefined,
+        reference: {
+          activityId: undefined,
+          bot: { id: botId },
+          conversation: { id },
+          user: { id, name: id },
+        },
+        incoming_message: {
+          channelId: 'facebook',
+          conversation: { id },
+          from: { id, name: id },
+          recipient: { id, name: id },
+          channelData: {
+            messaging_type: 'MESSAGE_TAG',
+            tag: 'ACCOUNT_UPDATE',
+            sender: { id },
+          },
+        },
+      };
+
+      const dialogBot = await controller.spawn(id);
+      await dialogBot.startConversationWithUser(id);
+
+      const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
+
+      await res.redirect(recipientProperties.facebook_url);
+    } catch (error) {
+      console.error(error);
+    }
+  } else {
+    await res.sendStatus(404);
+  }
 });
 
 // // make content of the local public folder available at http://MYBOTURL/path/to/folder
