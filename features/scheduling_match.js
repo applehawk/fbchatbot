@@ -2,7 +2,7 @@
 
 const CronJob = require('cron').CronJob;
 
-const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
+const { getUserContextProperties/* , resetUserContextProperties  */} = require('../helpers.js');
 
 module.exports = async (controller) => {
   /**
@@ -42,9 +42,9 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      // '0 0 12-15 * * 1', // [PROD]
+      '0 0 12-15 * * 1', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
-      '0 0 * * * *', // [TEST]
+      // '0 0 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({
@@ -54,8 +54,7 @@ module.exports = async (controller) => {
         });
 
         const docs = await storage.Collection.find({ // [OK]
-          // 'state.ready_to_conversation': { $eq: 'ready' },
-          'state.ready_to_conversation': { $eq: 'busy' },
+          'state.ready_to_conversation': { $eq: 'ready' },
           'state.community': { $exists: true },
         });
 
@@ -110,50 +109,50 @@ module.exports = async (controller) => {
               const dialogBot = await controller.spawn(id);
               await dialogBot.startConversationWithUser(id);
 
-              // let senderProperties = await getUserContextProperties(
-              //   controller,
-              //   dialogBot,
-              //   message
-              // );
+              let senderProperties = await getUserContextProperties(
+                controller,
+                dialogBot,
+                message
+              );
 
-              // if (senderProperties.ready_to_conversation === 'ready') {
-              //   const userId = `facebook/conversations/${id}-${id}/`;
-              //   await storage.delete([userId]);
-              //   await dialogBot.cancelAllDialogs();
+              if (senderProperties.ready_to_conversation === 'ready') {
+                const userId = `facebook/conversations/${id}-${id}/`;
+                await storage.delete([userId]);
+                await dialogBot.cancelAllDialogs();
 
-              //   await controller.trigger(['match'], dialogBot, message);
-              //   senderProperties = await getUserContextProperties(
-              //     controller,
-              //     dialogBot,
-              //     message
-              //   );
+                await controller.trigger(['match'], dialogBot, message);
+                senderProperties = await getUserContextProperties(
+                  controller,
+                  dialogBot,
+                  message
+                );
 
-              //   const recipientIndex = Object.keys(users).indexOf(
-              //     `facebook/users/${senderProperties.conversation_with}/`
-              //   );
+                const recipientIndex = Object.keys(users).indexOf(
+                  `facebook/users/${senderProperties.conversation_with}/`
+                );
 
-              //   if (recipientIndex > -1) {
-              //     usersList.splice(recipientIndex, 1);
-              //   }
-              // } else if (senderProperties.community === undefined) {
-              //   let payload = { id, username: senderProperties.username };
-              //   console.warning(
-              //     '[scheduling_match.js:124 WARNING]:',
-              //     payload,
-              //     'has not completed the onboarding'
-              //   );
-              //   payload = null;
-              // }
+                if (recipientIndex > -1) {
+                  usersList.splice(recipientIndex, 1);
+                }
+              } else if (senderProperties.community === undefined) {
+                let payload = { id, username: senderProperties.username };
+                console.warning(
+                  '[scheduling_match.js:124 WARNING]:',
+                  payload,
+                  'has not completed the onboarding'
+                );
+                payload = null;
+              }
 
-              // const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
-              // usersList.splice(senderIndex, 1);
-              // senderProperties = null;
+              const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
+              usersList.splice(senderIndex, 1);
+              senderProperties = null;
 
-                await resetUserContextProperties(controller, dialogBot, message);
-                // await controller.trigger(['reset'], dialogBot, message);
-              }, 1000 * i);
-              // }, 2000);
-            // }, 3000 * i);
+              //   await resetUserContextProperties(controller, dialogBot, message);
+              //   // await controller.trigger(['reset'], dialogBot, message);
+              // }, 1000 * i);
+              // // }, 2000);
+            }, 3000 * i);
             // }
             // }
           });
