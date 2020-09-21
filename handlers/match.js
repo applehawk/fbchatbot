@@ -27,8 +27,8 @@ module.exports = async (controller) => {
       title: `${username}`,
     };
 
-    // const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}${process.env.NODE_ENV === "development" ? ':' + process.env.PORT : ""}`;
-    const baseUrl = `https://powerful-citadel-37569.herokuapp.com`;
+    const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}${process.env.NODE_ENV === "development" ? ':' + process.env.PORT : ""}`;
+    // const baseUrl = `https://powerful-citadel-37569.herokuapp.com`;
     const url = `${baseUrl}/api/profile?id=${user._id.match(/(\d+)\/?$/)[1]}`;
     console.log(url);
 
