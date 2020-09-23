@@ -1,7 +1,7 @@
 'use strict';
 
 const {
-  englishLevelDict,
+  english_levelDict,
   communityDict,
 } = require(`../constants.js`);
 const { getUserContextProperties } = require('../helpers.js');
@@ -15,15 +15,15 @@ module.exports = async (controller) => {
         await recipientBot.startConversationWithUser(id);
         const {
           community,
-          conversationWith,
-          englishLevel,
-          facebookURL,
+          conversation_with,
+          english_level,
+          facebook_url,
           location,
           profession,
-          profilePic,
-          readyToConversation,
-          recentUsers,
-          userName,
+          profile_pic,
+          ready_to_conversation,
+          recent_users,
+          username,
         } = await getUserContextProperties(controller, recipientBot, message);
 
         const recipient = message.sender;
@@ -41,12 +41,12 @@ module.exports = async (controller) => {
                 elements: [{
                   default_action: {
                     type: 'web_url',
-                    url: !!facebookURL ? facebookURL : profilePic, // <DEFAULT_URL_TO_OPEN>
+                    url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
                     // messenger_extensions: 'FALSE', // <TRUE | FALSE>
                     webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
                   },
-                  image_url: profilePic,
-                  title: `${userName}`,
+                  image_url: profile_pic,
+                  title: `${username}`,
                   subtitle: `[${id}]`,
                 }],
               },
@@ -58,8 +58,8 @@ module.exports = async (controller) => {
         await bot.api.callAPI('/me/messages', 'POST', options);
 
         const rUsers = [];
-        if (recentUsers.length) {
-          recentUsers.forEach(user => {
+        if (recent_users.length) {
+          recent_users.forEach(user => {
             rUsers.push(user.match(/(\d+)\/$/)[1]);
           });
         }
@@ -70,12 +70,12 @@ module.exports = async (controller) => {
           tag: 'ACCOUNT_UPDATE',
           text: `
 🗺 ${location}
-💬 ${englishLevelDict[englishLevel]}
+💬 ${english_levelDict[english_level]}
 👔 ${communityDict[community]}
 🛠 ${profession}
-📢 ${readyToConversation === 'ready' ? 'Ready' : 'Busy (with ' + conversationWith + ')'}
+📢 ${ready_to_conversation === 'ready' ? 'Ready' : 'Busy (with ' + conversation_with + ')'}
 Has dialog: ${recipientBot.hasActiveDialog()}
-${recentUsers.length ? '⌛ ' + recentUsers.length + '\n\nRecent user' + (recentUsers.length === 1 ? '' : 's') + ':\n\n' + rUsers.join('\n') : ''}`,
+${recent_users.length ? '⌛ ' + recent_users.length + '\n\nRecent user' + (recent_users.length === 1 ? '' : 's') + ':\n\n' + rUsers.join('\n') : ''}`,
         });
       }
     } catch(error) {

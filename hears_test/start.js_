@@ -2,7 +2,7 @@
 
 const { UserState } = require('botbuilder');
 
-const { communityDict, englishLevelDict } = require('../constants.js');
+const { communityDict, english_levelDict } = require('../constants.js');
 
 module.exports = async (controller) => {
     controller.hears(new RegExp(/^(start)\s+?(\d+)\s+?(.+)$/ius), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {
@@ -74,7 +74,7 @@ module.exports = async (controller) => {
                         //         template_type: 'generic',
                         //         elements: [{
                         //             title: matchUser.state.username,
-                        //             subtitle: `\n🗺 ${matchUser.state.location}\n💬 ${englishLevelDict[matchUser.state.english_level]}\n👔 ${communityDict[matchUser.state.community]}\n🛠 ${matchUser.state.profession}`,
+                        //             subtitle: `\n🗺 ${matchUser.state.location}\n💬 ${english_levelDict[matchUser.state.english_level]}\n👔 ${communityDict[matchUser.state.community]}\n🛠 ${matchUser.state.profession}`,
                         //         }],
                         //     },
                         // },

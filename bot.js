@@ -44,6 +44,7 @@ let storage = null;
 
 // if (!isDev) {
   storage = new MongoDbStorage({
+    debug: true,
     collection: DATABASE_COLLECTION,
     database: DATABASE_NAME,
     url: MONGO_URI,
@@ -73,21 +74,23 @@ const controller = new Botkit({
   storage,
   webhook_uri: '/api/messages',
 });
-
 // console.log(JSON.stringify(controller._config.scheduler_url)); // [OK][Tip] bot.getConfig('sheduler_uri')
 
 // if (!isDev) {
-  const GREETING_ID = 'GREETING_ID';
-  const ONBOARDING_ID = 'ONBOARDING_ID';
-  const SCHEDULED_A_CALL_ID = 'SCHEDULED_A_CALL_ID';
+  const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';
+  const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID';
+  const DIALOG_SCHEDULED_A_CALL_ID = 'DIALOG_SCHEDULED_A_CALL_ID';
+  const DIALOG_FACEBOOK_URL_ID = 'DIALOG_FACEBOOK_URL_ID';
 
-  const greeting = new BotkitConversation(GREETING_ID, controller);
-  const onboarding = new BotkitConversation(ONBOARDING_ID, controller);
-  const scheduled_a_call = new BotkitConversation(SCHEDULED_A_CALL_ID, controller);
+  const dialog_greeting = new BotkitConversation(DIALOG_GREETING_ID, controller);
+  const dialog_onboarding = new BotkitConversation(DIALOG_ONBOARDING_ID, controller);
+  const dialog_scheduled_a_call = new BotkitConversation(DIALOG_SCHEDULED_A_CALL_ID, controller);
+  const dialog_facebook_url = new BotkitConversation(DIALOG_FACEBOOK_URL_ID, controller);
 
-  controller.addDialog(greeting);
-  controller.addDialog(onboarding);
-  controller.addDialog(scheduled_a_call);
+  controller.addDialog(dialog_greeting);
+  controller.addDialog(dialog_onboarding);
+  controller.addDialog(dialog_scheduled_a_call);
+  controller.addDialog(dialog_facebook_url);
 // }
 
 /**
@@ -97,8 +100,71 @@ controller.webserver.get('/', async (req, res) => {
   await res.send(`This app is running Botkit ${ controller.version }.`);
 });
 
+controller.webserver.get('/api/profile', async (req, res) => {
+  const query = req['_parsedUrl'].query;
+  const queryMatch = query.match(/(\d+)/);
+  const id = !!queryMatch ? queryMatch[0] : false;
+
+  if (id) {
+    try {
+      let appId = process.env.FACEBOOK_APPID;
+      if (process.env.NODE_ENV === 'development') {
+        const bot = await controller.spawn();
+        const { id: botId } = await bot.api.callAPI('/me', 'GET');
+        appId = botId;
+      }
+
+      const message = {
+        channel: id,
+        message: { text: '' },
+        messaging_type: 'MESSAGE_TAG',
+        recipient: { id },
+        sender: { id },
+        tag: 'ACCOUNT_UPDATE',
+        text: '',
+        timestamp: Date.now(),
+        type: 'facebook_postback',
+        user: id,
+        value: undefined,
+        reference: {
+          activityId: undefined,
+          bot: { id: appId },
+          conversation: { id },
+          user: { id, name: id },
+        },
+        incoming_message: {
+          channelId: 'facebook',
+          conversation: { id },
+          from: { id, name: id },
+          recipient: { id, name: id },
+          channelData: {
+            messaging_type: 'MESSAGE_TAG',
+            tag: 'ACCOUNT_UPDATE',
+            sender: { id },
+          },
+        },
+      };
+
+      const dialogBot = await controller.spawn(id);
+      await dialogBot.startConversationWithUser(id);
+
+      const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
+
+      const messengerProfile = recipientProperties.facebook_url.split('/').splice(-1, 1);
+      const url = `https://m.me/${messengerProfile}`;
+      message.value = 'Click button user profile';
+      await controller.trigger(['ANALYTICS_EVENT'], dialogBot, message);
+      await res.redirect(url);
+    } catch (error) {
+      console.error(error);
+    }
+  } else {
+    await res.sendStatus(404);
+  }
+});
+
 // // make content of the local public folder available at http://MYBOTURL/path/to/folder
-// controller.publicFolder('/api/sheduler', `${__dirname}/api/sheduler`);
+// controller.publicFolder('/date', __dirname + '/date');
 
 // controller.webserver.get('/api/sheduler', async (req, res) => {
 //     await res.send(`This is Sheduler Page.`);
@@ -141,14 +207,13 @@ const middlewares = {
       messaging_type: 'MESSAGE_TAG',
       tag: 'ACCOUNT_UPDATE',
     };
-    // await resetUserContextProperties(controller, bot, message);
     console.log('[ingest]:', message);
 
     controller.trigger(['mark_seen'], bot, message);
 
     if (message.type !== 'facebook_postback' && !bot.hasActiveDialog()) {
       let senderProperties = await getUserContextProperties(controller, bot, message);
-      const target = senderProperties.conversationWith;
+      const target = senderProperties.conversation_with;
 
       if (target) { // [OK]
         console.log(`[bot.js:154 DIALOG]: ${message.sender.id} > ${target}`);
@@ -161,14 +226,14 @@ const middlewares = {
 
           let recipientProperties = await getUserContextProperties(controller, dialogBot, message);
 
-          if (Date.now() < senderProperties.expiredAt) { // [OK]
+          if (Date.now() < senderProperties.expired_at) { // [OK]
             // /**
             //  * #BEGIN Bot typing
             //  */
             // /*await */controller.trigger(['sender_action_typing'], dialogBot, {
             //   options: { recipient: { id: target } },
             // });
-            // // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expiredAt).toLocaleString()}]`;
+            // // message.text += `\n\n[Session expired at: ${new Date(recipientProperties.expired_at).toLocaleString()}]`;
 
             // /**
             //  * Send message recipientProperties conversation
@@ -181,7 +246,7 @@ const middlewares = {
             //   messaging_type: 'MESSAGE_TAG',
             //   tag: 'ACCOUNT_UPDATE',
             // });
-          } else if (Date.now() > senderProperties.expiredAt) {
+          } else if (Date.now() > senderProperties.expired_at) {
             // await controller.trigger(['session_check'], bot, message);
           }
 
@@ -195,7 +260,7 @@ const middlewares = {
     } else {
       if (!!message.postback) {
         if (message.postback.payload.match('reset')) {
-          const { conversationWith } = await getUserContextProperties(controller, bot, message);
+          // const { conversation_with } = await getUserContextProperties(controller, bot, message);
 
           await resetUserContextProperties(controller, bot, message);
 
@@ -204,30 +269,30 @@ const middlewares = {
            */
           // const messageRef = {
           //   ...message,
-          //   channel: conversationWith,
-          //   sender: { id: conversationWith },
-          //   user: conversationWith,
+          //   channel: conversation_with,
+          //   sender: { id: conversation_with },
+          //   user: conversation_with,
           //   value: undefined,
           //   reference: {
           //     ...message.reference,
           //     activityId: undefined,
-          //     user: { id: conversationWith, name: conversationWith },
-          //     conversation: { id: conversationWith },
+          //     user: { id: conversation_with, name: conversation_with },
+          //     conversation: { id: conversation_with },
           //   },
           //   incoming_message: {
           //     ...message.incoming_message,
-          //     conversation: { id: conversationWith },
-          //     from: { id: conversationWith, name: conversationWith },
+          //     conversation: { id: conversation_with },
+          //     from: { id: conversation_with, name: conversation_with },
           //     recipient: message.recipient,
           //     channelData: {
           //       ...message.incoming_message.channelData,
-          //       sender: { id: conversationWith },
+          //       sender: { id: conversation_with },
           //     },
           //   },
           // };
 
           // const dialogBot = await controller.spawn(message.sender.id);
-          // await dialogBot.startConversationWithUser(conversationWith);
+          // await dialogBot.startConversationWithUser(conversation_with);
 
           // await resetUserContextProperties(controller, dialogBot, messageRef);
         }
@@ -251,13 +316,13 @@ const middlewares = {
   },
 
   receive: async (bot, message, next) => {
-    console.log('[receive]:', message);
+    console.log('[receive]:'/* , message */);
     // call next, or else the message will be intercepted
     next();
   },
 
   interpret: async (bot, message, next) => {
-    console.log('[interpret]:', message);
+    console.log('[interpret]:'/* , message */);
     // call next, or else the message will be intercepted
     next();
   },
@@ -289,18 +354,16 @@ controller.ready(async () => {
    * load test feature modules
    */
   if (isDev) {
-    await controller.loadModules(__dirname + '/handlers_test', '.js');
-    await controller.loadModules(__dirname + '/hears_test', '.js');
+    controller.loadModules(__dirname + '/handlers_test', '.js');
+    controller.loadModules(__dirname + '/hears_test', '.js');
   }
 
-  console.log(
-    `\n[EVENTS]:\n${
-        Object.keys(controller._events).sort().join('\n')
-    }\n\n[TRIGGERS]:\n${
-        Object.keys(controller._triggers).sort().join('\n')
-    }\n\n[INTERRUPTS]:\n${
-        Object.keys(controller._interrupts).sort().join('\n')
-    }\n[READY]\n`
-  );
+  if (!isDev) {
+    console.log(
+      `\n[EVENTS]:\n${Object.keys(controller._events).sort().join('\n')
+      }\n\n[TRIGGERS]:\n${Object.keys(controller._triggers).sort().join('\n')
+      }\n\n[INTERRUPTS]:\n${Object.keys(controller._interrupts).sort().join('\n')
+      }\n[READY]\n`
+    );
+  }
 });
-

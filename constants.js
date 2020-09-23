@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = Object.freeze({
-    englishLevelDict: [
+    english_levelDict: [
         'Elementary',
         'Pre-Intermediate',
         'Intermediate',
@@ -82,7 +82,7 @@ I know guys from Bank of America and TransferWise. I can help with the introduct
     ONBOARDING_RESULTS: `😎 Great. Look at the result:
 
 {{{vars.username}}}
-{{{vars.facebook_url}}}
+🔗 {{{vars.facebook_url}}}
 Location: {{{vars.location}}}
 English Level: {{{vars.english_level}}}
 Community: {{{vars.community}}}
@@ -90,7 +90,8 @@ Work: {{{vars.profession}}}
 I have interested in: {{{vars.about_yourself}}}`,
 
     // ONBOARDING_THANKS: 'Thank you! Unfortunately the service in a testing mode. We are planning to go public in a month. But don’t be upset! We will give you 1 month fo free since the service will be started. Also we will notify you when it will happen.',
-    ONBOARDING_THANKS: `
+    ONBOARDING_THANKS: `Finally, that's all! You will receive a link for a new partner each week on mondays. Our artificial intellect will find you a partner that fits your profile.
+
 Here are recommendations for effective communication:
 
 1. Firstly, prepare information about yourself and tell more about your work or business. Also, you can share any presentations and ask for feedback from the partner.
@@ -99,9 +100,7 @@ Here are recommendations for effective communication:
 
 3. Think about what common may have and how you can help each other.
 
-4. Prepare a list of links or documents (no more than 5) that you can send after the end of the conversation. (maybe a book, podcast or blog).
-
-Finally, that's all! You will receive a link for a new partner each week on mondays. Our artificial intellect will find you a partner that fits your profile.`,
+4. Prepare a list of links or documents (no more than 5) that you can send after the end of the conversation. (maybe a book, podcast or blog).`,
 
     GIF_GREETING: 'https://media.giphy.com/media/kaHP7Ci7xVFzN8JJbk/giphy.gif',
     GIF_ONBOARDING: 'https://media.giphy.com/media/StXP3dSGStWDBvsCjF/giphy.gif',

@@ -1,4 +1,4 @@
-'use strict;'
+'use strict';
 
 module.exports = async (controller) => {
   controller.on(['create_menu'], async (bot, payload) => {

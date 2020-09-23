@@ -1,4 +1,4 @@
-'use strict;'
+'use strict';
 
 const CronJob = require('cron').CronJob;
 const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
@@ -7,13 +7,13 @@ module.exports = async (controller) => {
   controller.on(['session_check'], async (bot, message) => {
     let senderProperties = await getUserContextProperties(controller, bot, message);
 
-    if (!!senderProperties.expiredAt && !!senderProperties.conversationWith && senderProperties.readyToConversation === 'busy') {
-      let expiredAt = new Date(senderProperties.expiredAt > Date.now() ? senderProperties.expiredAt : Date.now() + 5000);
+    if (!!senderProperties.expired_at && !!senderProperties.conversation_with && senderProperties.ready_to_conversation === 'busy') {
+      let expired_at = new Date(senderProperties.expired_at > Date.now() ? senderProperties.expired_at : Date.now() + 5000);
 
-      console.log(`[SESSION]: ${message.recipient.id} > ${senderProperties.conversationWith} EXPIRED AT: ${expiredAt.toLocaleString()}`);
+      console.log(`[SESSION]: ${message.recipient.id} > ${senderProperties.conversation_with} EXPIRED AT: ${expired_at.toLocaleString()}`);
 
       const job = new CronJob(
-        expiredAt,
+        expired_at,
         async () => {
           const dialogBot = await controller.spawn(message.sender.id);
           await dialogBot.startConversationWithUser(message.sender.id);
@@ -22,8 +22,8 @@ module.exports = async (controller) => {
             messaging_type: 'MESSAGE_TAG',
             tag: 'ACCOUNT_UPDATE',
           };
-          const { readyToConversation } = await getUserContextProperties(controller, dialogBot, messageRef);
-          if (readyToConversation === 'busy') {
+          const { ready_to_conversation } = await getUserContextProperties(controller, dialogBot, messageRef);
+          if (ready_to_conversation === 'busy') {
             await resetUserContextProperties(controller, dialogBot, messageRef);
           }
         },

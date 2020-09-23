@@ -2,22 +2,24 @@
   "name": "botkit-welcome-bot",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "14.9.0"
+  },
   "main": "bot.js",
   "scripts": {
-    "start": "./patch.sh && node bot.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "heroku-postbuid": "npm run start"
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@amplitude/node": "^0.3.3",
     "botbuilder-adapter-facebook": "^1.0.10",
     "botbuilder-storage-mongodb": "^0.9.5",
-    "botkit": "^4.9.0",
+    "botkit": "^4.10.0",
     "botkit-plugin-cms": "^1.0.3",
     "cron": "^1.8.2"
   },
   "devDependencies": {
     "ava": "^3.11.1",
-    "dotenv": "^7.0.0"
+    "dotenv": "^8.2.0"
   }
 }

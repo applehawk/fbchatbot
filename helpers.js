@@ -1,4 +1,4 @@
-'use strict;'
+'use strict';
 
 const { UserState } = require('botbuilder');
 const { USER_DIALOG_SESSION_EXPIRED } = require('./constants.js');
@@ -7,121 +7,147 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
   let userState = new UserState(controller.storage);
   let context = bot.getConfig('context');
 
-  let communityProperty = await userState.createProperty('community');
-  let conversationWithProperty = await userState.createProperty('conversation_with');
-  let englishLevelProperty = await userState.createProperty('english_level');
-  let expiredAtProperty = await userState.createProperty('expired_at');
-  let facebookURLProperty = await userState.createProperty('facebook_url');
-  let locationProperty = await userState.createProperty('location');
-  let professionProperty = await userState.createProperty('profession');
-  let profilePicProperty = await userState.createProperty('profile_pic');
-  let readyToConversationProperty = await userState.createProperty('ready_to_conversation');
-  let recentUsersProperty = await userState.createProperty('recent_users');
-  let userNameProperty = await userState.createProperty('username');
+  let community_property = await userState.createProperty('community');
+  let conversation_with_property = await userState.createProperty('conversation_with');
+  let english_level_property = await userState.createProperty('english_level');
+  let expired_at_property = await userState.createProperty('expired_at');
+  let facebook_url_property = await userState.createProperty('facebook_url');
+  let location_property = await userState.createProperty('location');
+  let profession_property = await userState.createProperty('profession');
+  let profile_pic_property = await userState.createProperty('profile_pic');
+  let ready_to_conversation_property = await userState.createProperty('ready_to_conversation');
+  let recent_users_property = await userState.createProperty('recent_users');
+  let username_property = await userState.createProperty('username');
 
-  let community = await communityProperty.get(context);
-  let conversationWith = await conversationWithProperty.get(context);
-  let englishLevel = await englishLevelProperty.get(context);
-  let expiredAt = await expiredAtProperty.get(context);
-  let facebookURL = await facebookURLProperty.get(context);
-  let location = await locationProperty.get(context);
-  let profession = await professionProperty.get(context);
-  let profilePic = await profilePicProperty.get(context);
-  let readyToConversation = await readyToConversationProperty.get(context);
-  let recentUsers = await recentUsersProperty.get(context, []);
-  let userName = await userNameProperty.get(context);
+  let community = await community_property.get(context);
+  let conversation_with = await conversation_with_property.get(context);
+  let english_level = await english_level_property.get(context);
+  let expired_at = await expired_at_property.get(context);
+  let facebook_url = await facebook_url_property.get(context);
+  let location = await location_property.get(context);
+  let profession = await profession_property.get(context);
+  let profile_pic = await profile_pic_property.get(context);
+  let ready_to_conversation = await ready_to_conversation_property.get(context);
+  let recent_users = await recent_users_property.get(context, []);
+  let username = await username_property.get(context);
 
   return {
     context,
     userState,
 
-    communityProperty,
-    conversationWithProperty,
-    englishLevelProperty,
-    expiredAtProperty,
-    facebookURLProperty,
-    locationProperty,
-    professionProperty,
-    profilePicProperty,
-    readyToConversationProperty,
-    recentUsersProperty,
-    userNameProperty,
+    community_property,
+    conversation_with_property,
+    english_level_property,
+    expired_at_property,
+    facebook_url_property,
+    location_property,
+    profession_property,
+    profile_pic_property,
+    ready_to_conversation_property,
+    recent_users_property,
+    username_property,
 
     community,
-    conversationWith,
-    englishLevel,
-    expiredAt,
-    facebookURL,
+    conversation_with,
+    english_level,
+    expired_at,
+    facebook_url,
     location,
     profession,
-    profilePic,
-    readyToConversation,
-    recentUsers,
-    userName,
+    profile_pic,
+    ready_to_conversation,
+    recent_users,
+    username,
   };
+
+  // const properties = [
+  //   'community',
+  //   'conversation_with',
+  //   'english_level',
+  //   'expired_at',
+  //   'facebook_url',
+  //   'location',
+  //   'profession',
+  //   'profile_pic',
+  //   'ready_to_conversation',
+  //   'recent_users',
+  //   'username'
+  // ];
+
+  // const data = [ context, userState ];
+
+  // for (const value of properties) {
+  //   const property = `${value}_property`;
+  //   data[property] = await userState.createProperty(`${value}`);
+  //   data[value] = await data[property].get(context);
+  // }
+
+  // return data;
 };
 
 const resetUserContextProperties = async (controller, bot, message) => { // [OK]
   const senderBot = await controller.spawn(message.sender.id);
+  const userId = `facebook/conversations/${message.sender.id}-${message.sender.id}/`;
+  await controller.storage.delete([userId]);
+  await senderBot.cancelAllDialogs();
   await senderBot.startConversationWithUser(message.sender.id);
+
+  controller.trigger(['delete_menu'], senderBot, message.sender);
+
   let senderProperties = await getUserContextProperties(controller, senderBot, message);
-  if (!!senderProperties.conversationWith) {
-    await senderBot.cancelAllDialogs();
 
-    const conversationWith = senderProperties.conversationWith;
+  // if (!!senderProperties.conversation_with) {
+    const conversation_with = senderProperties.conversation_with;
 
-    await controller.trigger(['delete_menu'], senderBot, message.sender);
-
-    await senderProperties.conversationWithProperty.set(senderProperties.context, 0);
-    await senderProperties.expiredAtProperty.set(senderProperties.context, 0);
-    await senderProperties.readyToConversationProperty.set(senderProperties.context, 'ready');
-
+    await senderProperties.conversation_with_property.set(senderProperties.context, 0);
+    await senderProperties.expired_at_property.set(senderProperties.context, 0);
+    await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'ready');
 
     /**
      * Save userState changes to storage
      */
     await senderProperties.userState.saveChanges(senderProperties.context);
-    console.log(`[helpers.js:81 reset]: ${message.sender.id} >>> session cleared`);
 
-    console.log(message.sender.id, 'conversationWith:', conversationWith);
-    /**
-     * #BEGIN Bot typing
-     */
-    controller.trigger(['sender_action_typing'], senderBot, { options: { recipient: message.sender } });
+    console.log(`[helpers.js:111 reset]: ${message.sender.id} >>> ${conversation_with} session cleared`);
 
-    await senderBot.say({ // [OK]
-      recipient: message.sender,
-      text: USER_DIALOG_SESSION_EXPIRED,
-      messaging_type: 'MESSAGE_TAG',
-      tag: 'ACCOUNT_UPDATE',
-    });
+    // /**
+    //  * #BEGIN Bot typing
+    //  */
+    // controller.trigger(['sender_action_typing'], senderBot, { options: { recipient: message.sender } });
 
-    if (!!conversationWith) {
-      const recipientBot = await controller.spawn(conversationWith);
-      await recipientBot.startConversationWithUser(conversationWith);
+    // await senderBot.say({ // [OK]
+    //   recipient: message.sender,
+    //   text: USER_DIALOG_SESSION_EXPIRED,
+    //   messaging_type: 'MESSAGE_TAG',
+    //   tag: 'ACCOUNT_UPDATE',
+    // });
+
+    if (!!conversation_with) {
+      const recipientBot = await controller.spawn(conversation_with);
+      await recipientBot.startConversationWithUser(conversation_with);
       const messageRef = {
         ...message,
-        channel: conversationWith,
+        channel: conversation_with,
         messaging_type: 'MESSAGE_TAG',
-        recipient: { id: conversationWith },
-        sender: { id: conversationWith },
+        recipient: { id: conversation_with },
+        sender: { id: conversation_with },
         tag: 'ACCOUNT_UPDATE',
-        user: conversationWith,
+        user: conversation_with,
         value: undefined,
         reference: {
           ...message.reference,
-          user: { id: conversationWith, name: conversationWith },
-          conversation: { id: conversationWith },
+          user: { id: conversation_with, name: conversation_with },
+          conversation: { id: conversation_with },
         },
         incoming_message: {
           channelId: 'facebook',
-          conversation: { id: conversationWith },
-          from: { id: conversationWith, name: conversationWith },
-          recipient: { id: conversationWith, name: conversationWith },
+          conversation: { id: conversation_with },
+          from: { id: conversation_with, name: conversation_with },
+          recipient: { id: conversation_with, name: conversation_with },
           channelData: {
             messaging_type: 'MESSAGE_TAG',
             tag: 'ACCOUNT_UPDATE',
-            sender: { id: conversationWith },
+            sender: { id: conversation_with },
           },
         },
       };
@@ -129,7 +155,7 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
     }
 
     message.value = undefined;
-  }
+  // }
 
   return;
 };

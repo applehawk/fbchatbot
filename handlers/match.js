@@ -3,7 +3,7 @@
 const { UserState } = require('botbuilder');
 
 const {
-  englishLevelDict,
+  english_levelDict,
   communityDict,
   MATCH_NOT_FOUND_SUITABLE_USER,
 } = require(`../constants.js`);
@@ -22,16 +22,37 @@ module.exports = async (controller) => {
       username,
     } = user.state;
 
-    return {
-      default_action: {
-        type: 'web_url',
-        url: !!facebook_url ? facebook_url : profile_pic, // <DEFAULT_URL_TO_OPEN>
-        // messenger_extensions: 'FALSE', // <TRUE | FALSE>
-        webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
-      },
-      image_url: profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}`,
+    let payload = {
+      image_url: process.env.NODE_ENV === 'development' ? profile_pic || `https://picsum.photos/300/200/?random=${Math.round(Math.random() * 1e3)}` : profile_pic,
       title: `${username}`,
     };
+
+    const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}${process.env.NODE_ENV === "development" ? ':' + process.env.PORT : ""}`;
+    const url = `${baseUrl}/api/profile?id=${user._id.match(/(\d+)\/?$/)[1]}`;
+
+    if (!!facebook_url) {
+      payload = {
+        ...payload,
+        buttons: [{
+          type: 'web_url',
+          url,
+          title: 'Go to profile',
+          webview_height_ratio: 'full',
+        }],
+      };
+    } else {
+      payload = {
+        ...payload,
+        default_action: {
+          type: 'web_url',
+          url: !!facebook_url ? url : profile_pic, // <DEFAULT_URL_TO_OPEN>
+          // messenger_extensions: 'FALSE', // <TRUE | FALSE>
+          webview_height_ratio: 'COMPACT', // <COMPACT | TALL | FULL>
+        },
+      };
+    }
+
+    return payload;
   };
 
   const botSay = async (payload) => { // [OK]
@@ -63,75 +84,134 @@ module.exports = async (controller) => {
 
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
       await bot.say({
+        ...message,
         messaging_type: 'MESSAGE_TAG',
         tag: 'ACCOUNT_UPDATE',
         text: `
 🗺 ${user.state.location}
-💬 ${englishLevelDict[user.state.english_level]}
+💬 ${english_levelDict[user.state.english_level]}
 👔 ${communityDict[user.state.community]}
 🛠 ${user.state.profession}`,
       });
 
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
       await bot.say({
+        ...message,
         messaging_type: 'MESSAGE_TAG',
         tag: 'ACCOUNT_UPDATE',
         text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
       });
     } catch(error) {
-      console.error('[match.js:82 ERROR]:', error);
+      console.error('[match.js:106 ERROR]:', error);
     }
   };
 
-  const chooseWithLevel = async (payload) => {
+  const findUser = async (payload) => {
     // const location = `${payload.location}`.split(',').join('|'); // [OK] v1
 
-    const findAllUsersQuery = {
-      // _id: {
-      //   "$regex": `${payload.channelId}/users*`,
-      //   "$ne": `${payload.channelId}/users/${payload.userId}/`,
-      //   "$nin": [ ...payload.recentUsers ],
-      // },
-      // // "state.location": { // [OK] v1
-      // //   "$regex": `((?!${location}).)+`,
-      // // },
-      // "state.location": { "$ne": payload.location },
-      // "state.community": payload.community,
-      // "state.ready_to_conversation": "ready",
-      "$and": [{
-        "$or": [
-          { "state.conversation_with": payload.userId },
-          // { "state.conversation_with": 0 }
-          { "state.ready_to_conversation": "ready" }
-        ]}, {
-        "$or": [
-          { "state.english_level": payload.englishLevel + 1 },
-          { "state.english_level": payload.englishLevel },
-          { "state.english_level": payload.englishLevel - 1 },
-          { "state.english_level": { "$gte": payload.englishLevel } },
-          { "state.english_level": { "$lte": payload.englishLevel } }
-        ]}, {
-        "$or": [
-          { "state.community": payload.community },
-          { "state.community": { "$ne": payload.community } }
-        ]}, {
-        "$and": [
-          { "_id": {
-              "$regex": `${payload.channelId}/users*`,
-              "$ne": `${payload.channelId}/users/${payload.userId}/`,
-              "$nin": [ ...payload.recentUsers ],
-            }},
-          { "state.location": { "$ne": payload.location } }
-        ],
-      }]
+    // const query = {
+    //   "$and": [{
+    //     "$and": [{
+    //       "$or": [
+    //         { "state.conversation_with": payload.userId },
+    //         { "state.conversation_with": 0 },
+    //         { "state.ready_to_conversation": "ready" }
+    //       ]}, {
+    //       "$or": [
+    //         { "state.conversation_with": 0 },
+    //         { "state.ready_to_conversation": "ready" },
+    //       ]}
+    //     ]}, {
+    //     "$or": [
+    //       { "state.english_level": payload.english_level + 1 },
+    //       { "state.english_level": payload.english_level },
+    //       { "state.english_level": payload.english_level - 1 },
+    //       { "state.english_level": { "$gte": payload.english_level } },
+    //       { "state.english_level": { "$lte": payload.english_level } }
+    //     ]}, {
+    //     "$or": [
+    //       { "state.community": payload.community },
+    //       // { "state.community": { "$ne": payload.community } },
+    //       { "state.community": { "$ne": undefined } }
+    //     ]}, {
+    //     "$and": [
+    //       { "_id": {
+    //           "$regex": `${payload.channelId}/users*`,
+    //           "$ne": `${payload.channelId}/users/${payload.userId}/`,
+    //           "$nin": [ ...payload.recent_users ],
+    //         }},
+    //       { "state.location": { "$ne": payload.location } }
+    //     ],
+    //   }]
+    // };
+
+    const query = {
+      $and: [
+        {
+          $or: [
+            {
+              $and: [
+                { 'state.conversation_with': payload.userId },
+                { 'state.ready_to_conversation': 'busy' },
+              ],
+            },
+            // {
+            //   $and: [
+            //     { 'state.conversation_with': { $gte: 0 } },
+            //     { 'state.ready_to_conversation': 'ready' },
+            //   ],
+            // },
+            // {
+            //   $and: [
+            //     { 'state.conversation_with': 0 },
+                { 'state.ready_to_conversation': 'ready' },
+            //   ],
+            // },
+            // {
+            //   $and: [
+            //     { 'state.conversation_with': 0 },
+            //     { 'state.ready_to_conversation': 'busy' },
+            //   ],
+            // },
+          ],
+        },
+        {
+          $or: [
+            { 'state.english_level': payload.english_level + 1 },
+            { 'state.english_level': payload.english_level },
+            { 'state.english_level': payload.english_level - 1 },
+            { 'state.english_level': { $gte: payload.english_level } },
+            { 'state.english_level': { $lte: payload.english_level } },
+          ],
+        },
+        {
+          $or: [
+            { 'state.community': payload.community },
+            { "state.community": { $ne: payload.community } },
+            { 'state.community': { $ne: undefined } },
+          ],
+        },
+        {
+          $and: [
+            {
+              _id: {
+                $regex: `${payload.channelId}/users*`,
+                $ne: `${payload.channelId}/users/${payload.userId}/`,
+                $nin: [...payload.recent_users],
+              },
+            },
+            { 'state.location': { $ne: payload.location } },
+          ],
+        },
+      ],
     };
 
     const start = Date.now();
     // // v1 [OK][~]
-    // const user = await controller.storage.Collection.findOne(findAllUsersQuery);
+    // const user = await controller.storage.Collection.findOne(query);
 
     // v2 [OK]
-    const docs = await controller.storage.Collection.find(findAllUsersQuery)
+    const docs = await controller.storage.Collection.find(query)
       .sort({ 'state.english_level': -1 })
       .limit(1); // [OK]
 
@@ -143,7 +223,9 @@ module.exports = async (controller) => {
     const finish = Date.now() - start;
     console.log(`search: ${finish}ms`);
 
-    console.log(`\n[${payload.userId} >>> ${user._id.match(/(\d+)\/$/)[1]}${!!user.state.conversation_with && user.state.conversation_with !== payload.userId ? ' [WRONG]: ' + user.state.conversation_with : ''}]\n`);
+    if (user.length) {
+      console.log(`\n[${payload.userId} >>> ${user._id.match(/(\d+)\/?$/)[1]}${!!user.state.conversation_with && user.state.conversation_with !== payload.userId ? ' [WRONG]: ' + user.state.conversation_with : ''}]\n`);
+    }
 
     return user;
   };
@@ -158,34 +240,34 @@ module.exports = async (controller) => {
 
       // Get User State Properties
       let senderProperties = await getUserContextProperties(controller, bot, message);
-      const payload = {
+      const options = {
         ...senderProperties,
         channelId,
         userId,
       };
 
       // Getting users from DB
-      const user = await chooseWithLevel(payload);
+      const user = await findUser(options);
 
       if (Object.keys(user).length) {
         /**
          * Add recipient to sender recent users list
          */
         const start = Date.now();
-        senderProperties.recentUsers = [ ...senderProperties.recentUsers, user._id ];
+        senderProperties.recent_users = [ ...senderProperties.recent_users, user._id ];
 
         /**
          * Save recent users to state
          */
-        await senderProperties.recentUsersProperty.set(senderProperties.context, senderProperties.recentUsers);
+        await senderProperties.recent_users_property.set(senderProperties.context, senderProperties.recent_users);
 
-        // // const expiredAt = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
-        // const expiredAt = Date.now() + (1000 * 60 * 30); // 30 minutes
-        const id = user._id.match(/(\d+)\/$/)[1];
+        // // const expired_at = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
+        // const expired_at = Date.now() + (1000 * 60 * 30); // 30 minutes
+        const id = user._id.match(/(\d+)\/?$/)[1];
 
-        await senderProperties.readyToConversationProperty.set(senderProperties.context, 'busy');
-        await senderProperties.conversationWithProperty.set(senderProperties.context, id);
-        // await senderProperties.expiredAtProperty.set(senderProperties.context, expiredAt);
+        await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'busy');
+        await senderProperties.conversation_with_property.set(senderProperties.context, id);
+        // await senderProperties.expired_at_property.set(senderProperties.context, expired_at);
 
         /**
          * Save senderProperties changes to storage
@@ -233,11 +315,11 @@ module.exports = async (controller) => {
          */
         let recipientProperties = await getUserContextProperties(controller, recipientBot, recipientMessage);
 
-        recipientProperties.recentUsers = [ ...recipientProperties.recentUsers, `${channelId}/users/${senderMessage.sender.id}/` ];
-        await recipientProperties.recentUsersProperty.set(recipientProperties.context, recipientProperties.recentUsers);
-        await recipientProperties.readyToConversationProperty.set(recipientProperties.context, 'busy');
-        await recipientProperties.conversationWithProperty.set(recipientProperties.context, senderMessage.sender.id);
-        // await recipientProperties.expiredAtProperty.set(recipientProperties.context, expiredAt);
+        recipientProperties.recent_users = [ ...recipientProperties.recent_users, `${channelId}/users/${senderMessage.sender.id}/` ];
+        await recipientProperties.recent_users_property.set(recipientProperties.context, recipientProperties.recent_users);
+        await recipientProperties.ready_to_conversation_property.set(recipientProperties.context, 'busy');
+        await recipientProperties.conversation_with_property.set(recipientProperties.context, senderMessage.sender.id);
+        // await recipientProperties.expired_at_property.set(recipientProperties.context, expired_at);
 
         /**
          * Save recipientProperties changes to storage
@@ -246,27 +328,28 @@ module.exports = async (controller) => {
         const finish = Date.now() - start;
         console.log(`set properties: ${finish}ms`);
 
-        /**
-         * Creat menu for sender
-         */
-        let payload = {
-          recipient: senderMessage.sender,
-          call_to_actions: [{
-            type: 'postback',
-            title: '❌ End a conversation',
-            payload: `reset`,
-          }],
-        };
+        // /**
+        //  * Creat menu for sender
+        //  */
+        // let payload = {
+        //   recipient: senderMessage.sender,
+        //   call_to_actions: [{
+        //     type: 'postback',
+        //     title: '❌ End a conversation',
+        //     payload: `reset`,
+        //   }],
+        // };
 
-        await controller.trigger(['create_menu'], senderBot, payload);
-        controller.trigger(['ask_for_scheduled_a_call'], senderBot, senderMessage);
-        controller.trigger(['session_check'], senderBot, senderMessage);
+        // await controller.trigger(['create_menu'], senderBot, payload);
+        // controller.trigger(['ask_for_scheduled_a_call'], senderBot, senderMessage);
+        // controller.trigger(['session_check'], senderBot, senderMessage);
 
         controller.trigger(['sender_action_typing'], senderBot, { options: { recipient: senderMessage.sender } });
         await senderBot.say({
+          ...senderMessage,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
-          text: `Hey ${senderProperties.userName}! Here is you partner for this week.`,
+          text: `Hey ${senderProperties.username}! Here is you partner for this week.`,
         });
 
         /**
@@ -280,20 +363,22 @@ module.exports = async (controller) => {
          */
 
         const matchedUser = {
+          _id: user._id.replace(/(\d+)\/?$/, message.user),
           state: {
             ...senderProperties,
-            english_level: senderProperties.englishLevel,
-            facebook_url: senderProperties.facebookURL,
-            username: senderProperties.userName,
-            profile_pic: senderProperties.profilePic,
+            english_level: senderProperties.english_level,
+            facebook_url: senderProperties.facebook_url,
+            username: senderProperties.username,
+            profile_pic: senderProperties.profile_pic,
           },
         };
 
         controller.trigger(['sender_action_typing'], recipientBot, { options: { recipient: recipientMessage.sender } });
         await recipientBot.say({
+          ...recipientMessage,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
-          text: `Hey ${recipientProperties.userName}! Here is you partner for this week.`,
+          text: `Hey ${recipientProperties.username}! Here is you partner for this week.`,
         });
 
         /**
@@ -302,18 +387,18 @@ module.exports = async (controller) => {
         botSay({ bot: recipientBot, message: recipientMessage, user: matchedUser });
         // controller.trigger(['get_info'], recipientBot, recipientMessage);
 
-        /**
-         * Create menu for recipient
-         */
-        payload = {
-          ...payload,
-          recipient: recipientMessage.sender,
-        };
+        // /**
+        //  * Create menu for recipient
+        //  */
+        // payload = {
+        //   ...payload,
+        //   recipient: recipientMessage.sender,
+        // };
 
-        await controller.trigger(['create_menu'], recipientBot, payload);
-        controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
+        // await controller.trigger(['create_menu'], recipientBot, payload);
+        // controller.trigger(['ask_for_scheduled_a_call'], recipientBot, recipientMessage);
         // controller.trigger(['session_check'], recipientBot, recipientMessage);
-        payload = null;
+        // payload = null;
       } else {
         // clearTimeout(message.value);
         message.value = null;
@@ -327,16 +412,17 @@ module.exports = async (controller) => {
         /**
          * #BEGIN Bot typing
          */
-        controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
+        controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
 
         await bot.say({
+          ...message,
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
           text: MATCH_NOT_FOUND_SUITABLE_USER,
         });
       }
     } catch(error) {
-      console.error('[match.js:322 ERROR]:', error);
+      console.error('[match.js:341 ERROR]:', error);
     }
     const finish = Date.now() - start;
     console.log(`match: ${finish}ms`);

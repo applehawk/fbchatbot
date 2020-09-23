@@ -1,6 +1,5 @@
 .env
 *.env
-node_modules/
+/node_modules/
 package-lock.json
 .yo-repository
-node_modules
