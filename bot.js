@@ -151,7 +151,7 @@ controller.webserver.get('/api/profile', async (req, res) => {
       const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
 
       const messengerProfile = recipientProperties.facebook_url.split('/').splice(-1, 1);
-      const url = `https://messenger.com/t/${messengerProfile}`;
+      const url = `https://m.me/${messengerProfile}`;
       message.value = 'Click button user profile';
       await controller.trigger(['ANALYTICS_EVENT'], dialogBot, message);
       await res.redirect(url);
