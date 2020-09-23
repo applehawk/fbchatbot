@@ -100,10 +100,6 @@ controller.webserver.get('/', async (req, res) => {
   await res.send(`This app is running Botkit ${ controller.version }.`);
 });
 
-// controller.webserver.get('/api/redirecttest', async (req, res) => {
-//   3388421537877368
-// });
-
 controller.webserver.get('/api/profile', async (req, res) => {
   const query = req['_parsedUrl'].query;
   const queryMatch = query.match(/(\d+)/);
@@ -211,8 +207,7 @@ const middlewares = {
       messaging_type: 'MESSAGE_TAG',
       tag: 'ACCOUNT_UPDATE',
     };
-    // await resetUserContextProperties(controller, bot, message);
-    console.log('[ingest]:'/* , message */);
+    console.log('[ingest]:', message);
 
     controller.trigger(['mark_seen'], bot, message);
 

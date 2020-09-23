@@ -46,9 +46,9 @@ module.exports = async (controller) => {
 
   // if (date < time) {
     const job = new CronJob(
-      // '0 0 12-15 * * 3', // [PROD]
+      '0 0 12-15 * * 3', // [PROD]
       // '0 30 * * * *', // [STAGING]
-      '0 35-59 * * * *', // [TEST]
+      // '0 35-59 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({ useNewUrlParser: true, debug: true, keepAlive: true });

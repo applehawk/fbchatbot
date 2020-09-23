@@ -40,9 +40,9 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      // '0 0 12-15 * * 1', // [PROD]
+      '0 0 12-15 * * 1', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
-      '0 0-25 * * * *', // [TEST]
+      // '0 0-25 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({
