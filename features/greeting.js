@@ -7,13 +7,13 @@ const {
 } = require('../constants.js');
 
 module.exports = async (controller) => {
-  const GREETING_ID = 'GREETING_ID';
-  const ONBOARDING_ID = 'ONBOARDING_ID';
+  const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';
+  const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID';
 
-  const greeting = controller.dialogSet.dialogs[GREETING_ID];
+  const dialog = controller.dialogSet.dialogs[DIALOG_GREETING_ID];
 
   try {
-    await greeting.ask({
+    await dialog.ask({
       text: GREETING_1,
       quick_replies: [{
         title: 'Yes! How it works? 🤔',
@@ -36,7 +36,7 @@ module.exports = async (controller) => {
       }
     });
 
-    await greeting.ask({
+    await dialog.ask({
       text: GREETING_2,
       quick_replies: [{
         title: 'Cool! I am ready!',
@@ -59,7 +59,7 @@ module.exports = async (controller) => {
       }
     });
 
-    await greeting.ask({
+    await dialog.ask({
       text: GREETING_3,
       quick_replies: [{
         title: 'Let’s do it! 👍',
@@ -84,13 +84,13 @@ module.exports = async (controller) => {
       }
     });
 
-    await greeting.after(async (results, bot) => {
+    await dialog.after(async (results, bot) => {
       if (results.text === 'getstarted_payload' || results === 'getstarted_payload' || results === 'Get Started') {
         await controller.trigger(['start'], bot, results);
         return;
       }
       await controller.trigger(['sender_action_typing'], bot, { options: { recipient: results.sender } });
-      await bot.replaceDialog(ONBOARDING_ID, { username: results.username, profile_pic: results.profile_pic });
+      await bot.replaceDialog(DIALOG_ONBOARDING_ID, { username: results.username, profile_pic: results.profile_pic });
     });
   } catch(error) {
     console.error('[greeting.js:96 ERROR]:', error);

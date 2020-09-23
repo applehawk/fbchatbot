@@ -4,9 +4,9 @@ const { test } = require('ava');
 const bot = require('../bot.js');
 const { BotkitTestClient } = require('botkit');
 
-const ONBOARDING_ID = 'ONBOARDING_ID'; //?
+const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID'; //?
 
-const client = new BotkitTestClient('test', bot, ONBOARDING_ID);
+const client = new BotkitTestClient('test', bot, DIALOG_ONBOARDING_ID);
 
 console.log(client); //?
 

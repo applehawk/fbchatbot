@@ -28,9 +28,7 @@ module.exports = async (controller) => {
     };
 
     const baseUrl = `${process.env.PROTO}://${process.env.APP_NAME}${process.env.NODE_ENV === "development" ? ':' + process.env.PORT : ""}`;
-    // const baseUrl = `https://powerful-citadel-37569.herokuapp.com`;
     const url = `${baseUrl}/api/profile?id=${user._id.match(/(\d+)\/?$/)[1]}`;
-    console.log(url);
 
     if (!!facebook_url) {
       payload = {
@@ -104,7 +102,7 @@ module.exports = async (controller) => {
         text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
       });
     } catch(error) {
-      console.error('[match.js:82 ERROR]:', error);
+      console.error('[match.js:106 ERROR]:', error);
     }
   };
 

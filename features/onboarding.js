@@ -33,8 +33,8 @@ module.exports = async (controller) => {
    */
   // let data = {};
 
-  const ONBOARDING_ID = 'ONBOARDING_ID';
-  const onboarding = controller.dialogSet.dialogs[ONBOARDING_ID];
+  const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID';
+  const onboarding = controller.dialogSet.dialogs[DIALOG_ONBOARDING_ID];
   let ONBOARDING_FB_URL = `${ONBOARDING_FB_URL_1}\n\n${ONBOARDING_FB_URL_3}`;
 
   // [OK][-]

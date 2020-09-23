@@ -8,7 +8,7 @@ const {
 } = require('../helpers.js');
 
 module.exports = async (controller) => {
-  const GREETING_ID = 'GREETING_ID';
+  const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';
 
   controller.on(['start'], async (bot, message) => {
     bot.cancelAllDialogs();
@@ -89,7 +89,7 @@ module.exports = async (controller) => {
          * @Tip It will be automatically deleted at the beginning of the next dialog.
          */
         await controller.trigger(['sender_action_typing'], bot, { options: { recipient } });
-        await bot.replaceDialog(GREETING_ID, { username, profile_pic });
+        await bot.replaceDialog(DIALOG_GREETING_ID, { username, profile_pic });
       } catch(error) {
         console.error('[start.js:93 ERROR]:', error);
       }

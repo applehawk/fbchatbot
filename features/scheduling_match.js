@@ -8,7 +8,7 @@ module.exports = async (controller) => {
   /**
    * #BEGIN Scheduling Automation
    */
-  const storage = controller._config.storage;
+  const storage = controller.storage;
 
   // const date = new Date();
   // const days = date.getDay();
@@ -31,8 +31,6 @@ module.exports = async (controller) => {
   // const sessionEnd = new Date(new Date().setHours(hours <= correctionHours ? hours + (correctionHours - hours) : correctionHours, 0, 0));
   // const time = date <= sessionEnd ? sessionEnd : sessionStart;
 
-  // console.log('scheduling_match job start at:', time.toLocaleString());
-
   // if (date < time) {
     const job = new CronJob(
       // Seconds: 0-59
@@ -42,9 +40,9 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      '0 0 12-15 * * 1', // [PROD]
+      // '0 0 12-15 * * 1', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
-      // '0 0 * * * *', // [TEST]
+      '0 0-25 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({
@@ -70,7 +68,9 @@ module.exports = async (controller) => {
         }, []);
 
         let count = Object.keys(users).length;
-        console.log('[scheduling_match.js:73]: users', count);
+        console.log('[scheduling_match.js:71]: users', count);
+
+        const jobNextTime = new Date(Date.now() + job._timeout._idleTimeout).toLocaleString();
 
         if (count) {
           let usersList = Object.values(users);
@@ -106,57 +106,60 @@ module.exports = async (controller) => {
             };
 
             const task = setTimeout(async () => {
-              const dialogBot = await controller.spawn(id);
-              await dialogBot.startConversationWithUser(id);
+              const user = usersList.find(user => user.id === id);
+              const userIndex = usersList.indexOf(user);
 
-              let senderProperties = await getUserContextProperties(
-                controller,
-                dialogBot,
-                message
-              );
+              if (userIndex > -1) {
+                const start = Date.now();
+                const dialogBot = await controller.spawn(id);
+                await dialogBot.startConversationWithUser(id);
 
-              if (senderProperties.ready_to_conversation === 'ready') {
-                const userId = `facebook/conversations/${id}-${id}/`;
-                await storage.delete([userId]);
-                await dialogBot.cancelAllDialogs();
-
-                await controller.trigger(['match'], dialogBot, message);
-                senderProperties = await getUserContextProperties(
+                let senderProperties = await getUserContextProperties(
                   controller,
                   dialogBot,
                   message
                 );
 
-                const recipientIndex = Object.keys(users).indexOf(
-                  `facebook/users/${senderProperties.conversation_with}/`
-                );
+                if (senderProperties.ready_to_conversation === 'ready') {
+                  const userId = `facebook/conversations/${id}-${id}/`;
+                  await storage.delete([userId]);
+                  await dialogBot.cancelAllDialogs();
 
-                if (recipientIndex > -1) {
-                  usersList.splice(recipientIndex, 1);
+                  await controller.trigger(['match'], dialogBot, message);
+                  senderProperties = await getUserContextProperties(
+                    controller,
+                    dialogBot,
+                    message
+                  );
+
+                  const recipient = usersList.find(user => user.id === senderProperties.conversation_with);
+                  const recipientIndex = usersList.indexOf(recipient);
+
+                  if (recipientIndex > -1) {
+                    usersList.splice(recipientIndex, 1);
+                  }
                 }
-              } else if (senderProperties.community === undefined) {
-                let payload = { id, username: senderProperties.username };
-                console.warning(
-                  '[scheduling_match.js:124 WARNING]:',
-                  payload,
-                  'has not completed the onboarding'
-                );
-                payload = null;
+
+                usersList.splice(userIndex, 1);
+                senderProperties = null;
+                const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+                console.log('[scheduling_match.js usersList]', usersList.length, finish);
+
+                if (!usersList.length) {
+                  console.log('[scheduling_match.js NEXT]: job start at:', jobNextTime);
+                }
+              } else {
+                console.log('[scheduling_match.js:152 userIndex]: user not found', i, id, userIndex);
               }
-
-              const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
-              usersList.splice(senderIndex, 1);
-              senderProperties = null;
-
-              //   await resetUserContextProperties(controller, dialogBot, message);
-              //   // await controller.trigger(['reset'], dialogBot, message);
-              // }, 1000 * i);
-              // // }, 2000);
-            }, 3000 * i);
+              //   // await resetUserContextProperties(controller, dialogBot, message);
+              //   await controller.trigger(['reset'], dialogBot, message);
+              // }, 500 * i);
+            }, 5000 * i);
             // }
             // }
           });
         }
+        console.log('[scheduling_match.js NEXT]: job start at:', jobNextTime);
       },
       null,
       false,
@@ -164,6 +167,10 @@ module.exports = async (controller) => {
     );
     // Use this if the 4th param is default value(false)
     job.start();
+    console.log(
+      'scheduling_match job start at:',
+      new Date(Date.now() + job._timeout._idleTimeout).toLocaleString()
+    );
   // } else {
   //   return;
   // }

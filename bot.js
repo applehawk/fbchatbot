@@ -77,17 +77,20 @@ const controller = new Botkit({
 // console.log(JSON.stringify(controller._config.scheduler_url)); // [OK][Tip] bot.getConfig('sheduler_uri')
 
 // if (!isDev) {
-  const GREETING_ID = 'GREETING_ID';
-  const ONBOARDING_ID = 'ONBOARDING_ID';
-  const SCHEDULED_A_CALL_ID = 'SCHEDULED_A_CALL_ID';
+  const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';
+  const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID';
+  const DIALOG_SCHEDULED_A_CALL_ID = 'DIALOG_SCHEDULED_A_CALL_ID';
+  const DIALOG_FACEBOOK_URL_ID = 'DIALOG_FACEBOOK_URL_ID';
 
-  const greeting = new BotkitConversation(GREETING_ID, controller);
-  const onboarding = new BotkitConversation(ONBOARDING_ID, controller);
-  const scheduled_a_call = new BotkitConversation(SCHEDULED_A_CALL_ID, controller);
+  const dialog_greeting = new BotkitConversation(DIALOG_GREETING_ID, controller);
+  const dialog_onboarding = new BotkitConversation(DIALOG_ONBOARDING_ID, controller);
+  const dialog_scheduled_a_call = new BotkitConversation(DIALOG_SCHEDULED_A_CALL_ID, controller);
+  const dialog_facebook_url = new BotkitConversation(DIALOG_FACEBOOK_URL_ID, controller);
 
-  controller.addDialog(greeting);
-  controller.addDialog(onboarding);
-  controller.addDialog(scheduled_a_call);
+  controller.addDialog(dialog_greeting);
+  controller.addDialog(dialog_onboarding);
+  controller.addDialog(dialog_scheduled_a_call);
+  controller.addDialog(dialog_facebook_url);
 // }
 
 /**
@@ -97,13 +100,24 @@ controller.webserver.get('/', async (req, res) => {
   await res.send(`This app is running Botkit ${ controller.version }.`);
 });
 
+// controller.webserver.get('/api/redirecttest', async (req, res) => {
+//   3388421537877368
+// });
+
 controller.webserver.get('/api/profile', async (req, res) => {
   const query = req['_parsedUrl'].query;
   const queryMatch = query.match(/(\d+)/);
   const id = !!queryMatch ? queryMatch[0] : false;
-  console.log(req['_parsedUrl'].path, query, id);
+
   if (id) {
     try {
+      let appId = process.env.FACEBOOK_APPID;
+      if (process.env.NODE_ENV === 'development') {
+        const bot = await controller.spawn();
+        const { id: botId } = await bot.api.callAPI('/me', 'GET');
+        appId = botId;
+      }
+
       const message = {
         channel: id,
         message: { text: '' },
@@ -118,7 +132,7 @@ controller.webserver.get('/api/profile', async (req, res) => {
         value: undefined,
         reference: {
           activityId: undefined,
-          bot: { id: process.env.FACEBOOK_APPID },
+          bot: { id: appId },
           conversation: { id },
           user: { id, name: id },
         },
@@ -140,9 +154,11 @@ controller.webserver.get('/api/profile', async (req, res) => {
 
       const recipientProperties = await getUserContextProperties(controller, dialogBot, message);
 
+      const messengerProfile = recipientProperties.facebook_url.split('/').splice(-1, 1);
+      const url = `https://messenger.com/t/${messengerProfile}`;
       message.value = 'Click button user profile';
       await controller.trigger(['ANALYTICS_EVENT'], dialogBot, message);
-      await res.redirect(recipientProperties.facebook_url);
+      await res.redirect(url);
     } catch (error) {
       console.error(error);
     }

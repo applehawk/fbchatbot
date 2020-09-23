@@ -4,7 +4,7 @@ const CronJob = require('cron').CronJob;
 const {/*  getUserContextProperties,  */ resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
-  const storage = controller._config.storage;
+  const storage = controller.storage;
 
   // const date = new Date();
   // const days = date.getDay();
@@ -44,20 +44,18 @@ module.exports = async (controller) => {
   // const sessionEnd = new Date(new Date().setHours(hours <= correctionHours ? hours + (correctionHours - hours) : correctionHours, 0, 0));
   // const time = date <= sessionEnd ? sessionEnd : sessionStart;
 
-  // console.log('scheduling_call job start at:', time.toLocaleString());
-
   // if (date < time) {
     const job = new CronJob(
-      '0 0 12-15 * * 3', // [PROD]
+      // '0 0 12-15 * * 3', // [PROD]
       // '0 30 * * * *', // [STAGING]
-      // '0 30 * * * *', // [TEST]
+      '0 35-59 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({ useNewUrlParser: true, debug: true, keepAlive: true });
 
         const docs = await storage.Collection.find({
-          "state.ready_to_conversation": { "$eq": "busy" },
-          "state.community": { "$exists": true },
+          'state.ready_to_conversation': { $eq: 'busy' },
+          'state.community': { $exists: true },
         });
 
         let users = (await docs.toArray()).reduce((accum, { _id, state }) => { // [OK]
@@ -71,7 +69,8 @@ module.exports = async (controller) => {
         }, []);
 
         let count = Object.keys(users).length;
-        console.log('[scheduling_call.js:74]: sessions:', count);
+        console.log('[scheduling_call.js:74]: active sessions:', count);
+        const jobNextTime = new Date(Date.now() + job._timeout._idleTimeout).toLocaleString();
 
         if (count) {
           let usersList = Object.values(users);
@@ -111,7 +110,9 @@ module.exports = async (controller) => {
               };
 
               const task = setTimeout(async () => {
-                const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
+                const user = usersList.find(user => user.id === id);
+                const userIndex = usersList.indexOf(user);
+
                 const start = Date.now();
 
                 const dialogBot = await controller.spawn(id)
@@ -119,15 +120,19 @@ module.exports = async (controller) => {
 
                 await resetUserContextProperties(controller, dialogBot, message);
 
-                controller.trigger(['dialog'], dialogBot, message);
-                usersList.splice(senderIndex, 1);
+                await controller.trigger(['start_dialog'], dialogBot, message);
+                usersList.splice(userIndex, 1);
                 const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
                 console.log('[scheduling_call.js usersList]', usersList.length, finish);
+                if (!usersList.length) {
+                  console.log('[scheduling_call.js NEXT]: job start at:', jobNextTime);
+                }
               }, 1000 * i);
             // }
             // }
           });
         }
+        console.log('[scheduling_call.js NEXT]: job start at:', jobNextTime);
       },
       null,
       false,
@@ -135,6 +140,10 @@ module.exports = async (controller) => {
     );
     // Use this if the 4th param is default value(false)
     job.start();
+    console.log(
+      'scheduling_call job start at:',
+      new Date(Date.now() + job._timeout._idleTimeout).toLocaleString()
+    );
   // } else {
   //   return;
   // }
