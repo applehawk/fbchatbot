@@ -77,15 +77,20 @@ module.exports = async (controller) => {
             const dialogBot = await controller.spawn(id);
             await dialogBot.startConversationWithUser(id);
 
-            const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
+            const senderProperties = await getUserContextProperties(controller, dialogBot, message);
+            if (!!senderProperties.facebook_url) {
+              // skip if facebook_url exists now
+            } else {
+              const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
 
-            const userId = `facebook/conversations/${id}-${id}/`;
-            await storage.delete([userId]);
-            await dialogBot.cancelAllDialogs();
+              const userId = `facebook/conversations/${id}-${id}/`;
+              await storage.delete([userId]);
+              await dialogBot.cancelAllDialogs();
 
-            await controller.trigger(['start_dialog'], dialogBot, message);
+              await controller.trigger(['start_dialog'], dialogBot, message);
 
-            usersList.splice(senderIndex, 1);
+              usersList.splice(senderIndex, 1);
+            }
           }, 1000 * i);
         });
       }
