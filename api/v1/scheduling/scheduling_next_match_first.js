@@ -116,7 +116,12 @@ module.exports = async (controller) => {
               const userIndex = usersList.indexOf(user);
 
               const start = Date.now();
+
+              const userId = `facebook/conversations/${id}-${id}/`;
+              await storage.delete([userId]);
+
               const dialogBot = await controller.spawn(id);
+              await dialogBot.cancelAllDialogs();
               await dialogBot.startConversationWithUser(id);
 
               const senderProperties = await getUserContextProperties(controller, dialogBot, message);
