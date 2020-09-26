@@ -5,7 +5,7 @@ const {
   ONBOARDING_FB_URL_1,
   ONBOARDING_FB_URL_2,
   ONBOARDING_FB_URL_3,
-} = require('../constants.js');
+} = require(`../constants.js`);
 
 module.exports = async (controller) => {
   /**

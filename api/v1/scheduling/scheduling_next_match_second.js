@@ -2,7 +2,7 @@
 
 const CronJob = require('cron').CronJob;
 
-const { getUserContextProperties/* , resetUserContextProperties  */} = require('../helpers.js');
+const { getUserContextProperties/* , resetUserContextProperties  */} = require(`../helpers.js`);
 
 module.exports = async (controller) => {
   /**
@@ -40,9 +40,9 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      '0 0 12-15 * * 1', // [PROD]
+      '0 0 12 * * 0', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
-      // '0 0-25 * * * *', // [TEST]
+      // '0 */5 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({
@@ -52,8 +52,15 @@ module.exports = async (controller) => {
         });
 
         const docs = await storage.Collection.find({ // [OK]
-          'state.ready_to_conversation': { $eq: 'ready' },
           'state.community': { $exists: true },
+          // $and: [{
+          //   $or: [
+          //     { 'state.skip': { $eq: true } },
+          //     { 'state.skip': { $exists: false } }
+          //   ],
+          // }],
+          'state.skip': { $exists: false },
+          // 'state.skip': { $ne: true }
         });
 
         // [OK]
@@ -68,7 +75,7 @@ module.exports = async (controller) => {
         }, []);
 
         let count = Object.keys(users).length;
-        console.log('[scheduling_match.js:71]: users', count);
+        console.log('[scheduling_next_match.js:76]: users', count);
 
         const jobNextTime = new Date(Date.now() + job._timeout._idleTimeout).toLocaleString();
 
@@ -76,10 +83,8 @@ module.exports = async (controller) => {
           let usersList = Object.values(users);
           usersList.forEach(async ({ id, state }, i) => {
             // for await (const { id, state } of usersList) {
-            // if (i < 5) {
-            const message = {
+            let message = {
               channel: id,
-              message: { text: '' },
               messaging_type: 'MESSAGE_TAG',
               recipient: { id },
               sender: { id },
@@ -105,61 +110,54 @@ module.exports = async (controller) => {
               },
             };
 
+            // if (state.skip === undefined || state.skip === null) {
             const task = setTimeout(async () => {
               const user = usersList.find(user => user.id === id);
               const userIndex = usersList.indexOf(user);
 
-              if (userIndex > -1) {
-                const start = Date.now();
-                const dialogBot = await controller.spawn(id);
-                await dialogBot.startConversationWithUser(id);
+              const start = Date.now();
+              const dialogBot = await controller.spawn(id);
+              await dialogBot.startConversationWithUser(id);
 
-                let senderProperties = await getUserContextProperties(
-                  controller,
-                  dialogBot,
-                  message
-                );
+              const senderProperties = await getUserContextProperties(controller, dialogBot, message);
+              await senderProperties.skip_property.set(senderProperties.context, undefined);
 
-                if (senderProperties.ready_to_conversation === 'ready') {
-                  const userId = `facebook/conversations/${id}-${id}/`;
-                  await storage.delete([userId]);
-                  await dialogBot.cancelAllDialogs();
+              /**
+              * Save senderProperties changes to storage
+              */
+              await senderProperties.userState.saveChanges(senderProperties.context);
 
-                  await controller.trigger(['match'], dialogBot, message);
-                  senderProperties = await getUserContextProperties(
-                    controller,
-                    dialogBot,
-                    message
-                  );
+              message = {
+                ...message,
+                text: `Hi, ${senderProperties.username}!
+Are you planing to participate in calls this week?
+Click “Yes, I will!” to get a link to a partner on Monday.
+Attention! If you won’t answer this question, you won’t receive a partner this week.`,
+                quick_replies: [
+                  { payload: 'scheduling_next_match', title: 'Yes, I will!' },
+                  { payload: 'scheduling_next_match', title: 'No, I will skip' },
+                ],
+              };
 
-                  const recipient = usersList.find(user => user.id === senderProperties.conversation_with);
-                  const recipientIndex = usersList.indexOf(recipient);
+              await controller.trigger(['start_dialog'], dialogBot, message);
 
-                  if (recipientIndex > -1) {
-                    usersList.splice(recipientIndex, 1);
-                  }
-                }
+              usersList.splice(userIndex, 1);
 
-                usersList.splice(userIndex, 1);
-                senderProperties = null;
-                const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
-                console.log('[scheduling_match.js usersList]', usersList.length, finish);
+              const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+              console.log('[scheduling_next_match.js usersList]', usersList.length, finish);
 
-                if (!usersList.length) {
-                  console.log('[scheduling_match.js NEXT]: job start at:', jobNextTime);
-                }
-              } else {
-                console.log('[scheduling_match.js:152 userIndex]: user not found', i, id, userIndex);
+              if (!usersList.length) {
+                console.log('[scheduling_next_match.js NEXT]: job start at:', jobNextTime);
               }
               //   // await resetUserContextProperties(controller, dialogBot, message);
               //   await controller.trigger(['reset'], dialogBot, message);
               // }, 500 * i);
-            }, 5000 * i);
+            }, 2000 * i);
             // }
             // }
           });
         }
-        console.log('[scheduling_match.js NEXT]: job start at:', jobNextTime);
+        console.log('[scheduling_next_match.js NEXT]: job start at:', jobNextTime);
       },
       null,
       false,
@@ -168,7 +166,7 @@ module.exports = async (controller) => {
     // Use this if the 4th param is default value(false)
     job.start();
     console.log(
-      'scheduling_match job start at:',
+      'scheduling_next_match job start at:',
       new Date(Date.now() + job._timeout._idleTimeout).toLocaleString()
     );
   // } else {

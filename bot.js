@@ -76,22 +76,20 @@ const controller = new Botkit({
 });
 // console.log(JSON.stringify(controller._config.scheduler_url)); // [OK][Tip] bot.getConfig('sheduler_uri')
 
-// if (!isDev) {
-  const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';
-  const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID';
-  const DIALOG_SCHEDULED_A_CALL_ID = 'DIALOG_SCHEDULED_A_CALL_ID';
-  const DIALOG_FACEBOOK_URL_ID = 'DIALOG_FACEBOOK_URL_ID';
+const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';
+const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID';
+const DIALOG_SCHEDULED_A_CALL_ID = 'DIALOG_SCHEDULED_A_CALL_ID';
+const DIALOG_FACEBOOK_URL_ID = 'DIALOG_FACEBOOK_URL_ID';
 
-  const dialog_greeting = new BotkitConversation(DIALOG_GREETING_ID, controller);
-  const dialog_onboarding = new BotkitConversation(DIALOG_ONBOARDING_ID, controller);
-  const dialog_scheduled_a_call = new BotkitConversation(DIALOG_SCHEDULED_A_CALL_ID, controller);
-  const dialog_facebook_url = new BotkitConversation(DIALOG_FACEBOOK_URL_ID, controller);
+const dialog_greeting = new BotkitConversation(DIALOG_GREETING_ID, controller);
+const dialog_onboarding = new BotkitConversation(DIALOG_ONBOARDING_ID, controller);
+const dialog_scheduled_a_call = new BotkitConversation(DIALOG_SCHEDULED_A_CALL_ID, controller);
+const dialog_facebook_url = new BotkitConversation(DIALOG_FACEBOOK_URL_ID, controller);
 
-  controller.addDialog(dialog_greeting);
-  controller.addDialog(dialog_onboarding);
-  controller.addDialog(dialog_scheduled_a_call);
-  controller.addDialog(dialog_facebook_url);
-// }
+controller.addDialog(dialog_greeting);
+controller.addDialog(dialog_onboarding);
+controller.addDialog(dialog_scheduled_a_call);
+controller.addDialog(dialog_facebook_url);
 
 /**
  * #BEGIN Configure routers
@@ -187,7 +185,7 @@ controller.webserver.get('/api/profile', async (req, res) => {
  * #BEGIN Conversation Helpers
  */
 
-const { getUserContextProperties, resetUserContextProperties } = require('./helpers.js');
+const { getUserContextProperties, resetUserContextProperties } = require(`./api/${process.env.API_VERSION}/helpers.js`);
 
 /**
  * #END Conversation Helpers
@@ -207,7 +205,7 @@ const middlewares = {
       messaging_type: 'MESSAGE_TAG',
       tag: 'ACCOUNT_UPDATE',
     };
-    console.log('[ingest]:', message);
+    console.log('[ingest]:', !isDev ? message : '');
 
     controller.trigger(['mark_seen'], bot, message);
 
@@ -309,7 +307,7 @@ const middlewares = {
       messaging_type: 'MESSAGE_TAG',
       tag: 'ACCOUNT_UPDATE',
     };
-    console.log('[send]:', message);
+    console.log('[send]:', !isDev ? message : '');
 
     // call next, or else the message will be intercepted
     next();
@@ -342,28 +340,31 @@ controller.ready(async () => {
    */
   const modules = [
     'handlers',
+    'scheduling',
     'features'
   ];
 
+  const version = process.env.API_VERSION;
+
   for (let i = 0; i < modules.length; i++) {
-    controller.loadModules(`${__dirname}/${modules[i]}`, '.js');
-    console.log(`[MODULES]: ${__dirname}/${modules[i]}`);
+    controller.loadModules(`${__dirname}/api/${version}/${modules[i]}`, '.js');
+    console.log(`[MODULES]: ${__dirname}/api/${version}/${modules[i]}`);
   }
 
   /**
    * load test feature modules
    */
   if (isDev) {
-    controller.loadModules(__dirname + '/handlers_test', '.js');
-    controller.loadModules(__dirname + '/hears_test', '.js');
+    controller.loadModules(`${__dirname}/api/${version}/handlers_test`, '.js');
+    controller.loadModules(`${__dirname}/api/${version}/hears_test`, '.js');
   }
 
-  if (!isDev) {
+  // if (!isDev) {
     console.log(
-      `\n[EVENTS]:\n${Object.keys(controller._events).sort().join('\n')
+      `\n[API]:\nversion: ${version}\n\n[EVENTS]:\n${Object.keys(controller._events).sort().join('\n')
       }\n\n[TRIGGERS]:\n${Object.keys(controller._triggers).sort().join('\n')
       }\n\n[INTERRUPTS]:\n${Object.keys(controller._interrupts).sort().join('\n')
       }\n[READY]\n`
     );
-  }
+  // }
 });

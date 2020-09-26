@@ -25,7 +25,7 @@ const {
   english_levelDict,
 
   GIF_ONBOARDING,
-} = require('../constants.js');
+} = require(`../constants.js`);
 
 module.exports = async (controller) => {
   /**

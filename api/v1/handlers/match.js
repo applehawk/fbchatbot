@@ -8,7 +8,7 @@ const {
   MATCH_NOT_FOUND_SUITABLE_USER,
 } = require(`../constants.js`);
 
-const { getUserContextProperties } = require('../helpers.js');
+const { getUserContextProperties } = require(`../helpers.js`);
 
 module.exports = async (controller) => {
   // [TODO]
@@ -108,45 +108,14 @@ module.exports = async (controller) => {
 
   const findUser = async (payload) => {
     // const location = `${payload.location}`.split(',').join('|'); // [OK] v1
-
-    // const query = {
-    //   "$and": [{
-    //     "$and": [{
-    //       "$or": [
-    //         { "state.conversation_with": payload.userId },
-    //         { "state.conversation_with": 0 },
-    //         { "state.ready_to_conversation": "ready" }
-    //       ]}, {
-    //       "$or": [
-    //         { "state.conversation_with": 0 },
-    //         { "state.ready_to_conversation": "ready" },
-    //       ]}
-    //     ]}, {
-    //     "$or": [
-    //       { "state.english_level": payload.english_level + 1 },
-    //       { "state.english_level": payload.english_level },
-    //       { "state.english_level": payload.english_level - 1 },
-    //       { "state.english_level": { "$gte": payload.english_level } },
-    //       { "state.english_level": { "$lte": payload.english_level } }
-    //     ]}, {
-    //     "$or": [
-    //       { "state.community": payload.community },
-    //       // { "state.community": { "$ne": payload.community } },
-    //       { "state.community": { "$ne": undefined } }
-    //     ]}, {
-    //     "$and": [
-    //       { "_id": {
-    //           "$regex": `${payload.channelId}/users*`,
-    //           "$ne": `${payload.channelId}/users/${payload.userId}/`,
-    //           "$nin": [ ...payload.recent_users ],
-    //         }},
-    //       { "state.location": { "$ne": payload.location } }
-    //     ],
-    //   }]
-    // };
-
     const query = {
       $and: [
+        {
+          $or: [
+            // { 'state.skip': { $exists: false } },
+            { 'state.skip': false },
+          ],
+        },
         {
           $or: [
             {
@@ -164,7 +133,7 @@ module.exports = async (controller) => {
             // {
             //   $and: [
             //     { 'state.conversation_with': 0 },
-                { 'state.ready_to_conversation': 'ready' },
+            { 'state.ready_to_conversation': 'ready' },
             //   ],
             // },
             // {
@@ -187,7 +156,7 @@ module.exports = async (controller) => {
         {
           $or: [
             { 'state.community': payload.community },
-            { "state.community": { $ne: payload.community } },
+            { 'state.community': { $ne: payload.community } },
             { 'state.community': { $ne: undefined } },
           ],
         },
@@ -220,8 +189,8 @@ module.exports = async (controller) => {
       return accum;
     }, []);
 
-    const finish = Date.now() - start;
-    console.log(`search: ${finish}ms`);
+    const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+    console.log('search:', finish, 'sec');
 
     if (user.length) {
       console.log(`\n[${payload.userId} >>> ${user._id.match(/(\d+)\/?$/)[1]}${!!user.state.conversation_with && user.state.conversation_with !== payload.userId ? ' [WRONG]: ' + user.state.conversation_with : ''}]\n`);
@@ -325,8 +294,8 @@ module.exports = async (controller) => {
          * Save recipientProperties changes to storage
          */
         await recipientProperties.userState.saveChanges(recipientProperties.context);
-        const finish = Date.now() - start;
-        console.log(`set properties: ${finish}ms`);
+        const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+        console.log('set properties:', finish, 'sec');
 
         // /**
         //  * Creat menu for sender
@@ -424,7 +393,7 @@ module.exports = async (controller) => {
     } catch(error) {
       console.error('[match.js:341 ERROR]:', error);
     }
-    const finish = Date.now() - start;
-    console.log(`match: ${finish}ms`);
+    const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+    console.log('match:', finish, 'sec');
   });
 };

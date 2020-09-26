@@ -1,28 +1,15 @@
-'use strict';
-
-const dotenv = require('dotenv');
-dotenv.config({ path: `${__dirname}/.dev.env` });
-
-module.exports = function() {
-  process.env.NODE_ENV = 'development';
+module.exports = (wallaby) => {
   return {
     testFramework: 'ava',
-    files: [
-      '*.env',
-      '/**/*.js',
-      { pattern: '*.env', instrument: false },
-      // { pattern: 'bot.js', instrument: true },
-      { pattern: '/tests/**/*.spec.js', ignore: true },
-    ],
-    tests: [
-      '/tests/**/*.spec.js',
-    ],
+    files: ['/**/*.js', '!/tests/**/*.spec.js'],
+    tests: ['/tests/**/*.spec.js'],
     env: {
       type: 'node',
+      runner: 'node',
     },
     workers: {
-      initial: 1,
-      regular: 1,
+      initial: 2,
+      regular: 2,
     },
   };
 };

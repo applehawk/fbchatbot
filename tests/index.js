@@ -49,8 +49,24 @@ const doit = async (user, i) => {
   };
 };
 
-usersList.forEach((user, i) => {
-  // delay = i * 100;
-  // setTimeout(() => { return { ...doit(user, i) } }, delay);
-  // Array.from({...doit(user, i)});
-});
+// usersList.forEach((user, i) => {
+//   // delay = i * 100;
+//   // setTimeout(() => { return { ...doit(user, i) } }, delay);
+//   // Array.from({...doit(user, i)});
+// });
+
+// const arr = [
+//   { id: 123 },
+//   {
+//     id: 456,
+//     item: {
+//       key1: 'value1',
+//       key2: { obj1: 'text' },
+//     },
+//   },
+//   { arr: ['element1', 'element2', 'element3'] },
+// ];
+
+// const find = (obj, query = {}) => {
+//   return obj.find(value => JSON.stringify(value) === JSON.stringify(query));
+// };

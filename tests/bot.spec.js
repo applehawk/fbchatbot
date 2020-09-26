@@ -1,8 +1,12 @@
 'use strict';
 
 const { test } = require('ava');
-const bot = require('../bot.js');
-const { BotkitTestClient } = require('botkit');
+
+const { /*Botkit, */BotkitTestClient } = require('botkit');
+
+// const bot = new Botkit({
+//   storage,
+// });
 
 const DIALOG_ONBOARDING_ID = 'DIALOG_ONBOARDING_ID'; //?
 

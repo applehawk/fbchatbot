@@ -1,7 +1,7 @@
 'use strict';
 
 const { UserState } = require('botbuilder');
-const { USER_DIALOG_SESSION_EXPIRED } = require('./constants.js');
+const { USER_DIALOG_SESSION_EXPIRED } = require('./constants');
 
 const getUserContextProperties = async (controller, bot, message) => { // [OK]
   let userState = new UserState(controller.storage);

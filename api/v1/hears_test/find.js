@@ -4,7 +4,7 @@ const {
   english_levelDict,
   communityDict,
 } = require(`../constants.js`);
-const { getUserContextProperties } = require('../helpers.js');
+const { getUserContextProperties } = require(`../helpers.js`);
 
 module.exports = async (controller) => {
   controller.hears(new RegExp(/^(find)(\s+?(\d+?))?$/i), ['message'], async (bot, message) => {

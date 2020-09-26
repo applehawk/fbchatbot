@@ -1,7 +1,7 @@
 'use strict';
 
 const CronJob = require('cron').CronJob;
-const { resetUserContextProperties } = require('../helpers.js');
+const { resetUserContextProperties } = require(`../helpers.js`);
 
 module.exports = async (controller) => {
   const DIALOG_SCHEDULED_A_CALL_ID = 'DIALOG_SCHEDULED_A_CALL_ID';

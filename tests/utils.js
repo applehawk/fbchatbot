@@ -5,7 +5,7 @@ const {
   communityDict,
 } = require(`../constants.js`);
 
-const addUsers = (total = 1) => { // [OK]
+module.exports.addUsers = (total = 1, options = {}) => { // [OK]
   const locations = ['Nizhnepavlovka', 'Ufa', 'Moscow', 'Khanty', 'Tyumen', 'Russian', 'Russia', 'Singapour', 'Australian', 'Turkey'];
   const professions = ['IT-Programmer', 'IT-Manager', 'Financist', 'Saler', 'Marketer', 'Translator', 'Politic', 'Developer', 'Web Designer', 'Web Developer', 'Junior Frontend Developer', 'Middle Frontend Developer', 'Backend Developer'];
   const names = ['Nunc', 'Risus', 'Enim', 'Laoreet in', 'Suscipit', 'Eu Facilisis', 'A Nibh', 'Ibh Facil', 'Pit', 'Laor', 'Su', 'En', 'Lisi', 'du`Fa'];
@@ -24,11 +24,10 @@ const addUsers = (total = 1) => { // [OK]
         ready_to_conversation: 'ready',
         username: `${names[Math.round(Math.random() * (names.length - 1))]} ${names[Math.round(Math.random() * (names.length - 1))]}`,
       },
+      ...options,
     };
 
     users.push(user);
   }
   return [ ...users ];
 };
-
-module.exports = { addUsers };

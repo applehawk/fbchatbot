@@ -4,7 +4,7 @@ const CronJob = require('cron').CronJob;
 const {
   getUserContextProperties,
   resetUserContextProperties,
-} = require('../helpers.js');
+} = require(`../helpers.js`);
 
 module.exports = async (controller) => {
   controller.on(['repeat_match'], async (bot, message) => {

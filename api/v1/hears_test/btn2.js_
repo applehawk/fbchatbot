@@ -1,6 +1,6 @@
 'use strict';
 
-const { communityDict, askCommunityStr } = require('../constants.js');
+const { communityDict, askCommunityStr } = require(`../constants.js`);
 
 module.exports = async (controller) => {
   controller.hears(new RegExp(/^btn2$/i), ['message'], async (bot, message) => {
