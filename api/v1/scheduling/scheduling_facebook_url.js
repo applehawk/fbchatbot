@@ -15,7 +15,7 @@ module.exports = async (controller) => {
     // Day of Month: 1-31
     // Months: 0-11 (Jan-Dec)
     // Day of Week: 0-6 (Sun-Sat)
-    '0 30 * * * *',
+    '0 30 10-11 * * 5-6',
     // '0 */10 * * * *',
     // '0 */5 * * * *',
     async () => {
@@ -41,40 +41,39 @@ module.exports = async (controller) => {
       if (count) {
         let usersList = Object.values(users);
         usersList.forEach(async ({ id, state }, i) => {
-          const message = {
-            user: id,
-            text:
-              'We found that some information about you is missing from your profile.\n\nDo you want to add data now?',
-            quick_replies: [
-              { payload: 'scheduling_facebook_url_yes', title: 'Yes' },
-              { payload: 'scheduling_facebook_url_no', title: 'No' },
-            ],
-            channel: id,
-            message: { text: '' },
-            messaging_type: 'MESSAGE_TAG',
-            recipient: { id },
-            sender: { id },
-            tag: 'ACCOUNT_UPDATE',
-            text: '',
-            user: id,
-            value: undefined,
-            reference: {
-              activityId: undefined,
-              user: { id, name: id },
-              conversation: { id },
-            },
-            incoming_message: {
-              channelId: 'facebook',
-              conversation: { id },
-              from: { id, name: id },
-              recipient: { id, name: id },
-              channelData: {
-                sender: { id },
-              },
-            },
-          };
-
           const task = setTimeout(async () => {
+            const message = {
+              user: id,
+              text:
+                'We found that some information about you is missing from your profile.\n\nDo you want to add data now?',
+              quick_replies: [
+                { payload: 'scheduling_facebook_url_yes', title: 'Yes' },
+                { payload: 'scheduling_facebook_url_no', title: 'No' },
+              ],
+              channel: id,
+              message: { text: '' },
+              messaging_type: 'MESSAGE_TAG',
+              recipient: { id },
+              sender: { id },
+              tag: 'ACCOUNT_UPDATE',
+              user: id,
+              value: undefined,
+              reference: {
+                activityId: undefined,
+                user: { id, name: id },
+                conversation: { id },
+              },
+              incoming_message: {
+                channelId: 'facebook',
+                conversation: { id },
+                from: { id, name: id },
+                recipient: { id, name: id },
+                channelData: {
+                  sender: { id },
+                },
+              },
+            };
+
             const dialogBot = await controller.spawn(id);
             await dialogBot.startConversationWithUser(id);
 

@@ -40,14 +40,5 @@ module.exports = async (controller) => {
 
     await controller.trigger(['sender_action_typing'], dialogBot, { options: { recipient: message.recipient } });
     await dialogBot.say(message);
-
-    // // v2 [*]
-    // controller.spawn(id).then(dialogBot => {
-    //   dialogBot.startConversationWithUser(id).then(() => {
-    //     controller.trigger(['sender_action_typing'], dialogBot, {
-    //       options: { recipient: message.recipient },
-    //     }).then(async () => await dialogBot.say(message));
-    //   });
-    // });
   });
 };

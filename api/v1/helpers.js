@@ -106,7 +106,7 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
     await senderProperties.conversation_with_property.set(senderProperties.context, 0);
     await senderProperties.expired_at_property.set(senderProperties.context, 0);
     await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'ready');
-    await senderProperties.skip.set(senderProperties.context, undefined);
+    await senderProperties.skip_property.set(senderProperties.context, undefined);
 
     /**
      * Save userState changes to storage

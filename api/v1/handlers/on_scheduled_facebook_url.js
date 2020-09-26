@@ -8,8 +8,8 @@ module.exports = async (controller) => {
         options: { recipient: message.sender },
       });
       await bot.replaceDialog(DIALOG_FACEBOOK_URL_ID);
-    } else if (!!message.quick_reply && message.quick_reply.payload === 'scheduling_facebook_url_no') {
-      ///
+    // } else if (!!message.quick_reply && message.quick_reply.payload === 'scheduling_facebook_url_no') {
+    //   ///
     }
   });
 };

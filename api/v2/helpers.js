@@ -17,6 +17,7 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
   let profile_pic_property = await userState.createProperty('profile_pic');
   let ready_to_conversation_property = await userState.createProperty('ready_to_conversation');
   let recent_users_property = await userState.createProperty('recent_users');
+  let skip_property = await userState.createProperty('skip');
   let username_property = await userState.createProperty('username');
 
   let community = await community_property.get(context);
@@ -29,6 +30,7 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
   let profile_pic = await profile_pic_property.get(context);
   let ready_to_conversation = await ready_to_conversation_property.get(context);
   let recent_users = await recent_users_property.get(context, []);
+  let skip = await skip_property.get(context);
   let username = await username_property.get(context);
 
   return {
@@ -45,6 +47,7 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
     profile_pic_property,
     ready_to_conversation_property,
     recent_users_property,
+    skip_property,
     username_property,
 
     community,
@@ -57,6 +60,7 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
     profile_pic,
     ready_to_conversation,
     recent_users,
+    skip,
     username,
   };
 
@@ -102,6 +106,7 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
     await senderProperties.conversation_with_property.set(senderProperties.context, 0);
     await senderProperties.expired_at_property.set(senderProperties.context, 0);
     await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'ready');
+    await senderProperties.skip_property.set(senderProperties.context, undefined);
 
     /**
      * Save userState changes to storage

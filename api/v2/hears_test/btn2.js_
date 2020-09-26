@@ -1,0 +1,58 @@
+'use strict';
+
+const { communityDict, askCommunityStr } = require(`../constants.js`);
+
+module.exports = async (controller) => {
+  controller.hears(new RegExp(/^btn2$/i), ['message'], async (bot, message) => {
+
+    const options = {
+      recipient: message.sender,
+      message: {
+        attachment: {
+          type: 'template',
+          payload: {
+            template_type: 'generic',
+            elements: [
+            buttons: [
+              { type: 'postback',
+                title: '1234567890 1234567890 1234567890',
+                payload: 0 },
+              { type: 'postback',
+                title: '1234567890 1234567890 1234567890',
+                payload: 1 },
+              { type: 'postback',
+                title: '1234567890 1234567890 1234567890',
+                payload: 2 }//,
+              // { type: 'postback',
+              //   title: communityDict[3],
+              //   payload: 3 }
+              /*{
+              'type':'postback',
+              'title':communityDict.Networking,
+              'payload':communityDict.Networking
+              },
+              {
+              'type':'postback',
+              'title':communityDict.EnglishJobInterview,
+              'payload':communityDict.EnglishJobInterview
+              },
+              {
+              'type':'postback',
+              'title':communityDict.EnglishPresentations,
+              'payload':communityDict.EnglishPresentations
+              },*/
+              ]
+            ],
+          },
+        },
+      },
+    };
+
+    try {
+      const result = await bot.api.callAPI('/me/messages', 'POST', options);
+      console.log(result);
+    } catch(error) {
+      console.error(error);
+    }
+  });
+};

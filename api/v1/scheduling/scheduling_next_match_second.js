@@ -40,7 +40,7 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      '0 0 12 * * 0', // [PROD]
+      '0 0 12-13 * * 0', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
       // '0 */5 * * * *', // [TEST]
       // time,
@@ -53,14 +53,10 @@ module.exports = async (controller) => {
 
         const docs = await storage.Collection.find({ // [OK]
           'state.community': { $exists: true },
-          // $and: [{
-          //   $or: [
-          //     { 'state.skip': { $eq: true } },
-          //     { 'state.skip': { $exists: false } }
-          //   ],
-          // }],
-          'state.skip': { $exists: false },
-          // 'state.skip': { $ne: true }
+          $or: [
+            { 'state.skip': { $eq: undefined } },
+            { 'state.skip': { $exist: false } },
+          ],
         });
 
         // [OK]
@@ -75,43 +71,41 @@ module.exports = async (controller) => {
         }, []);
 
         let count = Object.keys(users).length;
-        console.log('[scheduling_next_match.js:76]: users', count);
+        console.log('[scheduling_next_match_second.js:71]: users', count);
 
         const jobNextTime = new Date(Date.now() + job._timeout._idleTimeout).toLocaleString();
 
         if (count) {
           let usersList = Object.values(users);
           usersList.forEach(async ({ id, state }, i) => {
-            // for await (const { id, state } of usersList) {
-            let message = {
-              channel: id,
-              messaging_type: 'MESSAGE_TAG',
-              recipient: { id },
-              sender: { id },
-              tag: 'ACCOUNT_UPDATE',
-              text: '',
-              user: id,
-              value: undefined,
-              reference: {
-                activityId: undefined,
-                user: { id, name: id },
-                conversation: { id },
-              },
-              incoming_message: {
-                channelId: 'facebook',
-                conversation: { id },
-                from: { id, name: id },
-                recipient: { id, name: id },
-                channelData: {
-                  messaging_type: 'MESSAGE_TAG',
-                  tag: 'ACCOUNT_UPDATE',
-                  sender: { id },
-                },
-              },
-            };
-
-            // if (state.skip === undefined || state.skip === null) {
             const task = setTimeout(async () => {
+              let message = {
+                channel: id,
+                messaging_type: 'MESSAGE_TAG',
+                recipient: { id },
+                sender: { id },
+                tag: 'ACCOUNT_UPDATE',
+                text: '',
+                user: id,
+                value: undefined,
+                reference: {
+                  activityId: undefined,
+                  user: { id, name: id },
+                  conversation: { id },
+                },
+                incoming_message: {
+                  channelId: 'facebook',
+                  conversation: { id },
+                  from: { id, name: id },
+                  recipient: { id, name: id },
+                  channelData: {
+                    messaging_type: 'MESSAGE_TAG',
+                    tag: 'ACCOUNT_UPDATE',
+                    sender: { id },
+                  },
+                },
+              };
+
               const user = usersList.find(user => user.id === id);
               const userIndex = usersList.indexOf(user);
 
@@ -149,20 +143,15 @@ Attention! If you won’t answer this question, you won’t receive a partner th
               usersList.splice(userIndex, 1);
 
               const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
-              console.log('[scheduling_next_match.js usersList]', usersList.length, finish);
+              console.log('[scheduling_next_match_second.js usersList]', usersList.length, finish);
 
               if (!usersList.length) {
-                console.log('[scheduling_next_match.js NEXT]: job start at:', jobNextTime);
+                console.log('[scheduling_next_match_second.js NEXT]: job start at:', jobNextTime);
               }
-              //   // await resetUserContextProperties(controller, dialogBot, message);
-              //   await controller.trigger(['reset'], dialogBot, message);
-              // }, 500 * i);
             }, 2000 * i);
-            // }
-            // }
           });
         }
-        console.log('[scheduling_next_match.js NEXT]: job start at:', jobNextTime);
+        console.log('[scheduling_next_match_second.js NEXT]: job start at:', jobNextTime);
       },
       null,
       false,
@@ -171,7 +160,7 @@ Attention! If you won’t answer this question, you won’t receive a partner th
     // Use this if the 4th param is default value(false)
     job.start();
     console.log(
-      'scheduling_next_match job start at:',
+      'scheduling_next_match_second job start at:',
       new Date(Date.now() + job._timeout._idleTimeout).toLocaleString()
     );
   // } else {

@@ -52,12 +52,8 @@ module.exports = async (controller) => {
         });
 
         const docs = await storage.Collection.find({ // [OK]
-          // 'state.ready_to_conversation': { $eq: 'ready' },
           'state.community': { $exists: true },
-          $or: [
-            { 'state.skip': { $exists: false } },
-            { 'state.skip': false },
-          ],
+          'state.skip': false,
         });
 
         // [OK]
@@ -79,109 +75,98 @@ module.exports = async (controller) => {
         if (count) {
           let usersList = Object.values(users);
           usersList.forEach(async ({ id, state }, i) => {
-            // for await (const { id, state } of usersList) {
-            // if (id === '3049377188434960') {
-              const message = {
-                channel: id,
-                message: { text: '' },
-                messaging_type: 'MESSAGE_TAG',
-                recipient: { id },
-                sender: { id },
-                tag: 'ACCOUNT_UPDATE',
-                text: '',
-                user: id,
-                value: undefined,
-                reference: {
-                  activityId: undefined,
-                  user: { id, name: id },
-                  conversation: { id },
-                },
-                incoming_message: {
-                  channelId: 'facebook',
-                  conversation: { id },
-                  from: { id, name: id },
-                  recipient: { id, name: id },
-                  channelData: {
-                    messaging_type: 'MESSAGE_TAG',
-                    tag: 'ACCOUNT_UPDATE',
-                    sender: { id },
+            const task = setTimeout(async () => {
+              const user = usersList.find((user) => user.id === id);
+              const userIndex = usersList.indexOf(user);
+
+              if (userIndex > -1) {
+                const message = {
+                  channel: id,
+                  message: { text: '' },
+                  messaging_type: 'MESSAGE_TAG',
+                  recipient: { id },
+                  sender: { id },
+                  tag: 'ACCOUNT_UPDATE',
+                  text: '',
+                  user: id,
+                  value: undefined,
+                  reference: {
+                    activityId: undefined,
+                    user: { id, name: id },
+                    conversation: { id },
                   },
-                },
-              };
+                  incoming_message: {
+                    channelId: 'facebook',
+                    conversation: { id },
+                    from: { id, name: id },
+                    recipient: { id, name: id },
+                    channelData: {
+                      messaging_type: 'MESSAGE_TAG',
+                      tag: 'ACCOUNT_UPDATE',
+                      sender: { id },
+                    },
+                  },
+                };
 
-              const task = setTimeout(async () => {
-                const user = usersList.find((user) => user.id === id);
-                const userIndex = usersList.indexOf(user);
+                const start = Date.now();
+                const dialogBot = await controller.spawn(id);
+                await dialogBot.startConversationWithUser(id);
 
-                if (userIndex > -1) {
-                  const start = Date.now();
-                  const dialogBot = await controller.spawn(id);
-                  await dialogBot.startConversationWithUser(id);
+                let senderProperties = await getUserContextProperties(
+                  controller,
+                  dialogBot,
+                  message
+                );
 
-                  await resetUserContextProperties(controller, dialogBot, message);
-                  // await controller.trigger(['reset'], dialogBot, message);
+                if (senderProperties.ready_to_conversation === 'ready') {
+                  const userId = `facebook/conversations/${id}-${id}/`;
+                  await storage.delete([userId]);
+                  await dialogBot.cancelAllDialogs();
 
-                  let senderProperties = await getUserContextProperties(
+                  await controller.trigger(['match'], dialogBot, message);
+
+                  senderProperties = await getUserContextProperties(
                     controller,
                     dialogBot,
                     message
                   );
 
-                  if (senderProperties.ready_to_conversation === 'ready') {
-                    const userId = `facebook/conversations/${id}-${id}/`;
-                    await storage.delete([userId]);
-                    await dialogBot.cancelAllDialogs();
+                  const recipient = usersList.find(user => user.id === senderProperties.conversation_with);
+                  const recipientIndex = usersList.indexOf(recipient);
 
-                    await controller.trigger(['match'], dialogBot, message);
-
-                    senderProperties = await getUserContextProperties(
-                      controller,
-                      dialogBot,
-                      message
-                    );
-
-                    const recipient = usersList.find(
-                      (user) => user.id === senderProperties.conversation_with
-                    );
-                    const recipientIndex = usersList.indexOf(recipient);
-
-                    if (recipientIndex > -1) {
-                      usersList.splice(recipientIndex, 1);
-                    }
+                  if (recipientIndex > -1) {
+                    usersList.splice(recipientIndex, 1);
                   }
+                }
 
-                  usersList.splice(userIndex, 1);
-                  senderProperties = null;
+                usersList.splice(userIndex, 1);
+                senderProperties = null;
 
-                  const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+                const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+                console.log(
+                  '[scheduling_match.js usersList]',
+                  usersList.length,
+                  finish
+                );
+
+                if (!usersList.length) {
                   console.log(
-                    '[scheduling_match.js usersList]',
-                    usersList.length,
-                    finish
-                  );
-
-                  if (!usersList.length) {
-                    console.log(
-                      '[scheduling_match.js NEXT]: job start at:',
-                      jobNextTime
-                    );
-                  }
-                } else {
-                  console.log(
-                    '[scheduling_match.js:153 userIndex]: user not found',
-                    i,
-                    id,
-                    userIndex
+                    '[scheduling_match.js NEXT]: job start at:',
+                    jobNextTime
                   );
                 }
-                //   // await resetUserContextProperties(controller, dialogBot, message);
-                // await controller.trigger(['reset'], dialogBot, message);
-                // }, 500 * i);
-              }, 5000 * i);
-            // }
-            // }
+              } else {
+                console.log(
+                  '[scheduling_match.js:164 userIndex]: the user was not found or was removed from the list',
+                  i,
+                  id,
+                  userIndex
+                );
+              }
+            }, 5000 * i);
           });
         }
+
         console.log('[scheduling_match.js NEXT]: job start at:', jobNextTime);
       },
       null,

@@ -69,14 +69,13 @@ module.exports = async (controller) => {
         }, []);
 
         let count = Object.keys(users).length;
-        console.log('[scheduling_call.js:74]: active sessions:', count);
+        console.log('[scheduling_call.js:72]: active sessions:', count);
         const jobNextTime = new Date(Date.now() + job._timeout._idleTimeout).toLocaleString();
 
         if (count) {
           let usersList = Object.values(users);
           usersList.forEach(async ({ id, state }, i) => {
-            // for await (const { id, state } of usersList) {
-            // if (i < 5) {
+            const task = setTimeout(async () => {
               const message = {
                 user: id,
                 text: `Hi! 👋\nHow are you? Have you already had a call with your partner?`,
@@ -109,27 +108,24 @@ module.exports = async (controller) => {
                 },
               };
 
-              const task = setTimeout(async () => {
-                const user = usersList.find(user => user.id === id);
-                const userIndex = usersList.indexOf(user);
+              const user = usersList.find(user => user.id === id);
+              const userIndex = usersList.indexOf(user);
 
-                const start = Date.now();
+              const start = Date.now();
 
-                const dialogBot = await controller.spawn(id)
-                await dialogBot.startConversationWithUser(id);
+              const dialogBot = await controller.spawn(id)
+              await dialogBot.startConversationWithUser(id);
 
-                await resetUserContextProperties(controller, dialogBot, message);
+              await resetUserContextProperties(controller, dialogBot, message);
 
-                await controller.trigger(['start_dialog'], dialogBot, message);
-                usersList.splice(userIndex, 1);
-                const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
-                console.log('[scheduling_call.js usersList]', usersList.length, finish);
-                if (!usersList.length) {
-                  console.log('[scheduling_call.js NEXT]: job start at:', jobNextTime);
-                }
-              }, 1000 * i);
-            // }
-            // }
+              await controller.trigger(['start_dialog'], dialogBot, message);
+              usersList.splice(userIndex, 1);
+              const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
+              console.log('[scheduling_call.js usersList]', usersList.length, finish);
+              if (!usersList.length) {
+                console.log('[scheduling_call.js NEXT]: job start at:', jobNextTime);
+              }
+            }, 1000 * i);
           });
         }
         console.log('[scheduling_call.js NEXT]: job start at:', jobNextTime);

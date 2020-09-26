@@ -2,7 +2,7 @@
 
 const CronJob = require('cron').CronJob;
 
-const { getUserContextProperties, resetUserContextProperties } = require(`../helpers.js`);
+const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   /**
@@ -42,7 +42,7 @@ module.exports = async (controller) => {
 
       // '0 0 12-15 * * 1', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
-      '0 */1 * * * *', // [TEST]
+      '0 */5 * * * *', // [TEST]
       // time,
       async () => {
         await storage.connect({
@@ -51,13 +51,14 @@ module.exports = async (controller) => {
           keepAlive: true,
         });
 
-        const docs = await storage.Collection.find({ // [OK]
-          // 'state.ready_to_conversation': { $eq: 'ready' },
+        // const docs = await storage.Collection.find({ // [OK]
+        //   'state.community': { $exists: true },
+        //   'state.skip': false,
+        // });
+        const docs = await storage.Collection.find({
+          // [OK]
           'state.community': { $exists: true },
-          $or: [
-            { 'state.skip': { $exists: false } },
-            { 'state.skip': false },
-          ],
+          // 'state.skip': false,
         });
 
         // [OK]
@@ -72,7 +73,7 @@ module.exports = async (controller) => {
         }, []);
 
         let count = Object.keys(users).length;
-        console.log('[scheduling_match.js:71]: users', count);
+        console.log('[scheduling_match.js:76]: users', count);
 
         const jobNextTime = new Date(Date.now() + job._timeout._idleTimeout).toLocaleString();
 
@@ -81,45 +82,46 @@ module.exports = async (controller) => {
           usersList.forEach(async ({ id, state }, i) => {
             // for await (const { id, state } of usersList) {
             if (id === '3049377188434960') {
-              const message = {
-                channel: id,
-                message: { text: '' },
-                messaging_type: 'MESSAGE_TAG',
-                recipient: { id },
-                sender: { id },
-                tag: 'ACCOUNT_UPDATE',
-                text: '',
-                user: id,
-                value: undefined,
-                reference: {
-                  activityId: undefined,
-                  user: { id, name: id },
-                  conversation: { id },
-                },
-                incoming_message: {
-                  channelId: 'facebook',
-                  conversation: { id },
-                  from: { id, name: id },
-                  recipient: { id, name: id },
-                  channelData: {
-                    messaging_type: 'MESSAGE_TAG',
-                    tag: 'ACCOUNT_UPDATE',
-                    sender: { id },
-                  },
-                },
-              };
-
               const task = setTimeout(async () => {
                 const user = usersList.find((user) => user.id === id);
                 const userIndex = usersList.indexOf(user);
 
                 if (userIndex > -1) {
+                  const message = {
+                    channel: id,
+                    message: { text: '' },
+                    messaging_type: 'MESSAGE_TAG',
+                    recipient: { id },
+                    sender: { id },
+                    tag: 'ACCOUNT_UPDATE',
+                    text: '',
+                    user: id,
+                    value: undefined,
+                    reference: {
+                      activityId: undefined,
+                      user: { id, name: id },
+                      conversation: { id },
+                    },
+                    incoming_message: {
+                      channelId: 'facebook',
+                      conversation: { id },
+                      from: { id, name: id },
+                      recipient: { id, name: id },
+                      channelData: {
+                        messaging_type: 'MESSAGE_TAG',
+                        tag: 'ACCOUNT_UPDATE',
+                        sender: { id },
+                      },
+                    },
+                  };
+
                   const start = Date.now();
                   const dialogBot = await controller.spawn(id);
                   await dialogBot.startConversationWithUser(id);
 
-                  await resetUserContextProperties(controller, dialogBot, message);
-                  // await controller.trigger(['reset'], dialogBot, message);
+                  // await resetUserContextProperties(controller, dialogBot, message);
+                  await controller.trigger(['reset'], dialogBot, message);
+                  return;
 
                   let senderProperties = await getUserContextProperties(
                     controller,
@@ -181,7 +183,7 @@ module.exports = async (controller) => {
                   }
                 } else {
                   console.log(
-                    '[scheduling_match.js:153 userIndex]: user not found',
+                    '[scheduling_match.js:186 userIndex]: the user was not found or was removed from the list',
                     i,
                     id,
                     userIndex
