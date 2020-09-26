@@ -40,7 +40,7 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      '0 0 12 * * 6', // [PROD]
+      '0 10 12 * * 6', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
       // '0 */5 * * * *', // [TEST]
       // time,
@@ -83,7 +83,7 @@ module.exports = async (controller) => {
           let usersList = Object.values(users);
           usersList.forEach(async ({ id, state }, i) => {
             // for await (const { id, state } of usersList) {
-            if (id === '3049377188434960') {
+            // if (id === '3049377188434960') {
             const task = setTimeout(async () => {
               let message = {
                 channel: id,
@@ -147,7 +147,7 @@ Attention! If you won’t answer this question, you won’t receive a partner th
               //   await controller.trigger(['reset'], dialogBot, message);
               // }, 500 * i);
             }, 2000 * i);
-            }
+            // }
             // }
           });
         }
