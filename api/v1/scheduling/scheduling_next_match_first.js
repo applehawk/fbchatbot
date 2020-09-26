@@ -40,7 +40,7 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      '0 15 12 * * 6', // [PROD]
+      '0 0 12 * * 6', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
       // '0 */5 * * * *', // [TEST]
       // time,
