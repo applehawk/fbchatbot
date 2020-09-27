@@ -99,6 +99,10 @@ module.exports = async (controller) => {
   );
   // Use this if the 4th param is default value(false)
   job.start();
+  console.log(
+    'scheduling_facebook_url job start at:',
+    new Date(Date.now() + job._timeout._idleTimeout).toLocaleString()
+  );
   /**
    * #END Scheduling Automation
    */
