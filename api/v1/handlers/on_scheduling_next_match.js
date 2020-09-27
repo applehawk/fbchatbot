@@ -22,7 +22,7 @@ module.exports = async (controller) => {
       // });
     } else if (!!message.quick_reply && message.quick_reply.payload === 'scheduling_next_match' && message.text === 'No, I will skip') {
       message.value = 'Skip Match Next Week';
-      controller.trigger(['ANALYTICS_EVENT'], bot, message);
+      await controller.trigger(['ANALYTICS_EVENT'], bot, message);
       const senderProperties = await getUserContextProperties(controller, bot, message);
       await senderProperties.skip_property.set(senderProperties.context, true);
 
