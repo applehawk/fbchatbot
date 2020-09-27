@@ -11,7 +11,7 @@ module.exports = async (controller) => {
   /**
    * #BEGIN Scheduling Automation
    */
-  const FB_DIALOG_ID = 'DIALOG_FACEBOOK_URL_ID';
+  const FB_DIALOG_ID = 'FB_DIALOG_ID';
   const dialog = controller.dialogSet.dialogs[FB_DIALOG_ID];
 
   await dialog.before(async (bot, message) => {
