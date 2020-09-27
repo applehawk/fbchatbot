@@ -1,11 +1,11 @@
 'use strict';
 
-const { GIF_GREETING } = require(`../constants.js`);
+const { GIF_GREETING } = require('../constants.js');
 const { UserState } = require('botbuilder');
 const {
   getUserContextProperties,
   resetUserContextProperties,
-} = require(`../helpers.js`);
+} = require('../helpers.js');
 
 module.exports = async (controller) => {
   const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';

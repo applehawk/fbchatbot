@@ -6,9 +6,9 @@ const {
   english_levelDict,
   communityDict,
   MATCH_NOT_FOUND_SUITABLE_USER,
-} = require(`../constants.js`);
+} = require('../constants.js');
 
-const { getUserContextProperties } = require(`../helpers.js`);
+const { getUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   // [TODO]

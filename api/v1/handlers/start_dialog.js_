@@ -3,7 +3,7 @@
 const { BotkitConversation } = require('botkit');
 const { UserState } = require('botbuilder');
 
-const { communityDict, english_levelDict, INVITATION_MESSAGE } = require(`../constants.js`);
+const { communityDict, english_levelDict, INVITATION_MESSAGE } = require('../constants.js');
 
 module.exports = async (controller) => {
   const getUserContextProperties = async (bot, message) => { // [OK]

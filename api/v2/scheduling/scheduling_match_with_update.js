@@ -119,17 +119,17 @@ module.exports = async (controller) => {
                   const dialogBot = await controller.spawn(id);
                   await dialogBot.startConversationWithUser(id);
 
-                  // await resetUserContextProperties(controller, dialogBot, message);
-                  await controller.trigger(['reset'], dialogBot, message);
-                  return;
+                  await resetUserContextProperties(controller, dialogBot, message);
+                  // await controller.trigger(['reset'], dialogBot, message);
+                  // return;
 
-                  let senderProperties = await getUserContextProperties(
-                    controller,
-                    dialogBot,
-                    message
-                  );
+                  if (state.ready_to_conversation === 'ready') {
+                    let senderProperties = await getUserContextProperties(
+                      controller,
+                      dialogBot,
+                      message
+                    );
 
-                  if (senderProperties.ready_to_conversation === 'ready') {
                     const userId = `facebook/conversations/${id}-${id}/`;
                     await storage.delete([userId]);
                     await dialogBot.cancelAllDialogs();

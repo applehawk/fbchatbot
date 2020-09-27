@@ -4,7 +4,7 @@ const {
   GREETING_1,
   GREETING_2,
   GREETING_3,
-} = require(`../constants.js`);
+} = require('../constants.js');
 
 module.exports = async (controller) => {
   const DIALOG_GREETING_ID = 'DIALOG_GREETING_ID';

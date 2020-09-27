@@ -1,8 +1,7 @@
 'use strict';
 
-const { MongoDbStorage } = require('botbuilder-storage-mongodb');
 const { UserState } = require('botbuilder');
-const { resetUserContextProperties } = require(`../helpers.js`);
+const { resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   const clearState = async (context, state, field) => {
@@ -11,8 +10,8 @@ module.exports = async (controller) => {
     return context;
   };
 
-  controller.hears(new RegExp(/^reset$/i), ['message'], async (bot, message) => {
-  // controller.on(['reset'], async (bot, message) => {
+  // controller.hears(new RegExp(/^reset$/i), ['message'], async (bot, message) => {
+  controller.on(['reset'], async (bot, message) => {
     try {
       const userState = new UserState(controller.storage);
       const context = bot.getConfig('context');
@@ -20,7 +19,7 @@ module.exports = async (controller) => {
 
       // [SO] https://stackoverflow.com/questions/59560604/how-to-clear-state-in-botkit-4-conversation
       const userId = `facebook/conversations/${message.user}-${message.user}/`;
-      await bot.controller.storage.delete([userId]);
+      await controller.storage.delete([userId]);
       cleaned = await clearState(context, userState, 'recent_users');
 
       // Save userState changes to storage

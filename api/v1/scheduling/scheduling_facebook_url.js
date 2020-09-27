@@ -42,45 +42,42 @@ module.exports = async (controller) => {
         let usersList = Object.values(users);
         usersList.forEach(async ({ id, state }, i) => {
           const task = setTimeout(async () => {
-            const message = {
-              user: id,
-              text:
-                'We found that some information about you is missing from your profile.\n\nDo you want to add data now?',
-              quick_replies: [
-                { payload: 'scheduling_facebook_url_yes', title: 'Yes' },
-                { payload: 'scheduling_facebook_url_no', title: 'No' },
-              ],
-              channel: id,
-              message: { text: '' },
-              messaging_type: 'MESSAGE_TAG',
-              recipient: { id },
-              sender: { id },
-              tag: 'ACCOUNT_UPDATE',
-              user: id,
-              value: undefined,
-              reference: {
-                activityId: undefined,
-                user: { id, name: id },
-                conversation: { id },
-              },
-              incoming_message: {
-                channelId: 'facebook',
-                conversation: { id },
-                from: { id, name: id },
-                recipient: { id, name: id },
-                channelData: {
-                  sender: { id },
-                },
-              },
-            };
-
-            const dialogBot = await controller.spawn(id);
-            await dialogBot.startConversationWithUser(id);
-
-            const senderProperties = await getUserContextProperties(controller, dialogBot, message);
-            if (!!senderProperties.facebook_url) {
+            if (!!state.facebook_url) {
               // skip if facebook_url exists now
             } else {
+              const message = {
+                user: id,
+                text:
+                  'We found that some information about you is missing from your profile.\n\nDo you want to add data now?',
+                quick_replies: [
+                  { payload: 'scheduling_facebook_url_yes', title: 'Yes' },
+                  { payload: 'scheduling_facebook_url_no', title: 'No' },
+                ],
+                channel: id,
+                messaging_type: 'MESSAGE_TAG',
+                recipient: { id },
+                sender: { id },
+                tag: 'ACCOUNT_UPDATE',
+                user: id,
+                value: undefined,
+                reference: {
+                  activityId: undefined,
+                  user: { id, name: id },
+                  conversation: { id },
+                },
+                incoming_message: {
+                  channelId: 'facebook',
+                  conversation: { id },
+                  from: { id, name: id },
+                  recipient: { id, name: id },
+                  channelData: {
+                    sender: { id },
+                  },
+                },
+              };
+
+              const dialogBot = await controller.spawn(id);
+              await dialogBot.startConversationWithUser(id);
               const senderIndex = Object.keys(users).indexOf(`facebook/users/${id}/`);
 
               const userId = `facebook/conversations/${id}-${id}/`;

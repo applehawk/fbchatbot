@@ -2,7 +2,7 @@
 
 const { UserState } = require('botbuilder');
 
-const { communityDict, english_levelDict } = require(`../constants.js`);
+const { communityDict, english_levelDict } = require('../constants.js');
 
 module.exports = async (controller) => {
     controller.hears(new RegExp(/^(start)\s+?(\d+)\s+?(.+)$/ius), ['message', 'direct_message', 'facebook_postback'], async (bot, message) => {

@@ -3,7 +3,7 @@
 const {
   english_levelDict,
   communityDict,
-} = require(`../constants.js`);
+} = require('../constants.js');
 
 module.exports.addUsers = (total = 1, options = {}) => { // [OK]
   const locations = ['Nizhnepavlovka', 'Ufa', 'Moscow', 'Khanty', 'Tyumen', 'Russian', 'Russia', 'Singapour', 'Australian', 'Turkey'];

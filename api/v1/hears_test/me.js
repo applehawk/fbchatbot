@@ -2,8 +2,8 @@
 
 const { UserState } = require('botbuilder');
 
-const { english_levelDict, communityDict } = require(`../constants.js`);
-const { getUserContextProperties } = require(`../helpers.js`);
+const { english_levelDict, communityDict } = require('../constants.js');
+const { getUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   controller.hears(new RegExp(/^me$/), ['message'], async (bot, message) => {

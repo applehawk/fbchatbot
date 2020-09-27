@@ -1,6 +1,6 @@
 'use strict';
 
-const { communityDict } = require(`../constants.js`);
+const { communityDict } = require('../constants.js');
 
 module.exports = async (controller) => {
     const getCommunityButtons = () => {

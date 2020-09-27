@@ -4,7 +4,7 @@ const CronJob = require('cron').CronJob;
 const {
   getUserContextProperties,
   resetUserContextProperties,
-} = require(`../helpers.js`);
+} = require('../helpers.js');
 
 module.exports = async (controller) => {
   controller.on(['repeat_match'], async (bot, message) => {
@@ -30,11 +30,11 @@ module.exports = async (controller) => {
           messaging_type: 'MESSAGE_TAG',
           tag: 'ACCOUNT_UPDATE',
         };
-        const { ready_to_conversation } = await getUserContextProperties(controller, dialogBot, messageRef);
-        if (ready_to_conversation === 'busy') {
-          await resetUserContextProperties(controller, dialogBot, messageRef);
+        // const { ready_to_conversation } = await getUserContextProperties(controller, dialogBot, messageRef);
+        // if (ready_to_conversation === 'busy') {
+        //   await resetUserContextProperties(controller, dialogBot, messageRef);
           await controller.trigger(['match'], dialogBot, messageRef);
-        }
+        // }
       },
       null,
       false,

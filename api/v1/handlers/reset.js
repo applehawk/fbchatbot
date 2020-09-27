@@ -1,7 +1,7 @@
 'use strict';
 
 const { UserState } = require('botbuilder');
-const { resetUserContextProperties } = require(`../helpers.js`);
+const { resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
   const clearState = async (context, state, field) => {

@@ -3,7 +3,7 @@
 const {
   english_levelDict,
   communityDict,
-} = require(`../constants.js`);
+} = require('../constants.js');
 
 module.exports = async (controller) => { // [OK]
   controller.hears(new RegExp(/^(rand)( +)?(\d+)?$/i), ['message', 'direct_message'], async (bot, message) => {
