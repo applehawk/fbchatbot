@@ -91,6 +91,11 @@ controller.addDialog(dialog_onboarding);
 controller.addDialog(dialog_scheduled_a_call);
 controller.addDialog(dialog_facebook_url);
 
+
+const FB_DIALOG_ID = 'DIALOG_FACEBOOK_URL_ID';
+const fb_dialog = new BotkitConversation(FB_DIALOG_ID, controller);
+controller.addDialog(fb_dialog);
+
 /**
  * #BEGIN Configure routers
  */
