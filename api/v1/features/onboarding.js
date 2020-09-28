@@ -100,7 +100,7 @@ module.exports = async (controller) => {
       await convo.stop();
     } else {
       const regexp = new RegExp(
-        /^((https?):\/\/)?((www\.|m\.)?facebook\.com|m\.me)(\/[^\s]+)$/i
+        /^((https?):\/\/)?((web\.|www\.|m\.)?facebook\.com|m\.me)(\/[^\s]+)$/i
       );
       if (!!response && !!response.match(regexp)) {
         console.log(`User Facebook profile link: ${response}`);
