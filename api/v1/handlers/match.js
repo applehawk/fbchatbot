@@ -112,36 +112,13 @@ module.exports = async (controller) => {
       $and: [
         {
           $or: [
-            // { 'state.skip': { $exists: false } },
-            { 'state.skip': false },
-          ],
-        },
-        {
-          $or: [
             {
               $and: [
                 { 'state.conversation_with': payload.userId },
                 { 'state.ready_to_conversation': 'busy' },
               ],
             },
-            // {
-            //   $and: [
-            //     { 'state.conversation_with': { $gte: 0 } },
-            //     { 'state.ready_to_conversation': 'ready' },
-            //   ],
-            // },
-            // {
-            //   $and: [
-            //     { 'state.conversation_with': 0 },
             { 'state.ready_to_conversation': 'ready' },
-            //   ],
-            // },
-            // {
-            //   $and: [
-            //     { 'state.conversation_with': 0 },
-            //     { 'state.ready_to_conversation': 'busy' },
-            //   ],
-            // },
           ],
         },
         {
@@ -170,6 +147,7 @@ module.exports = async (controller) => {
               },
             },
             { 'state.location': { $ne: payload.location } },
+            { 'state.skip': false },
           ],
         },
       ],
@@ -371,13 +349,6 @@ module.exports = async (controller) => {
       } else {
         // clearTimeout(message.value);
         message.value = null;
-
-        /**
-         * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-         * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-         */
-        // await bot.changeContext(message.reference);
-
         /**
          * #BEGIN Bot typing
          */
@@ -391,7 +362,7 @@ module.exports = async (controller) => {
         });
       }
     } catch(error) {
-      console.error('[match.js:341 ERROR]:', error);
+      console.error('[match.js:365 ERROR]:', error);
     }
     const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
     console.log('match:', finish, 'sec');

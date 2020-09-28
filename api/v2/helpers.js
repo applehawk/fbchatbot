@@ -5,7 +5,13 @@ const { USER_DIALOG_SESSION_EXPIRED } = require('./constants');
 
 const getUserContextProperties = async (controller, bot, message) => { // [OK]
   let userState = new UserState(controller.storage);
+
   let context = bot.getConfig('context');
+
+  // /**
+  //  * Get user info
+  //  */
+  // let info = await userState.load(context); // [OK]
 
   let community_property = await userState.createProperty('community');
   let conversation_with_property = await userState.createProperty('conversation_with');
@@ -106,14 +112,14 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
     await senderProperties.conversation_with_property.set(senderProperties.context, 0);
     await senderProperties.expired_at_property.set(senderProperties.context, 0);
     await senderProperties.ready_to_conversation_property.set(senderProperties.context, 'ready');
-    await senderProperties.skip_property.set(senderProperties.context, undefined);
+    await senderProperties.skip_property.delete(senderProperties.context);
 
     /**
      * Save userState changes to storage
      */
     await senderProperties.userState.saveChanges(senderProperties.context);
 
-    console.log(`[helpers.js:111 reset]: ${message.sender.id} >>> ${conversation_with} session cleared`);
+    console.log(`[helpers.js:116 reset]: ${message.sender.id} >>> ${conversation_with} session cleared`);
 
     // /**
     //  * #BEGIN Bot typing
@@ -161,6 +167,8 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
 
     message.value = undefined;
   // }
+
+  senderProperties = null;
 
   return;
 };

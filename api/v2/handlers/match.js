@@ -121,24 +121,7 @@ module.exports = async (controller) => {
                 { 'state.ready_to_conversation': 'busy' },
               ],
             },
-            // {
-            //   $and: [
-            //     { 'state.conversation_with': { $gte: 0 } },
-            //     { 'state.ready_to_conversation': 'ready' },
-            //   ],
-            // },
-            // {
-            //   $and: [
-            //     { 'state.conversation_with': 0 },
             { 'state.ready_to_conversation': 'ready' },
-            //   ],
-            // },
-            // {
-            //   $and: [
-            //     { 'state.conversation_with': 0 },
-            //     { 'state.ready_to_conversation': 'busy' },
-            //   ],
-            // },
           ],
         },
         {
@@ -167,6 +150,7 @@ module.exports = async (controller) => {
               },
             },
             { 'state.location': { $ne: payload.location } },
+            // { 'state.skip': false },
           ],
         },
       ],
@@ -223,7 +207,7 @@ module.exports = async (controller) => {
     return user;
   };
 
-  controller.on(['match_and_update'], async (bot, message) => {
+  controller.on(['match'], async (bot, message) => {
     const start = Date.now();
     try {
       const userId = message.sender.id;
@@ -231,8 +215,7 @@ module.exports = async (controller) => {
       const { channelId } = message.incoming_message;
 
       // Get User State Properties
-      // let senderProperties = await getUserContextProperties(controller, bot, message);
-      let senderProperties = message.senderProperties;
+      let { senderProperties } = message;
       const options = {
         ...senderProperties,
         channelId,
@@ -430,12 +413,6 @@ module.exports = async (controller) => {
         message.value = null;
 
         /**
-         * @TIP https://github.com/howdyai/botkit/issues/1724#issuecomment-511557897
-         * @TIP https://github.com/howdyai/botkit/issues/1856#issuecomment-553302024
-         */
-        // await bot.changeContext(message.reference);
-
-        /**
          * #BEGIN Bot typing
          */
         controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.sender } });
@@ -448,7 +425,7 @@ module.exports = async (controller) => {
         });
       }
     } catch(error) {
-      console.error('[match.js:341 ERROR]:', error);
+      console.error('[match.js:428 ERROR]:', error);
     }
     const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
     console.log('match:', finish, 'sec');
