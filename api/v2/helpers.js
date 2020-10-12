@@ -13,12 +13,14 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
   //  */
   // let info = await userState.load(context); // [OK]
 
+  let about_yourself_property = await userState.createProperty('about_yourself');
   let community_property = await userState.createProperty('community');
   let conversation_with_property = await userState.createProperty('conversation_with');
   let english_level_property = await userState.createProperty('english_level');
   let expired_at_property = await userState.createProperty('expired_at');
   let facebook_url_property = await userState.createProperty('facebook_url');
   let location_property = await userState.createProperty('location');
+  let new_user_property = await userState.createProperty('new_user');
   let profession_property = await userState.createProperty('profession');
   let profile_pic_property = await userState.createProperty('profile_pic');
   let ready_to_conversation_property = await userState.createProperty('ready_to_conversation');
@@ -26,12 +28,14 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
   let skip_property = await userState.createProperty('skip');
   let username_property = await userState.createProperty('username');
 
+  let about_yourself = await about_yourself_property.get(context);
   let community = await community_property.get(context);
   let conversation_with = await conversation_with_property.get(context);
   let english_level = await english_level_property.get(context);
   let expired_at = await expired_at_property.get(context);
   let facebook_url = await facebook_url_property.get(context);
   let location = await location_property.get(context);
+  let new_user = await new_user_property.get(context);
   let profession = await profession_property.get(context);
   let profile_pic = await profile_pic_property.get(context);
   let ready_to_conversation = await ready_to_conversation_property.get(context);
@@ -43,12 +47,14 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
     context,
     userState,
 
+    about_yourself_property,
     community_property,
     conversation_with_property,
     english_level_property,
     expired_at_property,
     facebook_url_property,
     location_property,
+    new_user_property,
     profession_property,
     profile_pic_property,
     ready_to_conversation_property,
@@ -56,12 +62,14 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
     skip_property,
     username_property,
 
+    about_yourself,
     community,
     conversation_with,
     english_level,
     expired_at,
     facebook_url,
     location,
+    new_user,
     profession,
     profile_pic,
     ready_to_conversation,
@@ -71,16 +79,19 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
   };
 
   // const properties = [
+  //   'about_yourself',
   //   'community',
   //   'conversation_with',
   //   'english_level',
   //   'expired_at',
   //   'facebook_url',
   //   'location',
+  //   'new_user',
   //   'profession',
   //   'profile_pic',
   //   'ready_to_conversation',
   //   'recent_users',
+  //   'skip',
   //   'username'
   // ];
 
@@ -96,15 +107,24 @@ const getUserContextProperties = async (controller, bot, message) => { // [OK]
 };
 
 const resetUserContextProperties = async (controller, bot, message) => { // [OK]
-  const senderBot = await controller.spawn(message.sender.id);
+  // const senderBot = await controller.spawn(message.sender.id);
+  // const userId = `facebook/conversations/${message.sender.id}-${message.sender.id}/`;
+  // await controller.storage.delete([userId]);
+  // await senderBot.cancelAllDialogs();
+  // await senderBot.startConversationWithUser(message.sender.id);
+
+  // await controller.trigger(['delete_menu'], senderBot, message.sender);
+
+  // let senderProperties = await getUserContextProperties(controller, senderBot, message);
+  // const senderBot = await controller.spawn(message.sender.id);
   const userId = `facebook/conversations/${message.sender.id}-${message.sender.id}/`;
   await controller.storage.delete([userId]);
-  await senderBot.cancelAllDialogs();
-  await senderBot.startConversationWithUser(message.sender.id);
+  await bot.cancelAllDialogs();
+  await bot.startConversationWithUser(message.sender.id);
 
-  controller.trigger(['delete_menu'], senderBot, message.sender);
+  await controller.trigger(['delete_menu'], bot, message.sender);
 
-  let senderProperties = await getUserContextProperties(controller, senderBot, message);
+  let senderProperties = await getUserContextProperties(controller, bot, message);
 
   // if (!!senderProperties.conversation_with) {
     const conversation_with = senderProperties.conversation_with;
@@ -119,7 +139,7 @@ const resetUserContextProperties = async (controller, bot, message) => { // [OK]
      */
     await senderProperties.userState.saveChanges(senderProperties.context);
 
-    console.log(`[helpers.js:116 reset]: ${message.sender.id} >>> ${conversation_with} session cleared`);
+    console.log(`[helpers.js:142 reset]: ${message.sender.id} >>> ${conversation_with} session cleared`);
 
     // /**
     //  * #BEGIN Bot typing

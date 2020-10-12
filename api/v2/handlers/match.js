@@ -1,7 +1,5 @@
 'use strict';
 
-const { UserState } = require('botbuilder');
-
 const {
   english_levelDict,
   communityDict,
@@ -77,12 +75,29 @@ module.exports = async (controller) => {
         },
       },
     };
-
     try {
       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
       await bot.api.callAPI('/me/messages', 'POST', options);
 
-      controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
+//       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
+//       await bot.say({
+//         ...message,
+//         messaging_type: 'MESSAGE_TAG',
+//         tag: 'ACCOUNT_UPDATE',
+//         text: `
+// 🗺 ${user.state.location}
+// 💬 ${english_levelDict[user.state.english_level]}
+// 👔 ${communityDict[user.state.community]}
+// 🛠 ${user.state.profession}`,
+//       });
+
+//       controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
+//       await bot.say({
+//         ...message,
+//         messaging_type: 'MESSAGE_TAG',
+//         tag: 'ACCOUNT_UPDATE',
+//         text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
+//       });
       await bot.say({
         ...message,
         messaging_type: 'MESSAGE_TAG',
@@ -91,28 +106,18 @@ module.exports = async (controller) => {
 🗺 ${user.state.location}
 💬 ${english_levelDict[user.state.english_level]}
 👔 ${communityDict[user.state.community]}
-🛠 ${user.state.profession}`,
-      });
+🛠 ${user.state.profession}
 
-      controller.trigger(['sender_action_typing'], bot, { options: { recipient: message.recipient } });
-      await bot.say({
-        ...message,
-        messaging_type: 'MESSAGE_TAG',
-        tag: 'ACCOUNT_UPDATE',
-        text: 'Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)',
+Do not delay communication!\n\nText your partner on Facebook. Don\'t procrastinate, it will be better if you are scheduling the meeting immediately 🙂\n\nUse https://worldtimebuddy.com for matching the time for the call (your parnter might have another timezone)`,
       });
     } catch(error) {
-      console.error('[match.js:106 ERROR]:', error);
+      console.error('[match.js:114 ERROR]:', error);
     }
   };
 
   const findUser = async (payload) => {
-    // const location = `${payload.location}`.split(',').join('|'); // [OK] v1
     const query = {
       $and: [
-        {
-          $or: [{ 'state.skip': { $exists: false } }, { 'state.skip': false }],
-        },
         {
           $or: [
             {
@@ -126,18 +131,18 @@ module.exports = async (controller) => {
         },
         {
           $or: [
+            { 'state.community': payload.community },
+            { 'state.community': { $ne: payload.community } },
+            { 'state.community': { $exists: true } },
+          ],
+        },
+        {
+          $or: [
             { 'state.english_level': payload.english_level + 1 },
             { 'state.english_level': payload.english_level },
             { 'state.english_level': payload.english_level - 1 },
             { 'state.english_level': { $gte: payload.english_level } },
             { 'state.english_level': { $lte: payload.english_level } },
-          ],
-        },
-        {
-          $or: [
-            { 'state.community': payload.community },
-            { 'state.community': { $ne: payload.community } },
-            { 'state.community': { $ne: undefined } },
           ],
         },
         {
@@ -150,7 +155,12 @@ module.exports = async (controller) => {
               },
             },
             { 'state.location': { $ne: payload.location } },
-            // { 'state.skip': false },
+            {
+              $or: [
+                { 'state.new_user': true },
+                { 'state.skip': false },
+              ],
+            },
           ],
         },
       ],
@@ -160,8 +170,10 @@ module.exports = async (controller) => {
       /* the replacement object */
       $set: {
         'state.conversation_with': payload.userId,
+        'state.new_user': false,
         'state.ready_to_conversation': 'busy',
       },
+      $push: { 'state.recent_users': `${payload.channelId}/users/${payload.userId}/` },
     };
 
     const start = Date.now();
@@ -193,7 +205,7 @@ module.exports = async (controller) => {
     const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
     console.log('search:', finish, 'sec');
 
-    if (user.length) {
+    if (!!user && Object.keys(user).length) {
       console.log(
         `\n[${payload.userId} >>> ${user._id.match(/(\d+)\/?$/)[1]}${
           !!user.state.conversation_with &&
@@ -226,43 +238,31 @@ module.exports = async (controller) => {
       const user = await findUser(options);
 
       if (Object.keys(user).length) {
-        /**
-         * Add recipient to sender recent users list
-         */
         const start = Date.now();
-        senderProperties.recent_users = [
-          ...senderProperties.recent_users,
-          user._id,
-        ];
 
-        /**
-         * Save recent users to state
-         */
-        await message.senderProperties.recent_users_property.set(
+        await senderProperties.recent_users_property.set(
           senderProperties.context,
-          senderProperties.recent_users
+          [ ...senderProperties.recent_users, user._id ]
         );
 
-        // // const expired_at = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
-        // const expired_at = Date.now() + (1000 * 60 * 30); // 30 minutes
         const id = user._id.match(/(\d+)\/?$/)[1];
 
-        await message.senderProperties.ready_to_conversation_property.set(
-          senderProperties.context,
-          'busy'
-        );
-        await message.senderProperties.conversation_with_property.set(
+        await senderProperties.conversation_with_property.set(
           senderProperties.context,
           id
         );
+        await senderProperties.new_user_property.set(
+          senderProperties.context,
+          false
+        );
+        await senderProperties.ready_to_conversation_property.set(
+          senderProperties.context,
+          'busy'
+        );
+        // // const expired_at = Date.now() + (1000 * 60 * 60 * 24 * 2); // 2 days
+        // const expired_at = Date.now() + (1000 * 60 * 30); // 30 minutes
         // await senderProperties.expired_at_property.set(senderProperties.context, expired_at);
 
-        /**
-         * Save senderProperties changes to storage
-         */
-        // await message.senderProperties.userState.saveChanges(senderProperties.context);
-
-        // senderProperties = await getUserContextProperties(controller, bot, message);
         const senderBot = bot;
         const senderMessage = { ...message };
 
@@ -304,28 +304,30 @@ module.exports = async (controller) => {
         /**
          * Set recipient properties
          */
-        let recipientProperties = await getUserContextProperties(
+        const recipientProperties = await getUserContextProperties(
           controller,
           recipientBot,
           recipientMessage
         );
+        // const recipientPropertiesRef = await recipientProperties.userState.load(recipientProperties.context);
+        // console.log('\nrecipientPropertiesRef after:\n', recipientPropertiesRef);
 
-        recipientProperties.recent_users = [
-          ...recipientProperties.recent_users,
-          `${channelId}/users/${senderMessage.sender.id}/`,
-        ];
+        // recipientProperties.recent_users = [
+        //   ...recipientProperties.recent_users,
+        //   `${channelId}/users/${senderMessage.sender.id}/`,
+        // ];
 
-        await recipientProperties.recent_users_property.set(
-          recipientProperties.context,
-          recipientProperties.recent_users
-        );
+        // await recipientProperties.recent_users_property.set(
+        //   recipientProperties.context,
+        //   recipientProperties.recent_users
+        // );
 
-        /**
-         * Save recipientProperties changes to storage
-         */
-        await recipientProperties.userState.saveChanges(
-          recipientProperties.context
-        );
+        // /**
+        //  * Save recipientProperties changes to storage
+        //  */
+        // await recipientProperties.userState.saveChanges(
+        //   recipientProperties.context
+        // );
         const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
         console.log('set properties:', finish, 'sec');
 
@@ -425,7 +427,7 @@ module.exports = async (controller) => {
         });
       }
     } catch(error) {
-      console.error('[match.js:428 ERROR]:', error);
+      console.error('[match.js:419 ERROR]:', error);
     }
     const finish = parseFloat((Date.now() - start) / 1e3).toFixed(3);
     console.log('match:', finish, 'sec');

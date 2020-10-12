@@ -5,10 +5,11 @@ const CronJob = require('cron').CronJob;
 const { getUserContextProperties, resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
+  // return;
   /**
    * #BEGIN Scheduling Automation
    */
-  const storage = controller.storage;
+  const { storage } = controller;
 
   // const date = new Date();
   // const days = date.getDay();
@@ -40,28 +41,30 @@ module.exports = async (controller) => {
       // Months: 0-11 (Jan-Dec)
       // Day of Week: 0-6 (Sun-Sat)
 
-      // '0 0 12-15 * * 1', // [PROD]
+      // '0 0 12 * * 1', // [PROD]
       // '0 0 */1 * * *', // [STAGING]
-      '0 15 9 * * *', // [TEST]
+      '0 0 * * * *', // [TEST]
       // time,
-      async () => {
+      async () => { // [OK]
         await storage.connect({
-          useNewUrlParser: true,
           debug: true,
           keepAlive: true,
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
         });
 
-        // const docs = await storage.Collection.find({ // [OK]
-        //   'state.community': { $exists: true },
-        //   'state.skip': false,
-        // });
-        const docs = await storage.Collection.find({
-          // [OK]
-          'state.community': { $exists: true },
-          // 'state.skip': false,
+        const docs = await storage.Collection.find({ // [OK]
+          $and: [
+            { 'state.community': { $exists: true } },
+            // {
+            //   $or: [
+            //     { 'state.new_user': true },
+            //     { 'state.skip': false },
+            //   ],
+            // },
+          ],
         });
 
-        // [OK]
         let users = (await docs.toArray()).reduce((accum, { _id, state }) => {
           if (!!_id.match('facebook/users')) {
             const id = _id.match(/\/(\d+)\/?$/)[1];
@@ -73,146 +76,125 @@ module.exports = async (controller) => {
         }, []);
 
         let count = Object.keys(users).length;
-        console.log('[scheduling_match.js:76]: users', count);
+        console.log('\n[scheduling_match.js:79]: users', count);
 
         const jobNextTime = new Date(Date.now() + job._timeout._idleTimeout).toLocaleString();
 
         if (count) {
           const times = [];
           let usersList = Object.values(users);
-          usersList.forEach(async ({ id, state }, i) => {
-            // for await (const { id, state } of usersList) {
+
+          const task = async () => {
+            const user = usersList.shift();
+
+            if (!!user) {
+              const { id, state } = user;
             // if (id === '3049377188434960') {
-              const task = setTimeout(async () => {
-                const user = usersList.find((user) => user.id === id);
-                const userIndex = usersList.indexOf(user);
-
-                const message = {
-                  channel: id,
-                  message: { text: '' },
-                  messaging_type: 'MESSAGE_TAG',
-                  recipient: { id },
-                  sender: { id },
-                  tag: 'ACCOUNT_UPDATE',
-                  text: '',
-                  user: id,
-                  value: undefined,
-                  reference: {
-                    activityId: undefined,
-                    user: { id, name: id },
-                    conversation: { id },
+              const message = {
+                channel: id,
+                message: { text: '' },
+                messaging_type: 'MESSAGE_TAG',
+                recipient: { id },
+                sender: { id },
+                tag: 'ACCOUNT_UPDATE',
+                text: '',
+                user: id,
+                value: undefined,
+                reference: {
+                  activityId: undefined,
+                  user: { id, name: id },
+                  conversation: { id },
+                },
+                incoming_message: {
+                  channelId: 'facebook',
+                  conversation: { id },
+                  from: { id, name: id },
+                  recipient: { id, name: id },
+                  channelData: {
+                    messaging_type: 'MESSAGE_TAG',
+                    tag: 'ACCOUNT_UPDATE',
+                    sender: { id },
                   },
-                  incoming_message: {
-                    channelId: 'facebook',
-                    conversation: { id },
-                    from: { id, name: id },
-                    recipient: { id, name: id },
-                    channelData: {
-                      messaging_type: 'MESSAGE_TAG',
-                      tag: 'ACCOUNT_UPDATE',
-                      sender: { id },
-                    },
-                  },
-                };
+                },
+              };
 
-                if (userIndex > -1) {
-                  const start = Date.now();
-                  const dialogBot = await controller.spawn(id);
-                  await dialogBot.startConversationWithUser(id);
+              const start = Date.now();
+              if (state.ready_to_conversation === 'ready') {
+                const dialogBot = await controller.spawn(id);
+                await dialogBot.startConversationWithUser(id);
 
-                  // await controller.trigger(['reset'], dialogBot, message);
-                  // await resetUserContextProperties(controller, dialogBot, message);
-                  // return;
+                let senderProperties = await getUserContextProperties(
+                  controller,
+                  dialogBot,
+                  message
+                );
 
-                  if (state.ready_to_conversation === 'ready') {
-                    let senderProperties = await getUserContextProperties(
-                      controller,
-                      dialogBot,
-                      message
-                    );
+                const userId = `facebook/conversations/${id}-${id}/`;
+                await storage.delete([userId]);
+                await dialogBot.cancelAllDialogs();
 
-                    const userId = `facebook/conversations/${id}-${id}/`;
-                    await storage.delete([userId]);
-                    await dialogBot.cancelAllDialogs();
+                Object.assign(message, { ...message, senderProperties });
 
-                    Object.assign(message, { ...message, senderProperties });
+                await controller.trigger(
+                  ['match'],
+                  dialogBot,
+                  message
+                );
 
-                    // console.log('\n\n>>>>> scheduling_match: message: before:\n', message.senderProperties);
+                await message.senderProperties.userState.saveChanges(message.senderProperties.context);
 
-                    await controller.trigger(
-                      ['match'],
-                      dialogBot,
-                      message
-                    );
+                message.senderProperties = await message.senderProperties.userState.load(message.senderProperties.context);
 
-                    await message.senderProperties.userState.saveChanges(message.senderProperties.context);
+                const recipient = usersList.find((user) => {
+                  return user.id === message.senderProperties.conversation_with;
+                });
 
-                    // v1 [OK]
-                    // senderProperties = await getUserContextProperties(
-                    //   controller,
-                    //   dialogBot,
-                    //   message
-                    // );
+                const recipientIndex = usersList.indexOf(recipient);
 
-                    // v2 [*]
-                    message.senderProperties = await message.senderProperties.userState.load(message.senderProperties.context);
-
-                    // console.log('\n\n>>>>> scheduling_match: message: after:\n', message.senderProperties);
-
-                    const recipient = usersList.find(
-                      (user) => user.id === message.senderProperties.conversation_with
-                    );
-                    const recipientIndex = usersList.indexOf(recipient);
-
-                    if (recipientIndex > -1) {
-                      usersList.splice(recipientIndex, 1);
-                    }
-                    message.senderProperties = null;
-                    senderProperties = null;
-                  }
-
-                  usersList.splice(userIndex, 1);
-
-                  const finish = /* parseFloat(( */Date.now() - start/* ) / 1e3).toFixed(8) */;
-                  times[times.length] = finish;
-
-                  console.log(
-                    '[scheduling_match.js usersList]',
-                    usersList.length,
-                    parseFloat(finish / 1e3).toFixed(3),
-                    'sec'
-                  );
-
-                  if (!usersList.length) {
-                    const allTimes = Object.values(times).reduce((accum = 0, value) => {
-                      accum += value;
-                      return accum;
-                    });
-                    const averangeTime = parseFloat(allTimes / times.length).toFixed(8);
-                    console.log(
-                      '[scheduling_match.js NEXT]: job start at:',
-                      jobNextTime,
-                      averangeTime, 'sec', '(', times.length, ')'
-                    );
-                  }
-                } else {
-                  console.log(
-                    '[scheduling_match.js:186 userIndex]: the user was not found or was removed from the list',
-                    i,
-                    id,
-                    userIndex
-                  );
+                if (recipientIndex > -1) {
+                  usersList.splice(recipientIndex, 1);
                 }
-                //   // await resetUserContextProperties(controller, dialogBot, message);
-                // await controller.trigger(['reset'], dialogBot, message);
-                clearTimeout(task);
-                // }, 500 * i);
-              }, 5000 * i);
+
+                message.senderProperties = null;
+                senderProperties = null;
+              }
+
+              const finish = /*parseFloat((*/Date.now() - start/*) / 1e3).toFixed(3)*/;
+              times[times.length] = finish;
+
+              console.log(
+                '[scheduling_match.js usersList]',
+                usersList.length,
+                parseFloat(finish / 1e3).toFixed(3),
+                'sec'
+              );
+
+              if (!usersList.length) {
+                const allTimes = Object.values(times).reduce((accum = 0, value) => {
+                  accum += value;
+                  return accum;
+                });
+                const averangeTime = parseInt(allTimes / times.length);
+                console.log(
+                  '\n[scheduling_match.js NEXT]: job start at:',
+                  jobNextTime,
+                  'avg:', averangeTime, 'ms',
+                  '[min]:', Math.min(...times),
+                  '[max]:', Math.max(...times),
+                  '[all]:', parseFloat(allTimes / 1000 / 60).toFixed(3), 'min',
+                  '(', times.length, ')'
+                );
+                return;
+              }
+              await task();
             // }
-            // }
-          });
+            }
+          };
+
+          await task();
         }
-        console.log('[scheduling_match.js NEXT]: job start at:', jobNextTime);
+
+        console.log('\n[scheduling_match.js NEXT]: job start at:', jobNextTime);
       },
       null,
       false,
