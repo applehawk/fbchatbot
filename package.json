@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "engines": {
-    "node": "14.9.0"
+    "node": "14.13.0"
   },
   "main": "bot.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "cron": "^1.8.2"
   },
   "devDependencies": {
-    "ava": "^3.11.1",
+    "ava": "^3.12.1",
     "dotenv": "^8.2.0"
   }
 }
