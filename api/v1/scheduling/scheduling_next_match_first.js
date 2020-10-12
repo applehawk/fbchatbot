@@ -8,7 +8,7 @@ module.exports = async (controller) => {
   /**
    * #BEGIN Scheduling Automation
    */
-  const storage = controller.storage;
+  const { storage } = controller;
 
   // const date = new Date();
   // const days = date.getDay();

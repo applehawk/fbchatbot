@@ -4,7 +4,7 @@ const CronJob = require('cron').CronJob;
 const {/*  getUserContextProperties,  */ resetUserContextProperties } = require('../helpers.js');
 
 module.exports = async (controller) => {
-  const storage = controller.storage;
+  const { storage } = controller;
 
   // const date = new Date();
   // const days = date.getDay();

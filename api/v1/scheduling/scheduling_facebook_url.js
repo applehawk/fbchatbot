@@ -6,7 +6,7 @@ module.exports = async (controller) => {
   /**
    * #BEGIN Scheduling Automation
    */
-  const storage = controller.storage;
+  const { storage } = controller;
 
   const job = new CronJob(
     // Seconds: 0-59
